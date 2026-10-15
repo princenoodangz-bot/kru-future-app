@@ -1,0 +1,25 @@
+{
+  "name": "ครูในอนาคต - ระบบเตรียมสอบครูผู้ช่วย",
+  "short_name": "ครูในอนาคต",
+  "description": "ระบบทดสอบความรู้และเตรียมความพร้อมสอบบรรจุครูผู้ช่วย",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8f6",
+  "theme_color": "#755634",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

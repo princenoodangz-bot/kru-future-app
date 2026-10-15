@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  <title>ครูในอนาคต - ทำแบบทดสอบ</title>
+
+  <!-- สคริปต์เชื่อมต่อ Supabase, Auth และ Theme Manager -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="check-auth.js"></script>
+  <script src="theme-manager.js"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0 sm:p-4 bg-[#f3ece4]">
+
+<main class="w-full max-w-[420px] h-[100dvh] max-h-[920px] bg-[#faf6f0] flex flex-col justify-between overflow-hidden shadow-2xl relative sm:rounded-[36px] sm:border-[6px] sm:border-stone-800">
+  
+  <!-- แถบด้านบน: ฝั่งซ้ายเป็นปุ่มนำทาง / ฝั่งขวาเป็นเวลามุมเดิม -->
+  <header class="pt-3 px-4 pb-2 bg-[#faf6f0]/95 backdrop-blur-md z-30 shrink-0">
+    <div class="bg-white border border-[#e8ded4] rounded-2xl p-2.5 shadow-sm flex items-center justify-between gap-2">
+      
+      <!-- ฝั่งซ้าย: ปุ่มหน้าแรก + ปุ่มแผงผังข้อสอบ + ชื่อวิชา -->
+      <div class="flex items-center gap-1.5 min-w-0 flex-1">
+        <button onclick="location.href='index.html'" type="button" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center shrink-0 transition-colors">
+          <i class="fa-solid fa-house text-xs"></i>
+        </button>
+        <button onclick="openQuestionPalette()" type="button" class="w-8 h-8 rounded-full bg-[#f5eee6] hover:bg-[#ebd9cb] text-[#755634] flex items-center justify-center shrink-0 transition-colors shadow-2xs" title="ดูแผงข้อสอบทั้งหมด">
+          <i class="fa-solid fa-grip text-xs"></i>
+        </button>
+        <div class="flex flex-col min-w-0 pr-1">
+          <span class="text-[9px] text-stone-400 leading-tight">ข้อสอบชุดเตรียมสอบ</span>
+          <span class="text-xs font-bold text-[#755634] truncate" id="examTitleHeader">ชุดข้อสอบทั่วไป</span>
+        </div>
+      </div>
+
+      <!-- ฝั่งขวา: กล่องเวลา 2 รูปแบบ ล็อกติดมุมบนขวา -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- เวลารวม (นับเดินหน้า) -->
+        <div class="bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 flex items-center gap-1" title="เวลารวมที่ใช้ไป">
+          <i class="fa-solid fa-stopwatch text-[10px] text-stone-400"></i>
+          <span id="totalTimeText" class="text-[11px] font-mono font-bold text-stone-700">00:00</span>
+        </div>
+        <!-- นับถอยหลังต่อข้อ -->
+        <div id="perQuestionBadge" class="bg-[#f5eee6] px-2 py-1 rounded-lg border border-[#755634]/30 flex items-center gap-1" title="เวลานับถอยหลังข้อนี้">
+          <i class="fa-regular fa-clock text-[10px] text-[#755634]"></i>
+          <span id="perQuestionTimerText" class="text-[11px] font-mono font-bold text-[#755634]">02:00</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- เนื้อหาข้อสอบและตัวเลือกคำตอบ -->
+  <section class="flex-1 overflow-y-auto px-4 py-2 space-y-3">
+    <!-- แถบสถานะข้อ -->
+    <div class="flex justify-between items-center text-xs text-stone-500 px-1">
+      <span id="questionCounter">ข้อที่ 1 / 3</span>
+      <span id="answeredCounter">ตอบแล้ว: 0 ข้อ</span>
+    </div>
+
+    <!-- กล่องโจทย์คำถาม -->
+    <div class="bg-white border border-[#e8ded4] rounded-2xl p-4 shadow-sm relative">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[11px] font-semibold uppercase text-[#755634] bg-[#f2e8dc] px-2.5 py-0.5 rounded-md" id="badgeQNum">
+          คำถามข้อที่ 1
+        </span>
+        <button onclick="toggleBookmark()" id="btnBookmark" class="text-stone-300 hover:text-amber-500 transition-colors">
+          <i class="fa-solid fa-flag text-sm"></i>
+        </button>
+      </div>
+      <p id="qText" class="text-base font-medium text-stone-800 leading-relaxed pt-1">
+        กำลังโหลดโจทย์ข้อสอบ...
+      </p>
+    </div>
+
+    <!-- กล่องตัวเลือกคำตอบ -->
+    <div class="space-y-2.5" id="choicesContainer"></div>
+
+    <!-- กล่องแสดงเฉลย -->
+    <div id="solutionBox" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 leading-relaxed">
+      <strong class="block mb-1">เฉลยข้อสอบ:</strong>
+      <span id="solutionText">-</span>
+    </div>
+  </section>
+
+  <!-- ปุ่มควบคุมด้านล่าง 4 ปุ่ม (ล็อกติดขอบล่าง ไม่มี Nav บัง) -->
+  <div class="shrink-0 bg-white border-t border-[#e8ded4] px-4 py-3 pb-5 z-40 sticky bottom-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+    <div class="grid grid-cols-4 gap-2">
+      <button onclick="prevQuestion()" type="button" class="py-2.5 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <i class="fa-solid fa-arrow-left text-[10px]"></i> ก่อนหน้า
+      </button>
+      <button onclick="toggleSolution()" type="button" class="py-2.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <i class="fa-regular fa-lightbulb text-[11px]"></i> เฉลย
+      </button>
+      <button onclick="submitExam()" type="button" class="py-2.5 rounded-xl border border-[#755634] bg-[#f2e8dc] hover:bg-[#ebd9cb] text-[#755634] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <i class="fa-regular fa-paper-plane text-[10px]"></i> ส่งข้อสอบ
+      </button>
+      <button onclick="nextQuestion()" type="button" class="py-2.5 rounded-xl bg-[#755634] hover:bg-[#896443] text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all">
+        ถัดไป <i class="fa-solid fa-arrow-right text-[10px]"></i>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- หน้าต่างสรุปผลสอบเมื่อส่งข้อสอบเสร็จ (Result Modal) -->
+  <div id="resultModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#e8ded4] text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- ไอคอนสถานะ ผ่าน / ไม่ผ่าน -->
+      <div id="resultIconBox" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center shadow-inner">
+        <span id="resultIcon" class="material-symbols-outlined text-[36px]"></span>
+      </div>
+
+      <div>
+        <h3 id="resultTitle" class="text-lg font-bold text-gray-800">สรุปผลการทดสอบ</h3>
+        <p id="resultSubtitle" class="text-xs text-gray-500 mt-0.5">เกณฑ์ผ่านการประเมิน 60% ขึ้นไป</p>
+      </div>
+
+      <!-- กล่องคะแนนใหญ่ -->
+      <div class="bg-[#faf6f0] rounded-2xl p-4 border border-[#e8ded4] space-y-1">
+        <span class="text-xs text-gray-500 block">คะแนนที่ทำได้</span>
+        <div class="flex items-baseline justify-center gap-1">
+          <span id="resultScorePercent" class="text-4xl font-extrabold text-[#755634]">0%</span>
+        </div>
+        <span id="resultScoreFraction" class="text-xs font-semibold text-gray-600 block">ตอบถูก 0 จาก 0 ข้อ</span>
+      </div>
+
+      <!-- สรุปสถิติเวลาและโหมด -->
+      <div class="grid grid-cols-2 gap-2 text-left">
+        <div class="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+          <span class="text-[10px] text-gray-400 block">โหมดการสอบ</span>
+          <span id="resultModeText" class="text-xs font-bold text-gray-700 truncate block mt-0.5">ฝึกซ้อม</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+          <span class="text-[10px] text-gray-400 block">เวลารวมที่ใช้</span>
+          <span id="resultTimeText" class="text-xs font-bold text-gray-700 block mt-0.5">00:00 นาที</span>
+        </div>
+      </div>
+
+      <!-- ปุ่มดำเนินการต่อ -->
+      <div class="space-y-2 pt-2">
+        <button type="button" onclick="enableReviewMode()" class="w-full py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98">
+          <span class="material-symbols-outlined text-[18px]">fact_check</span>
+          <span>ตรวจคำตอบ & ดูเฉลยละเอียดทุกข้อ</span>
+        </button>
+        <button type="button" onclick="location.href='history.html'" class="w-full py-2.5 rounded-xl bg-[#755634] hover:bg-[#896443] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all active:scale-98">
+          <span>บันทึกผลและไปหน้าประวัติ</span>
+          <i class="fa-solid fa-arrow-right text-[11px]"></i>
+        </button>
+      </div>
+
+      <!-- กลุ่มปุ่มดำเนินการหลังสอบเสร็จ -->
+      <div class="space-y-2 pt-2">
+        <!-- แถวปุ่มดูเฉลย & แก้ตัวข้อที่ผิด -->
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="startReviewMode()" class="w-full py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+            <i class="fa-solid fa-list-check text-xs"></i>
+            <span>ดูเฉลยละเอียด</span>
+          </button>
+          
+          <!-- ปุ่มนี้จะแสดงขึ้นมาเมื่อมีข้อที่ตอบผิด -->
+          <button type="button" id="btnRetryWrong" onclick="retryWrongQuestions()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95">
+            <i class="fa-solid fa-rotate-right text-xs"></i>
+            <span>แก้ตัวข้อที่ผิด</span>
+          </button>
+        </div>
+
+        <!-- ปุ่มดาวน์โหลดการ์ดผลสอบ PNG -->
+        <button type="button" onclick="generateAndDownloadScoreCard()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95">
+          <i class="fa-solid fa-image text-xs"></i>
+          <span>บันทึกการ์ดผลสอบ (.PNG)</span>
+        </button>
+
+        <!-- ปุ่มกลับหน้าหลัก -->
+        <button type="button" onclick="location.href='index.html'" class="w-full py-2 rounded-xl text-stone-400 hover:text-stone-600 text-xs font-semibold transition-all">
+          กลับสู่หน้าหลัก
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  
+<!-- หน้าต่างแผงผังข้อสอบทั้งหมด (Question Palette Modal) -->
+  <div id="paletteModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-[#e8ded4] space-y-4 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-200">
+      
+      <!-- หัวแผงผัง (ใช้ FontAwesome เพื่อแสดงเป็นไอคอนชัดเจน) -->
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-[#f5eee6] flex items-center justify-center text-[#755634]">
+            <i class="fa-solid fa-table-cells text-sm"></i>
+          </div>
+          <h3 class="text-sm font-bold text-gray-800">แผงผังข้อสอบทั้งหมด</h3>
+        </div>
+        <button onclick="closeQuestionPalette()" type="button" class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- สัญลักษณ์สถานะสี (Legend วงกลม) -->
+      <div class="flex items-center justify-between text-[11px] text-gray-600 bg-[#faf6f0] p-2.5 rounded-xl shrink-0">
+        <span class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-[#755634]"></span> ตอบแล้ว
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-amber-500"></span> ปักธง
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-stone-200 border border-stone-300"></span> ยังไม่ตอบ
+        </span>
+      </div>
+
+      <!-- ตารางปุ่มวงกลมหมายเลขข้อ 1 ถึง N (Scroll ได้) -->
+      <div class="overflow-y-auto flex-1 py-2 px-1">
+        <div id="paletteGridContainer" class="grid grid-cols-5 gap-3 justify-items-center">
+          <!-- ปุ่มวงกลมแต่ละข้อจะถูกสร้างผ่าน JS -->
+        </div>
+      </div>
+
+      <!-- ปุ่มปิดแผง -->
+      <button onclick="closeQuestionPalette()" type="button" class="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs shrink-0 transition-all">
+        กลับสู่ข้อสอบปัจจุบัน
+      </button>
+
+    </div>
+  </div>
+
+      <!-- ป๊อปอัปแจ้งผลสอบแบบโมเดิร์น (แสดงหน้าดีใจ / หน้าเศร้า ตามคะแนน 70%) -->
+<div id="resultSummaryModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+  <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#e8ded4] text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+    
+    <!-- อิโมจิ / รูปแสดงอารมณ์ -->
+    <div id="modalMoodIconBox" class="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-inner transition-transform hover:scale-105">
+      <span id="modalMoodEmoji">🥳</span>
+    </div>
+
+    <!-- หัวข้อและคำให้กำลังใจ -->
+    <div>
+      <h3 id="modalResultTitle" class="text-lg font-bold text-slate-800 leading-tight">ยอดเยี่ยมมาก! ผ่านเกณฑ์ฉลุย 🎉</h3>
+      <p id="modalResultDesc" class="text-xs text-slate-500 mt-1">เตรียมความพร้อมมาดีมาก มั่นใจเข้าห้องสอบได้เลย</p>
+    </div>
+
+    <!-- กล่องสรุปคะแนนและสถิติ -->
+    <div class="bg-[#faf6f0] p-4 rounded-2xl border border-[#f0e6da] space-y-3">
+      <!-- คะแนนเปอร์เซ็นต์ใหญ่ -->
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">คะแนนที่ได้</span>
+        <div class="flex items-baseline justify-center gap-1 mt-0.5">
+          <span id="modalScorePercent" class="text-4xl font-extrabold text-[#755634]">0.0</span>
+          <span class="text-base font-bold text-slate-500">%</span>
+        </div>
+      </div>
+
+      <!-- สรุป 3 ช่องเล็ก -->
+      <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-[#ede4d8] text-center">
+        <div class="bg-white/80 p-2 rounded-xl">
+          <span class="text-[9px] text-slate-400 block">โหมด</span>
+          <span id="modalModeText" class="text-xs font-bold text-slate-700 truncate block mt-0.5">แข่งขัน</span>
+        </div>
+        <div class="bg-white/80 p-2 rounded-xl">
+          <span class="text-[9px] text-slate-400 block">ตอบถูก</span>
+          <span id="modalCorrectText" class="text-xs font-bold text-emerald-600 block mt-0.5">0/10 ข้อ</span>
+        </div>
+        <div class="bg-white/80 p-2 rounded-xl">
+          <span class="text-[9px] text-slate-400 block">เวลารวม</span>
+          <span id="modalTimeText" class="text-xs font-bold text-amber-700 block mt-0.5">0:13 น.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ปุ่มการทำงาน -->
+    <div class="space-y-2 pt-1">
+      <button type="button" onclick="closeResultModal()" class="w-full py-2.5 rounded-xl bg-[#755634] hover:bg-[#5e4429] text-white font-bold text-xs shadow-md active:scale-98 transition-all flex items-center justify-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px]">visibility</span>
+        <span>ดูเฉลยละเอียดทุกข้อ</span>
+      </button>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="location.reload()" class="py-2 rounded-xl bg-white border border-[#e8ded4] hover:bg-stone-50 text-slate-700 font-bold text-xs transition-all active:scale-98">
+          ทำใหม่อีกครั้ง
+        </button>
+        <button type="button" onclick="location.href='history.html'" class="py-2 rounded-xl bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs transition-all active:scale-98">
+          ดูสถิติในประวัติ
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+</main>
+
+<script>
+
+    // ฟังก์ชันแปลงค่าเฉลยให้เป็น ก ข ค ง เสมอ (รองรับทั้ง A B C D และ ก ข ค ง)
+function normalizeAnswerToThai(ans) {
+  if (!ans) return 'ก';
+  const a = String(ans).trim().toUpperCase();
+  const map = {
+    'A': 'ก', '1': 'ก', 'ก': 'ก',
+    'B': 'ข', '2': 'ข', 'ข': 'ข',
+    'C': 'ค', '3': 'ค', 'ค': 'ค',
+    'D': 'ง', '4': 'ง', 'ง': 'ง'
+  };
+  return map[a] || a;
+}
+
+  let questions = [
+    { id: '1', question_text: '6, 12, 24, 48, ?, 192 ตัวเลขถัดไปคืออะไร', choice_a: '96', choice_b: '84', choice_c: '90', choice_d: '100', correct_answer: 'A', explanation: 'เป็นอนุกรมที่เพิ่มขึ้นทีละ 2 เท่า: 48 x 2 = 96' },
+    { id: '2', question_text: 'ข้อใดเป็นหลักการสำคัญของทฤษฎีการเรียนรู้แบบ Constructivism', choice_a: 'ผู้เรียนสร้างความรู้ด้วยตนเอง', choice_b: 'การลงโทษเมื่อทำผิด', choice_c: 'การท่องจำซ้ำๆ', choice_d: 'การให้รางวัลเป็นหลัก', correct_answer: 'A', explanation: 'Constructivism เน้นให้ผู้เรียนเป็นผู้สร้างความรู้ผ่านประสบการณ์และการคิดวิเคราะห์' },
+    { id: '3', question_text: 'พระราชบัญญัติการศึกษาแห่งชาติ พ.ศ. 2542 หมวดใดว่าด้วยแนวการจัดการศึกษา', choice_a: 'หมวด 1', choice_b: 'หมวด 2', choice_c: 'หมวด 4', choice_d: 'หมวด 7', correct_answer: 'C', explanation: 'หมวด 4 คือ หมวดว่าด้วยแนวการจัดการศึกษา (เน้นผู้เรียนเป็นสำคัญ)' }
+  ];
+
+  let currentIndex = 0;
+  let userAnswers = {};
+  let timeLeft = 900;
+  let timerInterval;
+
+  // โหลดข้อสอบตามหมวดหมู่ / โหมดสอบ / ข้อสอบแก้ตัว (ฉบับสมบูรณ์ รวมระบบกรองข้อซ้ำ)
+  async function loadExamQuestions() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramPart = urlParams.get('part');
+    const paramCat = urlParams.get('category');
+    const paramSub = urlParams.get('sub_category');
+    const paramTopic = urlParams.get('topic');
+    const paramQid = urlParams.get('qid'); // กรณีทำซ้ำข้อเดียว
+
+    // 🛡️ ป้องกันบั๊ก Leaderboard: ถ้าเป็นโหมดแข่งขัน ต้องล็อกไว้ที่ 10, 20, 50 ข้อเท่านั้น
+    if (examMode === 'competition') {
+      if (![10, 20, 50].includes(targetQuestionCount)) {
+        targetQuestionCount = 20; // บังคับปัดเข้าค่ามาตรฐาน
+      }
+    } else if (examMode === 'mock') {
+      targetQuestionCount = 20; // บังคับ 20 ข้อ
+    }
+
+    const headerTitle = document.getElementById('examTitleHeader');
+
+    // ตกแต่งชื่อหัวข้อสอบตามโหมด
+    if (examMode === 'retest') {
+      headerTitle.innerText = '🎯 คลังข้อสอบแก้ตัว (ข้อที่เคยตอบผิด)';
+      headerTitle.className = 'text-xs font-bold text-rose-600';
+    } else if (examMode === 'competition') {
+      headerTitle.innerText = `⚡ โหมดแข่งขัน (${targetQuestionCount} ข้อ - ข้อละ 1 นาที)`;
+      headerTitle.className = 'text-xs font-bold text-amber-600';
+    } else if (examMode === 'mock') {
+      headerTitle.innerText = `📝 จำลองสอบจริง 20 ข้อ`;
+      headerTitle.className = 'text-xs font-bold text-purple-700';
+    } else {
+      headerTitle.innerText = paramTopic || paramCat || paramPart || 'ชุดข้อสอบทั่วไป';
+    }
+
+    try {
+      if (!window.supabase) return;
+
+      // ----------------------------------------------------
+      // กรณีที่ 1: โหมดสอบแก้ตัว (ดึงข้อที่เคยตอบผิดมาฝึกซ้ำ)
+      // ----------------------------------------------------
+      if (examMode === 'retest') {
+        const userInfo = JSON.parse(localStorage.getItem('kru_user_info') || '{}');
+        
+        if (paramQid) {
+          const { data } = await supabase.from('questions').select('*').eq('id', paramQid);
+          if (data && data.length > 0) questions = data;
+        } else if (userInfo.id) {
+          const { data: wrongs } = await supabase.from('wrong_answers').select('question_id').eq('user_id', userInfo.id).limit(20);
+          if (wrongs && wrongs.length > 0) {
+            const { data: wrongQuestions } = await supabase.from('questions').select('*').in('id', wrongs.map(w => w.question_id));
+            if (wrongQuestions && wrongQuestions.length > 0) {
+              questions = wrongQuestions.sort(() => Math.random() - 0.5);
+            }
+          }
+        }
+
+        if (questions.length === 0) {
+          alert('ไม่พบข้อสอบแก้ตัว หรือคุณยังไม่มีประวัติข้อที่ตอบผิด');
+          location.href = 'history.html';
+          return;
+        }
+      } 
+      // ----------------------------------------------------
+      // กรณีที่ 2: โหมดทั่วไป / แข่งขัน / จำลองสอบจริง
+      // ----------------------------------------------------
+      else {
+        let query = supabase.from('questions').select('*');
+
+        // กรองตาม 4 ระดับ (ถ้ามีค่าส่งมา)
+        if (paramPart && paramPart !== 'all') query = query.eq('exam_part', paramPart);
+        if (paramCat && paramCat !== 'all') query = query.eq('exam_category', paramCat);
+        if (paramSub && paramSub !== 'all') query = query.eq('exam_sub_category', paramSub);
+        if (paramTopic && paramTopic !== 'all') query = query.eq('exam_topic', paramTopic);
+
+        // โหลดแบบไม่ limit ไปก่อน เพื่อให้มีจำนวนพอสำหรับตรวจเช็กข้อที่เคยทำแล้ว
+        const { data, error } = await query;
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          alert('ไม่พบข้อสอบในหมวดที่เลือก ระบบจะพากลับไปหน้าเลือกข้อสอบ');
+          location.href = 'all-exams.html';
+          return;
+        }
+
+        // ==========================================
+        // คัดเลือกข้อสอบ: ให้ความสำคัญกับข้อที่ยังไม่เคยทำ
+        // ==========================================
+        const seenIds = getSeenQuestionIds();
+        const unseenPool = data.filter(q => !seenIds.has(q.id));
+        const seenPool = data.filter(q => seenIds.has(q.id));
+
+        // สุ่มสลับทั้งสองกลุ่มแบบอิสระ
+        const shuffledUnseen = unseenPool.sort(() => Math.random() - 0.5);
+        const shuffledSeen = seenPool.sort(() => Math.random() - 0.5);
+
+        let pickedQuestions = [];
+
+        if (shuffledUnseen.length >= targetQuestionCount) {
+          // มีข้อใหม่เพียงพอ -> หยิบข้อใหม่ทั้งหมด
+          pickedQuestions = shuffledUnseen.slice(0, targetQuestionCount);
+        } else {
+          // ข้อใหม่ไม่พอ -> เอาข้อใหม่ทั้งหมดมารวมกับสุ่มเอาข้อเก่ามาเติมให้ครบ
+          pickedQuestions = [
+            ...shuffledUnseen,
+            ...shuffledSeen.slice(0, targetQuestionCount - shuffledUnseen.length)
+          ];
+
+          // ล้างประวัติเพื่อรีเซ็ตให้เริ่มทำใหม่ได้ในรอบหน้า
+          if (unseenPool.length === 0) {
+            resetSeenQuestionsForCategory(data);
+          }
+        }
+
+        // สลับตัวเลือก ก, ข, ค, ง ของแต่ละข้อ
+        questions = pickedQuestions.map(q => shuffleChoicesForQuestion(q));
+      }
+
+      renderQuestion();
+      startTotalTimer();
+      updateBookmarkIcon();
+
+    } catch (e) {
+      console.warn("Error querying questions:", e);
+      alert("ไม่สามารถดึงข้อสอบได้ กรุณาลองใหม่อีกครั้ง");
+    }
+  }
+
+
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    document.getElementById('questionCounter').innerText = `ข้อที่ ${currentIndex + 1} / ${questions.length}`;
+    document.getElementById('badgeQNum').innerText = `คำถามข้อที่ ${currentIndex + 1}`;
+    document.getElementById('qText').innerText = q.question_text;
+    document.getElementById('solutionBox').classList.add('hidden');
+
+    const container = document.getElementById('choicesContainer');
+    container.innerHTML = '';
+
+    const choices = [
+      { key: 'A', label: 'ก.', text: q.choice_a },
+      { key: 'B', label: 'ข.', text: q.choice_b },
+      { key: 'C', label: 'ค.', text: q.choice_c },
+      { key: 'D', label: 'ง.', text: q.choice_d }
+    ];
+
+    choices.forEach(c => {
+      const isSelected = userAnswers[currentIndex] === c.key;
+      const btn = document.createElement('div');
+      btn.className = `p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+        isSelected ? 'bg-[#f5eee6] border-[#755634] shadow-sm' : 'bg-white border-[#e8ded4] hover:bg-stone-50'
+      }`;
+      btn.onclick = () => selectChoice(c.key);
+      btn.innerHTML = `
+        <div class="flex items-center space-x-3">
+          <div class="w-6 h-6 rounded-full border-2 ${isSelected ? 'border-[#755634] bg-white' : 'border-stone-300'} flex items-center justify-center">
+            ${isSelected ? '<div class="w-3 h-3 rounded-full bg-[#755634]"></div>' : ''}
+          </div>
+          <span class="text-sm ${isSelected ? 'font-bold text-stone-900' : 'text-stone-700'}">${c.label} ${c.text}</span>
+        </div>
+        ${isSelected ? '<span class="text-[11px] text-[#755634] bg-white px-2 py-0.5 rounded-full border border-stone-200">เลือกแล้ว</span>' : ''}
+      `;
+      container.appendChild(btn);
+    });
+
+    const answeredCount = Object.keys(userAnswers).length;
+    document.getElementById('answeredCounter').innerText = `ตอบแล้ว: ${answeredCount} ข้อ`;
+  }
+
+  function selectChoice(key) {
+    userAnswers[currentIndex] = key;
+    renderQuestion();
+  }
+
+  function nextQuestion() {
+    if (currentIndex < questions.length - 1) {
+      currentIndex++;
+      if (typeof isReviewMode !== 'undefined' && isReviewMode) {
+        renderQuestionWithReview();
+      } else {
+        renderQuestion();
+      }
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      if (typeof isReviewMode !== 'undefined' && isReviewMode) {
+        renderQuestionWithReview();
+      } else {
+        renderQuestion();
+      }
+    }
+  }
+
+  function toggleSolution() {
+    const q = questions[currentIndex];
+    const box = document.getElementById('solutionBox');
+    const text = document.getElementById('solutionText');
+    if (box.classList.contains('hidden')) {
+      text.innerHTML = `<strong>คำตอบที่ถูกต้องคือ: ข้อ ${q.correct_answer}</strong><br>${q.explanation || 'ไม่มีคำอธิบายเพิ่มเติม'}`;
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+    }
+  }
+
+// ฟังก์ชันส่งข้อสอบ (ฉบับสมบูรณ์ 100%: ป้องกันส่งเอง คิดคะแนนตรง บันทึก Supabase ครบ และแสดงผลสวยงาม)
+let isSubmittingExam = false; // ตัวล็อกป้องกันการกดส่งซ้ำ
+
+async function submitExam(isForcedTimeout = false) {
+  // -------------------------------------------------------------
+  // 1. ดักจับความปลอดภัย: ป้องกันระบบเผลอสั่งส่งเองตอนเพิ่งเปิดหน้าเว็บ
+  // -------------------------------------------------------------
+  if (!questions || questions.length === 0) return;
+
+  const currentElapsed = typeof totalSecondsElapsed !== 'undefined' ? totalSecondsElapsed : 0;
+  const answeredKeys = Object.keys(userAnswers || {});
+  const doneCount = answeredKeys.length;
+
+  // ถ้าถูกสั่งส่งเพราะหมดเวลา แต่เพิ่งเปิดหน้ามาไม่ถึง 3 วินาที และยังไม่ได้ตอบข้อใดเลย ให้ระงับทันที
+  if (isForcedTimeout && currentElapsed < 3 && doneCount === 0) {
+    console.warn("⚠️ ระงับการส่งข้อสอบอัตโนมัติเนื่องจากเพิ่งเริ่มโหลดหน้า");
+    return;
+  }
+
+  // ป้องกันการทำงานซ้อนกันหากกำลังส่งอยู่
+  if (isSubmittingExam) return;
+
+  // -------------------------------------------------------------
+  // 2. หยุดตัวจับเวลาทั้งหมดทันที
+  // -------------------------------------------------------------
+  if (typeof totalTimerInterval !== 'undefined') clearInterval(totalTimerInterval);
+  if (typeof perQuestionInterval !== 'undefined') clearInterval(perQuestionInterval);
+
+  // ถ้าไม่ใช่การหมดเวลา และยังทำไม่ครบทุกข้อ ให้ถามยืนยันก่อน
+  if (!isForcedTimeout && doneCount < questions.length) {
+    const isConfirm = confirm(`คุณตอบไปแล้ว ${doneCount} จาก ${questions.length} ข้อ ยืนยันที่จะส่งข้อสอบหรือไม่?`);
+    if (!isConfirm) {
+      if (typeof startPerQuestionTimer === 'function') startPerQuestionTimer();
+      return;
+    }
+  }
+
+  isSubmittingExam = true; // ล็อกสถานะกำลังส่ง
+
+  // -------------------------------------------------------------
+  // 3. บันทึก ID ข้อสอบชุดนี้ลงในรายการที่เคยทำแล้ว
+  // -------------------------------------------------------------
+  if (typeof recordQuestionsAsSeen === 'function' && questions && questions.length > 0) {
+    recordQuestionsAsSeen(questions);
+  }
+
+  // -------------------------------------------------------------
+  // 4. คำนวณคะแนน (ระบบตรวจอัจฉริยะ: ดักจับทั้ง ก-ง, A-D และข้อความเต็ม)
+  // -------------------------------------------------------------
+  let correct = 0;
+  const wrongQuestionsToSave = [];
+
+  const cleanText = (str) => String(str || '').replace(/^[ก-งa-dA-D0-4][\.\)]\s*/, '').trim();
+
+  const letterMap = {
+    'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง',
+    'a': 'ก', 'b': 'ข', 'c': 'ค', 'd': 'ง',
+    '0': 'ก', '1': 'ข', '2': 'ค', '3': 'ง'
+  };
+
+  questions.forEach((q, idx) => {
+    const userRaw = userAnswers[idx] !== undefined 
+                  ? userAnswers[idx] 
+                  : (userAnswers[q.id] !== undefined ? userAnswers[q.id] : userAnswers[q.question_id]);
+
+    let userStr = (typeof userRaw === 'object' && userRaw !== null)
+      ? (userRaw.answer || userRaw.choice || userRaw.selected || '')
+      : String(userRaw || '');
+    userStr = userStr.trim();
+
+    const choices = {
+      'ก': cleanText(q.choice_a || q.choice_1 || q.option_a || q.option_1 || (q.choices ? q.choices[0] : '')),
+      'ข': cleanText(q.choice_b || q.choice_2 || q.option_b || q.option_2 || (q.choices ? q.choices[1] : '')),
+      'ค': cleanText(q.choice_c || q.choice_3 || q.option_c || q.option_3 || (q.choices ? q.choices[2] : '')),
+      'ง': cleanText(q.choice_d || q.choice_4 || q.option_d || q.option_4 || (q.choices ? q.choices[3] : ''))
+    };
+
+    let userLetter = letterMap[userStr] || userStr.charAt(0);
+    let userChoiceText = choices[userLetter] || cleanText(userStr);
+
+    if (!['ก', 'ข', 'ค', 'ง'].includes(userLetter)) {
+      for (const [k, text] of Object.entries(choices)) {
+        if (text && text === cleanText(userStr)) {
+          userLetter = k;
+          userChoiceText = text;
+          break;
+        }
+      }
+    }
+
+    const rawCorrect = String(q.correct_answer || '').trim();
+    const correctCleanText = cleanText(rawCorrect);
+    let correctLetter = letterMap[rawCorrect] || (['ก', 'ข', 'ค', 'ง'].includes(rawCorrect) ? rawCorrect : null);
+
+    if (!correctLetter) {
+      for (const [k, text] of Object.entries(choices)) {
+        if (text && text === correctCleanText) {
+          correctLetter = k;
+          break;
+        }
+      }
+    }
+
+    let isCorrect = false;
+    if (userLetter && correctLetter && userLetter === correctLetter) {
+      isCorrect = true;
+    } else if (userChoiceText && correctCleanText && userChoiceText === correctCleanText) {
+      isCorrect = true;
+    }
+
+    if (isCorrect) {
+      correct++;
+    } else {
+      wrongQuestionsToSave.push(q);
+    }
+  });
+
+  const baseCount = (isForcedTimeout && doneCount > 0) ? doneCount : questions.length;
+  const percentage = baseCount > 0 ? parseFloat(((correct / baseCount) * 100).toFixed(1)) : 0;
+
+  const elapsedSec = typeof totalSecondsElapsed !== 'undefined' ? totalSecondsElapsed : 0;
+  const min = Math.floor(elapsedSec / 60);
+  const sec = elapsedSec % 60;
+  const currentMode = typeof examMode !== 'undefined' ? examMode : 'practice';
+
+  // -------------------------------------------------------------
+  // 5. บันทึกผลสอบลง Supabase
+  // -------------------------------------------------------------
+  try {
+    const rawUser = localStorage.getItem('kru_user_info') 
+                 || localStorage.getItem('user_profile') 
+                 || localStorage.getItem('kru_user') 
+                 || '{}';
+    const userInfo = JSON.parse(rawUser);
+
+    const attemptId = 'att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const currentUserId = userInfo.id || userInfo.user_id || 'anonymous_user';
+
+    if (window.supabase) {
+      // 5.1 บันทึกลงตาราง exam_attempts
+      const { data: attemptData, error: attemptError } = await supabase
+        .from('exam_attempts')
+        .insert([{
+          id: attemptId,
+          user_id: currentUserId,
+          exam_id: questions[0]?.exam_topic || questions[0]?.exam_category || 'ชุดข้อสอบทั่วไป',
+          exam_mode: currentMode,
+          target_questions: typeof targetQuestionCount !== 'undefined' ? targetQuestionCount : questions.length,
+          total_attempted: doneCount,
+          total_correct: correct,
+          score_percentage: percentage,
+          time_spent_seconds: elapsedSec,
+          completed_at: new Date().toISOString()
+        }])
+        .select();
+
+      if (attemptError) {
+        console.error("❌ บันทึก exam_attempts ไม่ผ่าน:", attemptError.message);
+      }
+
+      // 5.2 บันทึกข้อที่ตอบผิดลงตาราง wrong_answers พร้อมนับสะสม wrong_count
+      for (const wq of wrongQuestionsToSave) {
+        if (!wq.id) continue;
+        const recordId = `wrg_${currentUserId}_${wq.id}`;
+
+        let currentCount = 1;
+        const { data: existingWrong } = await supabase
+          .from('wrong_answers')
+          .select('wrong_count')
+          .eq('id', recordId)
+          .maybeSingle();
+
+        if (existingWrong && existingWrong.wrong_count) {
+          currentCount = existingWrong.wrong_count + 1;
+        }
+
+        await supabase.from('wrong_answers').upsert([{
+          id: recordId,
+          user_id: currentUserId,
+          question_id: wq.id,
+          exam_category: wq.exam_category || '',
+          exam_topic: wq.exam_topic || '',
+          wrong_count: currentCount,
+          last_wrong_at: new Date().toISOString()
+        }], { onConflict: 'id' });
+      }
+    }
+  } catch (err) {
+    console.error("Save attempt error:", err);
+  } finally {
+    isSubmittingExam = false;
+  }
+
+  // -------------------------------------------------------------
+  // 6. แสดงหน้าต่างแจ้งผลสอบ
+  // -------------------------------------------------------------
+  if (typeof showCustomResultModal === 'function') {
+    showCustomResultModal(percentage, correct, doneCount, currentMode, min, sec);
+  } else {
+    alert(`🎉 ส่งข้อสอบเรียบร้อย!\nโหมด: ${currentMode}\nตอบถูก: ${correct}/${doneCount} ข้อ\nคะแนน: ${percentage}%\nเวลาที่ใช้: ${min} นาที ${sec} วินาที`);
+  }
+}
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert('หมดเวลาทำข้อสอบ! ระบบจะส่งคำตอบโดยอัตโนมัติ');
+        submitExam();
+        return;
+      }
+      timeLeft--;
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      document.getElementById('timerText').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }, 1000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. โหลดข้อสอบตามปกติ
+    loadExamQuestions();
+
+    // 2. นำการตั้งค่าจากหน้า Settings มาใช้งานจริง
+    const isTimerEnabled = localStorage.getItem('kru_pref_timer') !== 'false';
+    const isRealMode = localStorage.getItem('kru_pref_real_mode') === 'true';
+
+    // ถ้าปิด "แสดงเวลานับถอยหลัง" -> ซ่อนกล่องเวลาออกไป
+    if (!isTimerEnabled) {
+      const timeContainer = document.getElementById('totalTimeText')?.parentElement;
+      const perQBadge = document.getElementById('perQuestionBadge');
+      if (timeContainer) timeContainer.style.display = 'none';
+      if (perQBadge) perQBadge.style.display = 'none';
+    }
+
+    // ถ้าเปิด "โหมดจำลองสอบจริง" -> ซ่อนปุ่มเฉลย ไม่ให้แอบดูระหว่างสอบ
+    if (isRealMode) {
+      const btnSolution = document.querySelector('button[onclick="toggleSolution()"]');
+      if (btnSolution) btnSolution.style.display = 'none';
+    }
+  });
+
+  // 1. ตัวแปรควบคุมโหมดและเวลา 2 รูปแบบ
+  const urlParams = new URLSearchParams(window.location.search);
+  const examMode = urlParams.get('mode') || 'practice'; // practice, competition, mock
+  const targetQuestionCount = parseInt(urlParams.get('count')) || (examMode === 'mock' ? 20 : 20);
+
+  let totalSecondsElapsed = 0; // เวลาที่ 2: เวลารวม (นับเดินหน้า)
+  let totalTimerInterval = null;
+
+  // เวลาที่ 1: นับถอยหลังต่อข้อ (โหมดแข่ง 60 วิ, โหมดอื่น 120 วิ)
+  const perQuestionLimit = examMode === 'competition' ? 60 : 120;
+  let perQuestionLeft = perQuestionLimit;
+  let perQuestionInterval = null;
+
+  // 2. ฟังก์ชันเริ่มเวลารวม (Stopwatch)
+  function startTotalTimer() {
+    totalTimerInterval = setInterval(() => {
+      totalSecondsElapsed++;
+      const m = Math.floor(totalSecondsElapsed / 60);
+      const s = totalSecondsElapsed % 60;
+      const el = document.getElementById('totalTimeText');
+      if (el) el.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }, 1000);
+  }
+
+  // 3. ฟังก์ชันเริ่มเวลานับถอยหลังต่อข้อ
+  function startPerQuestionTimer() {
+    clearInterval(perQuestionInterval);
+    perQuestionLeft = perQuestionLimit;
+    updatePerQuestionUI();
+
+    perQuestionInterval = setInterval(() => {
+      perQuestionLeft--;
+      updatePerQuestionUI();
+
+      // เมื่อหมดเวลาในข้อนี้ -> บังคับส่งข้อสอบทันที
+      if (perQuestionLeft <= 0) {
+        clearInterval(perQuestionInterval);
+        alert(`⏰ หมดเวลาในข้อนี้! ระบบจะนำข้อที่ทำไปแล้วทั้งหมดมาคำนวณคะแนนและส่งข้อสอบทันที`);
+        submitExam(true); // true = ถูกบังคับส่งเพราะหมดเวลา
+      }
+    }, 1000);
+  }
+
+  function updatePerQuestionUI() {
+    const m = Math.floor(perQuestionLeft / 60);
+    const s = perQuestionLeft % 60;
+    const badge = document.getElementById('perQuestionBadge');
+    const textEl = document.getElementById('perQuestionTimerText');
+
+    if (textEl) textEl.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    
+    // แจ้งเตือนสีกระพริบเมื่อเหลือ 15 วินาทีสุดท้าย
+    if (perQuestionLeft <= 15 && badge) {
+      badge.className = 'bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-300 flex items-center gap-1 animate-pulse';
+      textEl.className = 'text-xs font-mono font-bold text-rose-600';
+    }
+  }
+
+  // ปรับ renderQuestion ให้รีเซ็ตเวลานับถอยหลังใหม่ทุกครั้งที่เปลี่ยนข้อ
+  const originalRender = renderQuestion;
+  renderQuestion = function() {
+    originalRender();
+    startPerQuestionTimer();
+  };
+
+  
+
+  let isReviewMode = false; // ตัวแปรบอกสถานะว่าอยู่ในโหมดดูเฉลยหรือไม่
+
+  // 1. แสดง Modal สรุปคะแนน
+  function showResultModal(res) {
+    const isPass = res.percentage >= 60;
+    const modal = document.getElementById('resultModal');
+    const iconBox = document.getElementById('resultIconBox');
+    const icon = document.getElementById('resultIcon');
+    const title = document.getElementById('resultTitle');
+    const percent = document.getElementById('resultScorePercent');
+    const fraction = document.getElementById('resultScoreFraction');
+    const modeEl = document.getElementById('resultModeText');
+    const timeEl = document.getElementById('resultTimeText');
+
+    if (isPass) {
+      iconBox.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-emerald-100 text-emerald-600';
+      icon.innerText = 'verified';
+      title.innerText = '🎉 ยินดีด้วย! คุณผ่านเกณฑ์';
+      percent.className = 'text-4xl font-extrabold text-emerald-600';
+    } else {
+      iconBox.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-rose-100 text-rose-600';
+      icon.innerText = 'sentiment_dissatisfied';
+      title.innerText = 'สู้ต่ออีกนิด! ยังไม่ผ่านเกณฑ์';
+      percent.className = 'text-4xl font-extrabold text-rose-600';
+    }
+
+    percent.innerText = `${res.percentage}%`;
+    fraction.innerText = `ตอบถูก ${res.correct} จาก ${res.baseCount} ข้อ ${res.isForcedTimeout ? '(หมดเวลา)' : ''}`;
+    modeEl.innerText = res.mode === 'competition' ? 'แข่งขัน' : res.mode === 'mock' ? 'จำลองสอบจริง' : 'ฝึกซ้อม';
+
+    const min = Math.floor(res.totalSeconds / 60);
+    const sec = res.totalSeconds % 60;
+    timeEl.innerText = `${min}:${String(sec).padStart(2, '0')} นาที`;
+
+    modal.classList.remove('hidden');
+  }
+
+  // 2. เข้าสู่โหมดตรวจคำตอบ (Review Mode) - แก้ไขให้ใช้ currentIndex
+  function enableReviewMode() {
+    isReviewMode = true;
+    document.getElementById('resultModal')?.classList.add('hidden');
+    document.getElementById('resultSummaryModal')?.classList.add('hidden');
+
+    // ปิดแถบเวลานับถอยหลังต่อข้อ
+    const perQBadge = document.getElementById('perQuestionBadge');
+    if (perQBadge) perQBadge.style.display = 'none';
+
+    // เปลี่ยนหัวเรื่องเป็นโหมดตรวจเฉลย
+    const headerTitle = document.getElementById('examTitleHeader');
+    if (headerTitle) {
+      headerTitle.innerText = '🔍 โหมดตรวจเฉลยคำตอบอย่างละเอียด';
+      headerTitle.className = 'text-xs font-bold text-amber-700';
+    }
+
+    // ย้อนกลับไปดูตั้งแต่ข้อที่ 1 (ใช้ currentIndex ให้ตรงกับปุ่มถัดไป/ก่อนหน้า)
+    currentIndex = 0;
+    renderQuestionWithReview();
+  }
+
+  // 3. เรนเดอร์โจทย์พร้อมเฉลย (แก้ไขให้ดึง currentIndex)
+  function renderQuestionWithReview() {
+    const q = questions[currentIndex];
+    if (!q) return;
+
+    document.getElementById('questionCounter').innerText = `ตรวจข้อที่ ${currentIndex + 1} / ${questions.length}`;
+    document.getElementById('badgeQNum').innerText = `คำถามข้อที่ ${currentIndex + 1}`;
+    document.getElementById('qText').innerText = q.question_text;
+
+    // รองรับการดึงคำตอบทั้งแบบ index และแบบ ID
+    const userRaw = userAnswers[currentIndex] !== undefined 
+                  ? userAnswers[currentIndex] 
+                  : (userAnswers[q.id] !== undefined ? userAnswers[q.id] : userAnswers[q.question_id]);
+
+    let userAns = cleanAnswer(userRaw);
+    let correctAns = cleanAnswer(q.correct_answer);
+
+    const choices = [
+      { key: 'ก', label: 'ก.', text: q.choice_a },
+      { key: 'ข', label: 'ข.', text: q.choice_b },
+      { key: 'ค', label: 'ค.', text: q.choice_c },
+      { key: 'ง', label: 'ง.', text: q.choice_d }
+    ];
+
+    const container = document.getElementById('choicesContainer');
+    container.innerHTML = choices.map(c => {
+      let borderClass = 'border-stone-200 bg-white text-stone-700';
+      let icon = '<span class="w-2.5 h-2.5 rounded-full border border-stone-300"></span>';
+
+      if (c.key === correctAns) {
+        // ข้อที่ถูกต้อง (สีเขียว)
+        borderClass = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold';
+        icon = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
+      } else if (userAns === c.key && userAns !== correctAns) {
+        // ข้อที่ผู้สอบเลือกแต่ผิด (สีแดง)
+        borderClass = 'border-rose-500 bg-rose-50 text-rose-900 font-bold';
+        icon = '<i class="fa-solid fa-xmark text-rose-600 text-xs"></i>';
+      }
+
+      return `
+        <div class="p-3 rounded-xl border ${borderClass} flex items-center gap-2.5 text-xs transition-all">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+            ${icon}
+          </div>
+          <span>${c.label} ${c.text || '-'}</span>
+        </div>
+      `;
+    }).join('');
+
+    // แสดงกล่องคำอธิบายเฉลยทันที
+    const solutionBox = document.getElementById('solutionBox');
+    const solutionText = document.getElementById('solutionText');
+    if (solutionText) solutionText.innerText = q.explanation || 'ไม่มีคำอธิบายเพิ่มเติมสำหรับข้อนี้';
+    if (solutionBox) solutionBox.classList.remove('hidden');
+  }
+
+
+// 1. ตัวแปรเก็บข้อที่ปักธงไว้
+  const bookmarkedIndices = new Set();
+
+  // 2. ฟังก์ชันกดปักธง / ยกเลิกปักธงข้อปัจจุบัน
+  function toggleBookmark() {
+    const btn = document.getElementById('btnBookmark');
+    if (bookmarkedIndices.has(currentIndex)) {
+      bookmarkedIndices.delete(currentIndex);
+      btn.className = 'text-stone-300 hover:text-amber-500 transition-colors';
+    } else {
+      bookmarkedIndices.add(currentIndex);
+      btn.className = 'text-amber-500 hover:text-amber-600 transition-colors animate-bounce';
+      setTimeout(() => btn.classList.remove('animate-bounce'), 1000);
+    }
+  }
+
+  // 3. ฟังก์ชันอัปเดตไอคอนธงเมื่อเปลี่ยนข้อสอบ (เรียกใน renderQuestion)
+  function updateBookmarkIcon() {
+    const btn = document.getElementById('btnBookmark');
+    if (!btn) return;
+    if (bookmarkedIndices.has(currentIndex)) {
+      btn.className = 'text-amber-500 hover:text-amber-600 transition-colors';
+    } else {
+      btn.className = 'text-stone-300 hover:text-amber-500 transition-colors';
+    }
+  }
+
+  // เปิดแผงผังข้อสอบ (ปุ่มวงกลมเรียงต่อกัน)
+  function openQuestionPalette() {
+    const container = document.getElementById('paletteGridContainer');
+    if (!container) return;
+
+    container.innerHTML = questions.map((_, idx) => {
+      const isCurrent = idx === currentIndex;
+      const isAnswered = userAnswers[idx] !== undefined;
+      const isBookmarked = bookmarkedIndices.has(idx);
+
+      // สถานะสีของวงกลม
+      let btnStyle = 'bg-stone-100 text-stone-700 border border-stone-300'; // ยังไม่ตอบ
+
+      if (isBookmarked) {
+        btnStyle = 'bg-amber-500 text-white font-bold shadow-xs'; // ปักธง
+      } else if (isAnswered) {
+        btnStyle = 'bg-[#755634] text-white font-bold shadow-xs'; // ตอบแล้ว
+      }
+
+      // ไฮไลต์ข้อที่กำลังทำอยู่ปัจจุบัน
+      const currentRing = isCurrent ? 'ring-2 ring-offset-2 ring-[#755634] scale-105 font-extrabold' : '';
+
+      return `
+        <button type="button" onclick="jumpToQuestion(${idx})" class="w-10 h-10 rounded-full flex items-center justify-center text-xs transition-all active:scale-90 ${btnStyle} ${currentRing}">
+          ${idx + 1}
+          ${isBookmarked ? '<i class="fa-solid fa-flag text-[7px] ml-0.5"></i>' : ''}
+        </button>
+      `;
+    }).join('');
+
+    document.getElementById('paletteModal').classList.remove('hidden');
+  }
+
+  function closeQuestionPalette() {
+    document.getElementById('paletteModal').classList.add('hidden');
+  }
+
+  // 5. กระโดดไปข้อที่เลือก
+  function jumpToQuestion(idx) {
+    currentIndex = idx;
+    closeQuestionPalette();
+    if (typeof isReviewMode !== 'undefined' && isReviewMode) {
+      renderQuestionWithReview();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  // 1. อัลกอริทึมสุ่มสลับตำแหน่งแบบ Fisher-Yates Shuffle
+  function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // 2. ฟังก์ชันสลับตัวเลือก ก, ข, ค, ง (A, B, C, D) พร้อมอัปเดตเฉลย
+  function shuffleChoicesForQuestion(q) {
+    const originalChoices = [
+      { key: 'A', text: q.choice_a },
+      { key: 'B', text: q.choice_b },
+      { key: 'C', text: q.choice_c },
+      { key: 'D', text: q.choice_d }
+    ];
+
+    // Smart Guard: ตรวจสอบว่ามีตัวเลือกแบบสัมพัทธ์หรือไม่
+    // หากมี เช่น "ถูกทุกข้อ", "ไม่มีข้อถูก", "ก และ ข ถูก" จะไม่สลับช้อยส์เพื่อคงความหมายเดิมไว้
+    const relativePattern = /ถูกทุกข้อ|ผิดทุกข้อ|ไม่มีข้อใดถูก|ข้อ.*และ.*ถูก|ถูกทั้ง/i;
+    const hasRelative = originalChoices.some(c => relativePattern.test(c.text || ''));
+
+    if (hasRelative) {
+      return q; // ไม่สลับตัวเลือกข้อนี้
+    }
+
+    // สุ่มสลับตำแหน่งช้อยส์
+    const shuffledChoices = shuffleArray(originalChoices);
+    const keys = ['A', 'B', 'C', 'D'];
+    let newCorrectAnswer = q.correct_answer;
+
+    // หาว่าเฉลยเดิม (เช่น 'B') ตอนนี้ย้ายไปอยู่ที่ตำแหน่งตัวอักษรใดใหม่
+    shuffledChoices.forEach((item, index) => {
+      if (item.key === q.correct_answer) {
+        newCorrectAnswer = keys[index];
+      }
+    });
+
+    return {
+      ...q,
+      choice_a: shuffledChoices[0].text,
+      choice_b: shuffledChoices[1].text,
+      choice_c: shuffledChoices[2].text,
+      choice_d: shuffledChoices[3].text,
+      correct_answer: newCorrectAnswer // เฉลยถูกเปลี่ยนตามตำแหน่งช้อยส์ใหม่เรียบร้อย
+    };
+  }
+
+  
+  // คีย์สำหรับเก็บ ID ข้อสอบที่เคยทำในเครื่องของผู้ใช้นั้นๆ
+  function getSeenStorageKey() {
+    const uid = (typeof userInfo !== 'undefined' && userInfo && userInfo.id) ? userInfo.id : 'guest';
+    return `exam_seen_q_ids_${uid}`;
+  }
+
+  // 1. ฟังก์ชันดึงรายการ ID ข้อสอบที่เคยทำไปแล้ว
+  function getSeenQuestionIds() {
+    try {
+      const raw = localStorage.getItem(getSeenStorageKey());
+      return new Set(JSON.parse(raw || '[]'));
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  // 2. ฟังก์ชันบันทึก ID ข้อสอบที่ทำลงประวัติ (จำกัดสูงสุด 1,000 ข้อล่าสุด ป้องกันข้อมูลบวม)
+  function recordQuestionsAsSeen(questionList) {
+    try {
+      const seenSet = getSeenQuestionIds();
+      questionList.forEach(q => {
+        if (q && q.id) seenSet.add(q.id);
+      });
+      const trimmed = Array.from(seenSet).slice(-1000);
+      localStorage.setItem(getSeenStorageKey(), JSON.stringify(trimmed));
+    } catch (e) {
+      console.warn('Cannot save seen questions:', e);
+    }
+  }
+
+  // 3. ฟังก์ชันล้างประวัติเฉพาะหมวด เมื่อทำข้อสอบในหมวดนั้นจนเกลี้ยงคลังแล้ว
+  function resetSeenQuestionsForCategory(categoryQuestions) {
+    try {
+      const catIds = new Set(categoryQuestions.map(q => q.id));
+      const seenSet = getSeenQuestionIds();
+      const updated = Array.from(seenSet).filter(id => !catIds.has(id));
+      localStorage.setItem(getSeenStorageKey(), JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Cannot reset seen questions:', e);
+    }
+  }
+
+
+  // 1. ฟังก์ชันเริ่มสอบซ่อมเฉพาะข้อที่ตอบผิดทันที
+  function retryWrongQuestions() {
+    // กรองเอาเฉพาะข้อที่ตอบผิด หรือข้อที่ไม่ได้ตอบ
+    const wrongQuestions = questions.filter((q, idx) => {
+      return userAnswers[idx] !== q.correct_answer;
+    });
+
+    if (wrongQuestions.length === 0) {
+      alert('🎉 คุณทำถูกต้องครบทุกข้อแล้ว ไม่มีข้อให้แก้ตัว!');
+      return;
+    }
+
+    // ปิด Modal สรุปผล
+    document.getElementById('resultModal').classList.add('hidden');
+
+    // นำเฉพาะข้อผิดมาเป็นชุดข้อสอบใหม่
+    questions = wrongQuestions;
+    currentIndex = 0;
+    userAnswers = {};
+    bookmarkedIndices.clear();
+    totalSecondsElapsed = 0;
+
+    // รีเซ็ตโหมดและเริ่มจับเวลาใหม่
+    isReviewMode = false;
+    renderQuestion();
+    startExamTimers();
+  }
+
+  // 2. ฟังก์ชันเรนเดอร์การ์ดผลสอบด้วย HTML5 Canvas และดาวน์โหลดไฟล์ .PNG
+  function generateAndDownloadScoreCard() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 760;
+    const ctx = canvas.getContext('2d');
+
+    // ข้อมูลผู้สอบและคะแนน
+    const userName = (typeof userInfo !== 'undefined' && userInfo && userInfo.name) ? userInfo.name : 'ผู้เตรียมสอบ';
+    const examTitle = document.getElementById('examTitleHeader')?.innerText || 'ชุดข้อสอบเตรียมสอบครูผู้ช่วย';
+    
+    // คำนวณคะแนน
+    let correct = 0;
+    questions.forEach((q, idx) => {
+      if (userAnswers[idx] === q.correct_answer) correct++;
+    });
+    const percentage = Math.round((correct / questions.length) * 100);
+    const isPassed = percentage >= 60;
+    const timeSpent = document.getElementById('totalTimeText')?.innerText || '00:00';
+
+    // วาดพื้นหลังการ์ด
+    ctx.fillStyle = '#faf6f0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // กล่องสีขาวหลัก
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, 30, 30, 540, 700, 24);
+    ctx.fill();
+    ctx.strokeStyle = '#e8ded4';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // หัวการ์ด
+    ctx.fillStyle = '#755634';
+    ctx.font = 'bold 22px Sarabun, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('ใบรายงานผลการฝึกทำข้อสอบ', 300, 85);
+
+    ctx.fillStyle = '#8c7b6c';
+    ctx.font = '14px Sarabun, sans-serif';
+    ctx.fillText(examTitle, 300, 115);
+
+    // เส้นคั่น
+    ctx.strokeStyle = '#f0e6da';
+    ctx.beginPath();
+    ctx.moveTo(60, 135);
+    ctx.lineTo(540, 135);
+    ctx.stroke();
+
+    // ชื่อผู้สอบ
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 18px Sarabun, sans-serif';
+    ctx.fillText(`ผู้สอบ: ${userName}`, 300, 175);
+
+    // วงกลมคะแนน (Score Ring)
+    const centerX = 300;
+    const centerY = 285;
+    const radius = 75;
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#faf6f0';
+    ctx.fill();
+    ctx.strokeStyle = isPassed ? '#10b981' : '#f59e0b';
+    ctx.lineWidth = 10;
+    ctx.stroke();
+
+    // ตัวเลข % ในวงกลม
+    ctx.fillStyle = isPassed ? '#047857' : '#b45309';
+    ctx.font = 'bold 44px Sarabun, sans-serif';
+    ctx.fillText(`${percentage}%`, centerX, centerY + 12);
+
+    ctx.fillStyle = '#8c7b6c';
+    ctx.font = '12px Sarabun, sans-serif';
+    ctx.fillText('คะแนนรวม', centerX, centerY + 32);
+
+    // แถบผลประเมิน (Badge ผ่าน / ไม่ผ่าน)
+    const badgeColor = isPassed ? '#dcfce7' : '#fef3c7';
+    const badgeTextColor = isPassed ? '#15803d' : '#b45309';
+    const badgeLabel = isPassed ? '✓ ผ่านเกณฑ์มาตรฐาน (60% ขึ้นไป)' : '✗ ยังไม่ผ่านเกณฑ์ (ต้องได้ 60% ขึ้นไป)';
+
+    ctx.fillStyle = badgeColor;
+    roundRect(ctx, 160, 390, 280, 36, 18);
+    ctx.fill();
+
+    ctx.fillStyle = badgeTextColor;
+    ctx.font = 'bold 14px Sarabun, sans-serif';
+    ctx.fillText(badgeLabel, 300, 413);
+
+    // กล่องรายละเอียดสถิติ (ถูก/ผิด/เวลา)
+    ctx.fillStyle = '#faf6f0';
+    roundRect(ctx, 60, 455, 480, 120, 16);
+    ctx.fill();
+
+    // รายละเอียด 3 ช่อง
+    ctx.font = '13px Sarabun, sans-serif';
+    ctx.fillStyle = '#666666';
+    ctx.fillText('ตอบถูก', 140, 495);
+    ctx.fillText('ข้อที่ทำทั้งหมด', 300, 495);
+    ctx.fillText('เวลาที่ใช้', 460, 495);
+
+    ctx.font = 'bold 22px Sarabun, sans-serif';
+    ctx.fillStyle = '#10b981';
+    ctx.fillText(`${correct} ข้อ`, 140, 535);
+
+    ctx.fillStyle = '#755634';
+    ctx.fillText(`${questions.length} ข้อ`, 300, 535);
+
+    ctx.fillStyle = '#333333';
+    ctx.fillText(`${timeSpent} นาที`, 460, 535);
+
+    // ท้ายการ์ด (วันที่สอบ & ลายน้ำระบบ)
+    const todayStr = new Date().toLocaleDateString('th-TH', {
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    ctx.fillStyle = '#999999';
+    ctx.font = '12px Sarabun, sans-serif';
+    ctx.fillText(`บันทึกผลเมื่อ: ${todayStr} น.`, 300, 640);
+
+    ctx.fillStyle = '#755634';
+    ctx.font = 'bold 13px Sarabun, sans-serif';
+    ctx.fillText('ระบบเตรียมสอบครูผู้ช่วย CBT Online', 300, 680);
+
+    // แปลง Canvas เป็นไฟล์รูปภาพและดาวน์โหลด
+    const imageLink = document.createElement('a');
+    imageLink.download = `ผลสอบ_${userName}_${Date.now()}.png`;
+    imageLink.href = canvas.toDataURL('image/png');
+    imageLink.click();
+  }
+
+  // ฟังก์ชันวาดสี่เหลี่ยมขอบมนใน Canvas
+  function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  
+
+  // เก็บช้อยส์ที่สลับแล้วไว้ในตัวแปรของข้อปัจจุบัน
+let currentShuffledChoices = [];
+let currentCorrectText = '';
+
+
+// ฟังก์ชันแสดงป๊อปอัปแจ้งผลสอบพร้อมแยกหน้าตาตามเกณฑ์ 70%
+  function showCustomResultModal(percentage, correct, doneCount, mode, min, sec) {
+    const isPassed = percentage >= 70;
+
+    const modal = document.getElementById('resultSummaryModal');
+    const iconBox = document.getElementById('modalMoodIconBox');
+    const emojiEl = document.getElementById('modalMoodEmoji');
+    const titleEl = document.getElementById('modalResultTitle');
+    const descEl = document.getElementById('modalResultDesc');
+
+    // แปลงชื่อโหมดให้อ่านง่าย
+    const modeNames = {
+      practice: 'ฝึกซ้อม',
+      competition: 'แข่งขัน',
+      mock: 'จำลองจริง'
+    };
+
+    if (isPassed) {
+      // 🎉 ได้ 70% ขึ้นไป (ดีใจ ผ่านเกณฑ์)
+      iconBox.className = 'w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-inner bg-emerald-100 border border-emerald-200';
+      emojiEl.innerText = '🥳';
+      titleEl.innerHTML = 'ยอดเยี่ยมมาก! ผ่านเกณฑ์ฉลุย 🎉';
+      descEl.innerText = `ทำได้เกินเกณฑ์ 70% ความรู้แน่น พร้อมสอบแน่นอนครับ!`;
+    } else {
+      // 🥺 น้อยกว่า 70% (หน้าเศร้า/ให้กำลังใจ)
+      iconBox.className = 'w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-inner bg-rose-50 border border-rose-200';
+      emojiEl.innerText = '🥺';
+      titleEl.innerHTML = 'เกือบแล้ว สู้ต่ออีกนิดนะ! 🥺';
+      descEl.innerText = `เกณฑ์ผ่านคือ 70% ทบทวนข้อที่ผิดอีกนิด รับรองทำได้แน่นอนครับ ✌️`;
+    }
+
+    // แสดงตัวเลขสถิติ
+    document.getElementById('modalScorePercent').innerText = percentage.toFixed(1);
+    document.getElementById('modalModeText').innerText = modeNames[mode] || mode;
+    document.getElementById('modalCorrectText').innerText = `${correct}/${doneCount} ข้อ`;
+    document.getElementById('modalTimeText').innerText = `${min}:${String(sec).padStart(2, '0')} น.`;
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeResultModal() {
+    document.getElementById('resultSummaryModal').classList.add('hidden');
+  }
+// 1. ฟังก์ชันแปลงตัวเลือกให้อยู่ในรูปแบบตัวอักษรไทยตัวเดี่ยว (ก, ข, ค, ง)
+  
+
+</script>
+</body>
+</html>

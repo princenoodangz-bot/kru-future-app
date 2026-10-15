@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - ครูในอนาคต</title>
+  
+  <!-- 1. ดึง Supabase CDN และไฟล์ Config + Check Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="check-auth.js"></script>
+  <script>
+    // ตรวจสอบสิทธิ์ Admin ทันที ถ้าไม่ใช่ admin ให้ส่งกลับหน้าแรก
+    (function checkAdminRole() {
+      try {
+        const u = JSON.parse(localStorage.getItem('kru_user_info') || '{}');
+        if (u.role !== 'admin') {
+          alert('⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+          window.location.href = 'index.html';
+        }
+      } catch (e) {
+        window.location.href = 'login.html';
+      }
+    })();
+  </script>
+  <script src="theme-manager.js"></script>
+  <!-- ไลบรารีจัดการไฟล์ Excel (SheetJS) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Manrope', sans-serif; }</style>
+</head>
+<body class="bg-[#f5ecea] antialiased text-[#1e1b1a] p-4 sm:p-8">
+
+<div class="max-w-5xl mx-auto space-y-6">
+  
+  <div class="bg-white p-6 rounded-xl shadow-sm flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-[#755634] mb-1 flex items-center gap-2">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+        ศูนย์ควบคุมระบบหลังบ้าน (Supabase)
+      </h1>
+      <p class="text-sm text-gray-500">จัดการข้อมูลผู้ใช้แบบเรียลไทม์</p>
+    </div>
+    <button onclick="localStorage.clear(); location.href='login.html'" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center gap-1">
+      <span class="material-symbols-outlined text-[18px]">logout</span> ออกจากระบบ
+    </button>
+  </div>
+
+<!-- แถบเลือกแท็บการทำงาน -->
+  <div class="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
+    <button type="button" onclick="switchAdminTab('users')" id="tabBtnUsers" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#755634] text-white shadow-sm flex items-center gap-1.5 shrink-0">
+      <span class="material-symbols-outlined text-[18px]">group</span>
+      <span>1. จัดการบัญชีผู้ใช้งาน</span>
+    </button>
+    <button type="button" onclick="switchAdminTab('dday')" id="tabBtnDday" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200">
+      <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+      <span>2. วันสอบจริง & คำคม</span>
+    </button>
+    <button type="button" onclick="switchAdminTab('questions')" id="tabBtnQuestions" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200">
+      <span class="material-symbols-outlined text-[18px]">menu_book</span>
+      <span>3. คลังข้อสอบ & นำเข้า Excel</span>
+    </button>
+  </div>
+
+<!-- แท็บ 1: ผู้ใช้งาน (ครอบคลุมทั้งฟอร์มเพิ่ม ตารางบัญชี และสถิติการสอบ) -->
+  <div id="tabContentUsers" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- กล่องเพิ่มบัญชีผู้ใช้งาน -->
+      <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm space-y-4 h-fit">
+        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 border-b pb-2">
+          <span class="material-symbols-outlined text-[#755634]">person_add</span>
+          เพิ่ม/แก้ไขบัญชีผู้ใช้งาน
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1 text-gray-600">รหัสประจำตัว (Student ID) *</label>
+            <input id="newStdId" type="text" placeholder="เช่น admin หรือ KRU-001" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1 text-gray-600">ชื่อ - นามสกุล</label>
+            <input id="newStdName" type="text" placeholder="เช่น นายสาวิตต์" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1 text-gray-600">รหัสผ่าน *</label>
+            <input id="newStdPass" type="password" placeholder="ตั้งรหัสผ่าน" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1 text-gray-600">ระดับสิทธิ์ (Role)</label>
+            <select id="newStdRole" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634]">
+              <option value="student">นักเรียน (ผู้เข้าสอบ)</option>
+              <option value="admin">ผู้ดูแลระบบ (Admin)</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="createNewUser()" class="w-full mt-2 bg-[#755634] hover:bg-[#906e4a] text-white py-3 rounded-lg font-bold shadow-sm transition-all flex justify-center items-center gap-2">
+          <span class="material-symbols-outlined text-[20px]">save</span> บันทึกบัญชีผู้ใช้
+        </button>
+      </div>
+
+      <!-- ตารางแสดงรายชื่อบัญชี -->
+      <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h3 class="font-bold text-lg text-gray-800">รายชื่อผู้ใช้งานทั้งหมด</h3>
+          <button onclick="loadUsersList()" class="text-sm text-[#755634] hover:bg-[#fbf2f0] px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรชข้อมูล
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600">
+                <th class="p-3 font-semibold rounded-tl-lg">Student ID</th>
+                <th class="p-3 font-semibold">ชื่อ - สกุล</th>
+                <th class="p-3 font-semibold">รหัสผ่าน</th>
+                <th class="p-3 font-semibold">สิทธิ์</th>
+                <th class="p-3 font-semibold">เข้าสู่ระบบล่าสุด</th>
+                <th class="p-3 font-semibold text-center rounded-tr-lg">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-gray-100">
+              <tr><td colspan="6" class="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ตารางรายชื่อนักเรียนและสถิติการสอบ -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <div>
+          <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#755634]">analytics</span>
+            สถิติผู้เข้าทำข้อสอบ (<span id="totalUsersCount">0</span> คน)
+          </h3>
+          <p class="text-xs text-gray-500">ตรวจสอบความคืบหน้าการฝึกซ้อมและคะแนนเฉลี่ย</p>
+        </div>
+        <button onclick="loadAdminUsersList()" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรช
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead>
+            <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
+              <th class="p-3 font-semibold rounded-l-lg">ชื่อ - นามสกุล</th>
+              <th class="p-3 font-semibold">รหัสประจำตัว</th>
+              <th class="p-3 font-semibold text-center">สิทธิ์ผู้ใช้</th>
+              <th class="p-3 font-semibold text-center">ทำข้อสอบไป</th>
+              <th class="p-3 font-semibold text-center">คะแนนเฉลี่ย</th>
+              <th class="p-3 font-semibold text-right rounded-r-lg">วันที่สมัคร</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersTableBody" class="divide-y divide-gray-100 text-gray-700">
+            <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดสถิติผู้ใช้...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- แท็บ 2: วันสอบ D-Day & คำคมประจำวัน (มี ID แท็บถูกต้อง) -->
+  <div id="tabContentDday" style="display: none;" class="space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+      <div class="border-b border-gray-100 pb-3">
+        <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#755634]">edit_calendar</span>
+          ตั้งค่าการสอบเป้าหมาย & ข้อความหน้าแรก
+        </h3>
+        <p class="text-xs text-gray-500">ข้อมูลส่วนนี้จะถูกนำไปแสดงผลบน Dashboard หน้าแรกของนักเรียนทุกคน</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">ชื่อการสอบเป้าหมาย</label>
+          <input type="text" id="cfgExamTitle" placeholder="เช่น สอบบรรจุครูผู้ช่วย สพฐ. รอบทั่วไป" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">กำหนดวันสอบ (D-Day)</label>
+          <input type="date" id="cfgExamDate" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#755634]" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-gray-700 mb-1">คำคม / ข้อความกำลังใจประจำวัน</label>
+          <input type="text" id="cfgDailyQuote" placeholder="เช่น ความพยายามในวันนี้ คือความสำเร็จในวันข้างหน้า..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#755634]" />
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="saveSystemConfigs()" class="bg-[#755634] hover:bg-[#896443] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95">
+          <span class="material-symbols-outlined text-[18px]">save</span>
+          บันทึกการตั้งค่าหน้าแรก
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- แท็บ 3: คลังข้อสอบ & นำเข้า Excel -->
+  <div id="tabContentQuestions" style="display: none;" class="space-y-6">
+    <!-- กล่องเพิ่มข้อสอบด่วน -->
+    <div class="bg-white p-6 rounded-xl shadow-sm space-y-3">
+      <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 border-b pb-2">
+        <span class="material-symbols-outlined text-[#755634]">add_circle</span>
+        เพิ่มข้อสอบใหม่เข้าคลัง (ตาราง questions)
+      </h3>
+      <div>
+        <label class="block text-xs font-semibold mb-1 text-gray-600">โจทย์คำถาม *</label>
+        <textarea id="qText" rows="2" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-sm" placeholder="พิมพ์โจทย์ข้อสอบ..."></textarea>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div>
+          <label class="font-semibold block mb-1 text-gray-600">ตัวเลือก ก.</label>
+          <input id="qA" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-1 text-gray-600">ตัวเลือก ข.</label>
+          <input id="qB" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-1 text-gray-600">ตัวเลือก ค.</label>
+          <input id="qC" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-1 text-gray-600">ตัวเลือก ง.</label>
+          <input id="qD" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 outline-none focus:border-[#755634]" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div>
+          <label class="block text-xs font-semibold mb-1 text-gray-600">เฉลยที่ถูกต้อง *</label>
+          <select id="qCorrect" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-xs">
+            <option value="ก">ก.</option>
+            <option value="ข">ข.</option>
+            <option value="ค">ค.</option>
+            <option value="ง">ง.</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold mb-1 text-gray-600">คำอธิบายเฉลย (ไม่บังคับ)</label>
+          <input id="qExp" type="text" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-xs" placeholder="คำอธิบายเหตุผลของคำตอบ..." />
+        </div>
+      </div>
+      <button onclick="addQuickQuestion()" class="w-full mt-2 bg-[#755634] hover:bg-[#906e4a] text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">post_add</span> บันทึกข้อสอบลง Supabase
+      </button>
+    </div>
+     <!-- กล่องตารางแสดงและจัดการคลังข้อสอบทั้งหมด -->
+    <!-- กล่องตารางแสดงและจัดการคลังข้อสอบทั้งหมด -->
+    <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 border border-gray-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+        <div>
+          <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#755634]">quiz</span>
+            รายการข้อสอบในระบบ (<span id="totalQuestionsCount">0</span> ข้อ)
+          </h3>
+          <p class="text-xs text-gray-500">ตรวจสอบ แก้ไข และเลือกลบข้อสอบรายข้อหรือลบเป็นชุด</p>
+        </div>
+        <button onclick="loadQuestionsList()" type="button" class="bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto shadow-xs">
+          <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรชรายการ
+        </button>
+      </div>
+      
+
+      <!-- แถบค้นหาและตัวกรองแยกตาม 4 ระดับตรงกับด้านล่าง -->
+      <div class="space-y-2">
+        <!-- ช่องพิมพ์ค้นหาคำ -->
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-[18px]">search</span>
+          <input id="searchQuestionInput" oninput="filterQuestionsTable()" type="text" placeholder="พิมพ์ค้นหาโจทย์ หรือคำอธิบาย..." class="w-full bg-gray-50 pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-xs outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- ดรอปดาวน์ตัวกรอง 4 ระดับ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <!-- 1. ระดับภาค -->
+          <select id="filterPartSelect" onchange="onTableFilterPartChange()" class="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-700 outline-none focus:border-[#755634]">
+            <option value="all">ทุกระดับภาค (ก และ ข)</option>
+            <option value="ภาค ก">เฉพาะ ภาค ก</option>
+            <option value="ภาค ข">เฉพาะ ภาค ข</option>
+          </select>
+
+          <!-- 2. หมวดวิชาหลัก -->
+          <select id="filterCategorySelect" onchange="onTableFilterCategoryChange()" class="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-700 outline-none focus:border-[#755634]">
+            <option value="all">ทุกหมวดวิชาหลัก</option>
+          </select>
+
+          <!-- 3. กลุ่มวิชาย่อย -->
+          <select id="filterSubCategorySelect" onchange="onTableFilterSubCategoryChange()" class="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-700 outline-none focus:border-[#755634]">
+            <option value="all">ทุกกลุ่มวิชาย่อย</option>
+          </select>
+
+          <!-- 4. หัวข้อเรื่องย่อย -->
+          <select id="filterTopicSelect" onchange="filterQuestionsTable()" class="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-700 outline-none focus:border-[#755634]">
+            <option value="all">ทุกเรื่องย่อย</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+        <div>
+          <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#755634]">quiz</span>
+            รายการข้อสอบในระบบ (<span id="totalQuestionsCount">0</span> ข้อ)
+          </h3>
+          <p class="text-xs text-gray-500">ตรวจสอบ แก้ไข และเลือกลบข้อสอบรายข้อหรือลบเป็นชุด</p>
+        </div>
+        
+        <!-- กลุ่มปุ่มดำเนินการขวามือ -->
+        <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          
+          <!-- ปุ่มกรองเฉพาะข้อสอบที่หลุดหมวด (จะแสดงอัตโนมัติเมื่อตรวจพบ) -->
+          <button id="btnOrphanFilter" onclick="toggleOrphanFilter()" type="button" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all items-center gap-1.5 shadow-xs animate-pulse">
+            <span class="material-symbols-outlined text-[16px]">warning</span>
+            <span>พบข้อสอบหลุดหมวด (<span id="orphanCountText">0</span> ข้อ)</span>
+          </button>
+
+          <!-- ปุ่มล้างตัวกรองเพื่อดูทั้งหมด -->
+          <button onclick="resetAllFilters()" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+            <span>ดูทั้งหมด</span>
+          </button>
+
+          <!-- ปุ่มดาวน์โหลดข้อสอบที่กรองเป็น Excel -->
+          <button onclick="downloadFilteredQuestionsExcel()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
+            <span class="material-symbols-outlined text-[16px]">download</span>
+            <span>ดาวน์โหลด (.xlsx)</span>
+          </button>
+          
+          <!-- ปุ่มรีเฟรช -->
+          <button onclick="loadQuestionsList()" type="button" class="bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
+            <span class="material-symbols-outlined text-[16px]">refresh</span>
+            <span>รีเฟรช</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- แถบแจ้งเตือนเมื่อมีการติ๊กเลือกข้อสอบ เพื่อสั่งลบหลายรายการ (Bulk Actions) -->
+      <div id="bulkActionsToolbar" class="hidden items-center justify-between bg-rose-50 border border-rose-200 px-4 py-2.5 rounded-xl text-xs transition-all">
+        <div class="flex items-center gap-2 text-rose-800 font-bold">
+          <span class="material-symbols-outlined text-[20px]">checklist</span>
+          <span>เลือกอยู่ <span id="selectedCountText" class="font-black text-rose-600 text-sm">0</span> ข้อ</span>
+        </div>
+        <button type="button" onclick="deleteSelectedQuestions()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
+          <span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+          <span>ลบข้อสอบที่เลือก</span>
+        </button>
+      </div>
+
+      <!-- ตารางแสดงข้อสอบ -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
+              <th class="p-3 w-10 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllQuestions(this.checked)" class="w-4 h-4 rounded accent-[#755634] cursor-pointer" title="เลือกทั้งหมด" />
+              </th>
+              <th class="p-3 font-semibold min-w-[200px]">โจทย์คำถาม</th>
+              <th class="p-3 font-semibold min-w-[140px]">ภาค / หมวดวิชา / เรื่องย่อย</th>
+              <th class="p-3 font-semibold text-center w-16">เฉลย</th>
+              <th class="p-3 font-semibold min-w-[130px]">คำอธิบาย</th>
+              <th class="p-3 font-semibold text-center rounded-r-lg w-24">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="questionsTableBody" class="divide-y divide-gray-100 text-gray-700">
+            <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดรายการข้อสอบ...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+
+    <!-- กล่องนำเข้าข้อสอบ Excel และจัดการเรื่อง/เรื่องย่อย -->
+    <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 border border-gray-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#755634]">table_view</span>
+          นำเข้าข้อสอบครั้งละมากๆ (Excel .xlsx)
+        </h3>
+        <button onclick="downloadExcelTemplate()" class="bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto">
+          <span class="material-symbols-outlined text-[16px]">file_download</span>
+          ดาวน์โหลดแม่แบบ Excel (.xlsx)
+        </button>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-200">
+        <span class="text-xs font-bold text-gray-700 block">กำหนดหมวดหมู่ล่วงหน้าสำหรับข้อสอบเดี่ยว หรือตรวจสอบเกณฑ์ (4 ระดับ):</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          
+          <!-- 1. ระดับภาค -->
+          <div>
+            <label class="block font-semibold mb-1 text-gray-600">1. ระดับภาค</label>
+            <select id="selPart" onchange="onPartChange()" class="w-full bg-white p-2 rounded-lg border border-gray-300 outline-none focus:border-[#755634]">
+              <option value="ภาค ก">ภาค ก: ความรู้ทั่วไป</option>
+              <option value="ภาค ข">ภาค ข: มาตรฐานวิชาชีพ</option>
+            </select>
+          </div>
+
+          <!-- 2. หมวดวิชาหลัก -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-gray-600">2. หมวดวิชาหลัก</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="editCurrentCategory()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
+                <span class="text-gray-300">|</span>
+                <button type="button" onclick="addNewCategory()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
+              </div>
+            </div>
+            <select id="selCategory" onchange="onCategoryChange()" class="w-full bg-white p-2 rounded-lg border border-gray-300 outline-none focus:border-[#755634]"></select>
+          </div>
+
+          <!-- 3. กลุ่มวิชาย่อย -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-gray-600">3. กลุ่มวิชาย่อย</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="editCurrentSubCategory()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
+                <span class="text-gray-300">|</span>
+                <button type="button" onclick="addNewSubCategory()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
+              </div>
+            </div>
+            <select id="selSubCategory" onchange="onSubCategoryChange()" class="w-full bg-white p-2 rounded-lg border border-gray-300 outline-none focus:border-[#755634]"></select>
+          </div>
+
+          <!-- 4. หัวข้อเรื่องย่อย -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-[#755634] font-bold">4. หัวข้อเรื่องย่อย</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="editCurrentTopic()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
+                <span class="text-gray-300">|</span>
+                <button type="button" onclick="addNewTopic()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
+              </div>
+            </div>
+            <select id="selTopic" class="w-full bg-white p-2 rounded-lg border-2 border-[#755634]/40 outline-none focus:border-[#755634] font-bold"></select>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
+        <input id="excelFileInput" type="file" accept=".xlsx, .xls" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer border border-gray-200 rounded-lg p-1.5" />
+        <button onclick="uploadExcelQuestions()" id="btnUploadExcel" class="w-full sm:w-auto shrink-0 bg-[#755634] hover:bg-[#896443] text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+          อัปโหลดข้อสอบเข้า Supabase
+        </button>
+      </div>
+      <p id="excelStatus" class="text-xs text-gray-500"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal สำหรับแก้ไขข้อสอบรายข้อ -->
+  <div id="editQuestionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-[#e8ded4] space-y-4 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between border-b pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-[20px]">edit_note</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-800">แก้ไขข้อสอบ</h3>
+            <p class="text-[10px] text-gray-400">ID: <span id="editQIdBadge" class="font-mono text-gray-600">-</span></p>
+          </div>
+        </div>
+        <button type="button" onclick="closeEditQuestionModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="editQId" />
+
+      <!-- หมวดหมู่ของข้อสอบ -->
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">ระดับภาค</label>
+          <select id="editQPart" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]">
+            <option value="ภาค ก">ภาค ก</option>
+            <option value="ภาค ข">ภาค ข</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">หมวดวิชาหลัก</label>
+          <input id="editQCategory" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+       <label class="block font-bold text-gray-700 mb-1">กลุ่มวิชาย่อย</label>
+       <input id="editQSubCategory" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+     </div>
+      </div>
+
+      <!-- โจทย์ -->
+      <div class="text-xs">
+        <label class="block font-bold text-gray-700 mb-1">โจทย์คำถาม *</label>
+        <textarea id="editQText" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#755634] text-xs"></textarea>
+      </div>
+
+      <!-- ตัวเลือก ก-ง -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div>
+          <label class="font-semibold block mb-0.5 text-gray-600">ตัวเลือก ก.</label>
+          <input id="editQA" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-0.5 text-gray-600">ตัวเลือก ข.</label>
+          <input id="editQB" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-0.5 text-gray-600">ตัวเลือก ค.</label>
+          <input id="editQC" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="font-semibold block mb-0.5 text-gray-600">ตัวเลือก ง.</label>
+          <input id="editQD" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+      </div>
+
+      <!-- เฉลยและคำอธิบาย -->
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">เฉลย *</label>
+          <select id="editQCorrect" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]">
+            <option value="ก">ก.</option>
+            <option value="ข">ข.</option>
+            <option value="ค">ค.</option>
+            <option value="ง">ง.</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block font-bold text-gray-700 mb-1">คำอธิบายเฉลย</label>
+          <input id="editQExp" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+      </div>
+
+      <!-- ปุ่มดำเนินการ -->
+      <div class="flex justify-end gap-2 pt-2 border-t">
+        <button type="button" onclick="closeEditQuestionModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs transition-colors">
+          ยกเลิก
+        </button>
+        <button type="button" onclick="saveEditedQuestion()" class="px-5 py-2 bg-[#755634] hover:bg-[#896443] text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">save</span>
+          <span>บันทึกการแก้ไข</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+
+  // ฟังก์ชันแปลงเฉลยให้เป็น ก ข ค ง สม่ำเสมอ
+function normalizeAnswerToThai(ans) {
+  if (!ans) return 'ก';
+  const a = String(ans).trim().toUpperCase();
+  const map = {
+    'A': 'ก', '1': 'ก', 'ก': 'ก',
+    'B': 'ข', '2': 'ข', 'ข': 'ข',
+    'C': 'ค', '3': 'ค', 'ค': 'ค',
+    'D': 'ง', '4': 'ง', 'ง': 'ง'
+  };
+  return map[a] || a;
+}
+// ==========================================
+// 1. จัดการบัญชีผู้ใช้งาน (Users)
+// ==========================================
+async function createNewUser() {
+  const studentId = document.getElementById('newStdId').value.trim();
+  const name = document.getElementById('newStdName').value.trim();
+  const password = document.getElementById('newStdPass').value;
+  const role = document.getElementById('newStdRole').value;
+
+  if (!studentId || !password) {
+    alert('กรุณากรอกรหัสประจำตัวผู้สอบและรหัสผ่านให้ครบถ้วน');
+    return;
+  }
+
+  const btn = document.querySelector('button[onclick="createNewUser()"]');
+  const oldText = btn.innerHTML;
+  btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">sync</span> กำลังบันทึก...'; 
+  btn.disabled = true;
+
+  try {
+    const newId = "usr_" + Date.now();
+    const { error } = await supabase
+      .from('users')
+      .upsert([
+        { 
+          id: newId, 
+          student_id: studentId, 
+          name: name || `ผู้สอบ ${studentId}`, 
+          password_hash: password, 
+          role: role 
+        }
+      ], { onConflict: 'student_id' });
+
+    if (error) throw error;
+
+    document.getElementById('newStdId').value = '';
+    document.getElementById('newStdName').value = '';
+    document.getElementById('newStdPass').value = '';
+    document.getElementById('newStdRole').value = 'student';
+    
+    loadUsersList();
+    loadAdminUsersList();
+
+  } catch (err) {
+    alert('เกิดข้อผิดพลาด: ' + err.message);
+  } finally {
+    btn.innerHTML = oldText; 
+    btn.disabled = false;
+  }
+}
+
+async function loadUsersList() {
+  const tbody = document.getElementById('userTableBody');
+  if (!tbody) return;
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('student_id, name, password_hash, role, updated_at, created_at')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+
+    if (users && users.length > 0) {
+      tbody.innerHTML = users.map(u => {
+        const loginTime = u.updated_at 
+          ? new Date(u.updated_at).toLocaleDateString('th-TH', { 
+              day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' 
+            }) + ' น.'
+          : '<span class="text-gray-400 text-xs">ยังไม่เคยล็อกอิน</span>';
+
+        return `
+        <tr class="hover:bg-[#fbf2f0]/50 transition-colors border-b border-gray-50">
+          <td class="p-3 font-mono font-bold text-[#755634]">${u.student_id}</td>
+          <td class="p-3 text-gray-800">${u.name}</td>
+          <td class="p-3 font-mono font-bold text-red-600 bg-red-50/60 px-2.5 py-1 rounded w-fit">${u.password_hash}</td>
+          <td class="p-3">
+            <span class="px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
+              ${u.role}
+            </span>
+          </td>
+          <td class="p-3 text-xs text-gray-600">${loginTime}</td>
+          <td class="p-3 text-center">
+            <button onclick="editUser('${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-3 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1 mx-auto">
+              <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
+            </button>
+          </td>
+        </tr>
+      `}).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลผู้ใช้ในระบบ</td></tr>';
+    }
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+  }
+}
+
+function editUser(studentId, name, password, role) {
+  document.getElementById('newStdId').value = studentId;
+  document.getElementById('newStdName').value = name;
+  document.getElementById('newStdPass').value = password;
+  document.getElementById('newStdRole').value = role;
+
+  switchAdminTab('users');
+  document.getElementById('newStdName').focus();
+  document.getElementById('newStdId').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function loadAdminUsersList() {
+  const tbody = document.getElementById('adminUsersTableBody');
+  const countBadge = document.getElementById('totalUsersCount');
+  if (!tbody || !window.supabase) return;
+
+  try {
+    const { data: users, error: uErr } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+    const { data: attempts, error: aErr } = await supabase.from('exam_attempts').select('user_id, score_percentage');
+
+    if (uErr) throw uErr;
+    if (countBadge) countBadge.innerText = users.length;
+
+    tbody.innerHTML = users.map(u => {
+      const userAttempts = (attempts || []).filter(a => a.user_id === u.id);
+      const attemptCount = userAttempts.length;
+      let avgScore = 0;
+      if (attemptCount > 0) {
+        const totalScore = userAttempts.reduce((acc, curr) => acc + Number(curr.score_percentage || 0), 0);
+        avgScore = (totalScore / attemptCount).toFixed(1);
+      }
+      const joinDate = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-';
+
+      return `
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="p-3 font-bold text-gray-800 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full bg-[#f2e1bf] text-[#755634] flex items-center justify-center text-xs font-bold shrink-0">
+              ${(u.name || 'U').charAt(0)}
+            </span>
+            <span>${u.name || 'ไม่ระบุชื่อ'}</span>
+          </td>
+          <td class="p-3 font-mono text-gray-600">${u.student_id || u.phone || '-'}</td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}">
+              ${u.role || 'student'}
+            </span>
+          </td>
+          <td class="p-3 text-center font-bold text-[#755634]">${attemptCount} ชุด</td>
+          <td class="p-3 text-center font-bold ${avgScore >= 60 ? 'text-emerald-600' : 'text-gray-500'}">${avgScore}%</td>
+          <td class="p-3 text-right text-gray-400 font-mono">${joinDate}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">ไม่สามารถโหลดรายชื่อผู้ใช้ได้</td></tr>';
+  }
+}
+
+// ==========================================
+// 2. ตั้งค่าระบบ D-Day & คำคมประจำวัน
+// ==========================================
+async function loadAdminConfigs() {
+  try {
+    if (!window.supabase) return;
+    const { data, error } = await supabase.from('system_configs').select('*');
+    if (error || !data) return;
+
+    data.forEach(item => {
+      if (item.key === 'target_exam_title') {
+        const el = document.getElementById('cfgExamTitle');
+        if (el) el.value = item.value;
+      }
+      if (item.key === 'target_exam_date') {
+        const el = document.getElementById('cfgExamDate');
+        if (el) el.value = item.value;
+      }
+      if (item.key === 'daily_quote') {
+        const el = document.getElementById('cfgDailyQuote');
+        if (el) el.value = item.value;
+      }
+    });
+  } catch (err) {
+    console.warn('Load configs error:', err);
+  }
+}
+
+async function saveSystemConfigs() {
+  const title = document.getElementById('cfgExamTitle').value.trim();
+  const date = document.getElementById('cfgExamDate').value;
+  const quote = document.getElementById('cfgDailyQuote').value.trim();
+
+  if (!title || !date) {
+    alert('กรุณากรอกชื่อการสอบและกำหนดวันสอบให้ครบถ้วน');
+    return;
+  }
+
+  const updates = [
+    { key: 'target_exam_title', value: title, updated_at: new Date().toISOString() },
+    { key: 'target_exam_date', value: date, updated_at: new Date().toISOString() },
+    { key: 'daily_quote', value: quote, updated_at: new Date().toISOString() }
+  ];
+
+  try {
+    for (const item of updates) {
+      const { error } = await supabase.from('system_configs').upsert(item, { onConflict: 'key' });
+      if (error) throw error;
+    }
+    alert('✅ บันทึกข้อมูลสำเร็จ! ข้อมูลในหน้าแรกของนักเรียนจะอัปเดตทันที');
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+  }
+}
+
+// ==========================================
+// 3. จัดการโครงสร้างหมวดหมู่ 4 ระดับ
+// ==========================================
+const defaultTaxonomy = {
+  "ภาค ก": {
+    "ความสามารถในการคิดวิเคราะห์": {
+      "เชิงปริมาณ (คณิตศาสตร์)": ["อนุกรมตัวเลข", "คณิตศาสตร์ทั่วไปและร้อยละ", "สถิติและข้อมูลเชิงตัวเลข", "การวิเคราะห์ตารางและกราฟ"],
+      "เชิงภาษา (ภาษาไทย)": ["การอ่านจับใจความและสรุปความ", "ความเข้าใจภาษาและการตีความ", "การใช้คำและกลุ่มคำ", "การเรียงลำดับข้อความ"],
+      "เชิงนามธรรม": ["อุปมาอุปไมย", "ตรรกศาสตร์และเหตุผล", "มิติสัมพันธ์และอนุกรมภาพ"]
+    },
+    "ทักษะภาษาอังกฤษ": {
+      "ภาษาอังกฤษเพื่อการสื่อสาร": ["Grammar & Structure", "Vocabulary & Context", "Reading Comprehension", "Conversation"]
+    },
+    "ความรู้และลักษณะข้าราชการที่ดี": {
+      "กฎหมายระเบียบราชการ": ["พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน", "พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง", "หลักกิจการบ้านเมืองที่ดี (ธรรมาภิบาล)"],
+      "จริยธรรมและวินัย": ["มาตรฐานทางจริยธรรมและวินัย"]
+    }
+  },
+  "ภาค ข": {
+    "มาตรฐานวิชาชีพครู": {
+      "หลักสูตรและการสอน": ["หลักสูตรแกนกลางและการพัฒนาหลักสูตร", "การจัดการเรียนรู้เชิงรุก (Active Learning)"],
+      "จิตวิทยาและการวัดผล": ["จิตวิทยาพัฒนาการและการแนะแนว", "การวัดและประเมินผลการเรียนรู้"],
+      "การบริหารชั้นเรียนและประกันคุณภาพ": ["การบริหารจัดการชั้นเรียน", "การประกันคุณภาพการศึกษา"]
+    },
+    "วิชาเอกเฉพาะทาง": {
+      "วิชาเอกคอมพิวเตอร์": ["วิทยาการคำนวณและขั้นตอนวิธี", "ฮาร์ดแวร์และระบบเครือข่าย", "ความมั่นคงปลอดภัยและกฎหมายดิจิทัล"]
+    }
+  }
+};
+
+let examTaxonomy = JSON.parse(localStorage.getItem('kru_exam_taxonomy_4levels')) || defaultTaxonomy;
+
+function saveTaxonomy() {
+  localStorage.setItem('kru_exam_taxonomy_4levels', JSON.stringify(examTaxonomy));
+}
+
+function onPartChange(selectedCategory = null) {
+  const part = document.getElementById('selPart').value;
+  const catSelect = document.getElementById('selCategory');
+  const cats = Object.keys(examTaxonomy[part] || {});
+
+  catSelect.innerHTML = cats.map(c => `<option value="${c}" ${c === selectedCategory ? 'selected' : ''}>${c}</option>`).join('');
+  onCategoryChange();
+}
+
+function onCategoryChange(selectedSubCategory = null) {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const subSelect = document.getElementById('selSubCategory');
+  const subCats = Object.keys(examTaxonomy[part]?.[cat] || {});
+
+  subSelect.innerHTML = subCats.map(s => `<option value="${s}" ${s === selectedSubCategory ? 'selected' : ''}>${s}</option>`).join('');
+  onSubCategoryChange();
+}
+
+function onSubCategoryChange(selectedTopic = null) {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const sub = document.getElementById('selSubCategory').value;
+  const topicSelect = document.getElementById('selTopic');
+  const topics = examTaxonomy[part]?.[cat]?.[sub] || [];
+
+  topicSelect.innerHTML = topics.map(t => `<option value="${t}" ${t === selectedTopic ? 'selected' : ''}>${t}</option>`).join('');
+}
+
+function addNewCategory() {
+  const part = document.getElementById('selPart').value;
+  const val = prompt(`เพิ่ม "หมวดวิชาหลัก" ใหม่ให้กับ [${part}]:`);
+  if (!val || !val.trim()) return;
+  const name = val.trim();
+
+  if (!examTaxonomy[part]) examTaxonomy[part] = {};
+  if (!examTaxonomy[part][name]) {
+    examTaxonomy[part][name] = { 'ทั่วไป': ['พื้นฐาน'] };
+    saveTaxonomy();
+  }
+  onPartChange(name);
+}
+
+function editCurrentCategory() {
+  const part = document.getElementById('selPart').value;
+  const current = document.getElementById('selCategory').value;
+  if (!current) return;
+
+  const val = prompt('แก้ไขชื่อ "หมวดวิชาหลัก":', current);
+  if (!val || !val.trim() || val.trim() === current) return;
+  const name = val.trim();
+
+  examTaxonomy[part][name] = examTaxonomy[part][current];
+  delete examTaxonomy[part][current];
+  saveTaxonomy();
+  onPartChange(name);
+}
+
+function addNewSubCategory() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  if (!cat) return;
+
+  const val = prompt(`เพิ่ม "กลุ่มวิชาย่อย" ภายใต้ [${cat}]:`);
+  if (!val || !val.trim()) return;
+  const name = val.trim();
+
+  if (!examTaxonomy[part][cat][name]) {
+    examTaxonomy[part][cat][name] = ['ทั่วไป'];
+    saveTaxonomy();
+  }
+  onCategoryChange(name);
+}
+
+function editCurrentSubCategory() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const current = document.getElementById('selSubCategory').value;
+  if (!current) return;
+
+  const val = prompt('แก้ไขชื่อ "กลุ่มวิชาย่อย":', current);
+  if (!val || !val.trim() || val.trim() === current) return;
+  const name = val.trim();
+
+  examTaxonomy[part][cat][name] = examTaxonomy[part][cat][current];
+  delete examTaxonomy[part][cat][current];
+  saveTaxonomy();
+  onCategoryChange(name);
+}
+
+function addNewTopic() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const sub = document.getElementById('selSubCategory').value;
+  if (!sub) return;
+
+  const val = prompt(`เพิ่ม "หัวข้อเรื่องย่อย" ภายใต้ [${sub}]:`);
+  if (!val || !val.trim()) return;
+  const name = val.trim();
+
+  if (!examTaxonomy[part][cat][sub].includes(name)) {
+    examTaxonomy[part][cat][sub].push(name);
+    saveTaxonomy();
+  }
+  onSubCategoryChange(name);
+}
+
+function editCurrentTopic() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const sub = document.getElementById('selSubCategory').value;
+  const current = document.getElementById('selTopic').value;
+  if (!current) return;
+
+  const val = prompt('แก้ไขชื่อ "หัวข้อเรื่องย่อย":', current);
+  if (!val || !val.trim() || val.trim() === current) return;
+  const name = val.trim();
+
+  const idx = examTaxonomy[part][cat][sub].indexOf(current);
+  if (idx !== -1) {
+    examTaxonomy[part][cat][sub][idx] = name;
+    saveTaxonomy();
+    onSubCategoryChange(name);
+  }
+}
+
+// ==========================================
+// 4. เพิ่มข้อสอบด่วน และนำเข้า Excel
+// ==========================================
+async function addQuickQuestion() {
+  const question_text = document.getElementById('qText').value.trim();
+  const choice_a = document.getElementById('qA').value.trim();
+  const choice_b = document.getElementById('qB').value.trim();
+  const choice_c = document.getElementById('qC').value.trim();
+  const choice_d = document.getElementById('qD').value.trim();
+  const correct_answer = document.getElementById('qCorrect').value;
+  const explanation = document.getElementById('qExp').value.trim();
+
+  if (!question_text || !choice_a || !choice_b || !choice_c || !choice_d) {
+    alert('กรุณากรอกโจทย์และตัวเลือก ก-ง ให้ครบถ้วน');
+    return;
+  }
+
+  const { error } = await supabase.from('questions').insert([{
+    id: 'q_' + Date.now(),
+    exam_id: 'exam_cs204_01',
+    question_text,
+    choice_a,
+    choice_b,
+    choice_c,
+    choice_d,
+    correct_answer,
+    explanation,
+    exam_part: document.getElementById('selPart').value,
+    exam_category: document.getElementById('selCategory').value,
+    exam_sub_category: document.getElementById('selSubCategory').value,
+    exam_topic: document.getElementById('selTopic').value
+  }]);
+
+  if (error) {
+    alert('เพิ่มข้อสอบไม่สำเร็จ: ' + error.message);
+  } else {
+    alert('เพิ่มข้อสอบลงคลังสำเร็จ!');
+    document.getElementById('qText').value = '';
+    document.getElementById('qA').value = '';
+    document.getElementById('qB').value = '';
+    document.getElementById('qC').value = '';
+    document.getElementById('qD').value = '';
+    document.getElementById('qExp').value = '';
+    loadQuestionsList();
+  }
+}
+
+function downloadExcelTemplate() {
+  const sampleData = [
+    {
+      "ภาค (ภาค ก / ภาค ข)": "ภาค ก",
+      "หมวดวิชา": "ความสามารถในการคิดวิเคราะห์",
+      "กลุ่มวิชาย่อย": "เชิงปริมาณ (คณิตศาสตร์)",
+      "หัวข้อย่อย": "อนุกรมตัวเลข",
+      "โจทย์คำถาม": "6, 12, 24, 48, ?, 192 ตัวเลขในเครื่องหมายคำถามคือข้อใด",
+      "ตัวเลือก ก": "96",
+      "ตัวเลือก ข": "84",
+      "ตัวเลือก ค": "90",
+      "ตัวเลือก ง": "100",
+      "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": "ก",
+      "คำอธิบายเฉลย": "อนุกรมทวีคูณเพิ่มขึ้นเป็น 2 เท่า: 48 x 2 = 96"
+    }
+  ];
+
+  const ws = XLSX.utils.json_to_sheet(sampleData);
+  ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 25 }, { wch: 25 }, { wch: 45 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 40 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "คลังข้อสอบครูผู้ช่วย");
+  XLSX.writeFile(wb, "แม่แบบนำเข้าข้อสอบ_ครูผู้ช่วย.xlsx");
+}
+
+async function uploadExcelQuestions() {
+  const fileInput = document.getElementById('excelFileInput');
+  const statusElem = document.getElementById('excelStatus');
+  const btn = document.getElementById('btnUploadExcel');
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert('กรุณาเลือกไฟล์ Excel (.xlsx) ก่อนกดอัปโหลด');
+    return;
+  }
+
+  const file = fileInput.files[0];
+  btn.disabled = true;
+  statusElem.innerText = "กำลังอ่านข้อมูลจากไฟล์ Excel...";
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+      if (rows.length === 0) {
+        alert('ไม่พบข้อมูลในไฟล์ Excel');
+        btn.disabled = false;
+        return;
+      }
+
+      let isTaxonomyUpdated = false;
+
+      const insertRows = rows.map((r, index) => {
+        const rawAns = r["เฉลยที่ถูกต้อง (ก/ข/ค/ง)"] || r["เฉลยที่ถูกต้อง (A/B/C/D)"] || r["เฉลย"] || 'ก';
+        const finalAns = normalizeAnswerToThai(rawAns);
+
+        const part = r["ภาค (ภาค ก / ภาค ข)"] || r["ภาค"] || document.getElementById('selPart').value;
+        const cat = r["หมวดวิชา"] || document.getElementById('selCategory').value;
+        const sub = r["กลุ่มวิชาย่อย"] || r["กลุ่มย่อย"] || document.getElementById('selSubCategory').value;
+        const topic = r["หัวข้อย่อย"] || r["เรื่องย่อย"] || document.getElementById('selTopic').value;
+
+        // 🌟 อัปเดตโครงสร้าง Taxonomy 4 ระดับอัตโนมัติจากไฟล์ Excel
+        if (part && cat && sub && topic) {
+          if (!examTaxonomy[part]) examTaxonomy[part] = {};
+          if (!examTaxonomy[part][cat]) examTaxonomy[part][cat] = {};
+          if (!examTaxonomy[part][cat][sub]) examTaxonomy[part][cat][sub] = [];
+          if (!examTaxonomy[part][cat][sub].includes(topic)) {
+            examTaxonomy[part][cat][sub].push(topic);
+            isTaxonomyUpdated = true;
+          }
+        }
+
+        return {
+          id: 'q_' + Date.now() + '_' + index,
+          exam_id: 'exam_cs204_01',
+          exam_part: part,
+          exam_category: cat,
+          exam_sub_category: sub,
+          exam_topic: topic,
+          question_text: r["โจทย์คำถาม"] || '',
+          choice_a: String(r["ตัวเลือก ก"] || ''),
+          choice_b: String(r["ตัวเลือก ข"] || ''),
+          choice_c: String(r["ตัวเลือก ค"] || ''),
+          choice_d: String(r["ตัวเลือก ง"] || ''),
+          correct_answer: finalAns,
+          explanation: r["คำอธิบายเฉลย"] || ''
+        };
+      }).filter(q => q.question_text !== '');
+
+      statusElem.innerText = `กำลังบันทึกข้อสอบ ${insertRows.length} ข้อลง Supabase...`;
+
+      const chunkSize = 50;
+      for (let i = 0; i < insertRows.length; i += chunkSize) {
+        const chunk = insertRows.slice(i, i + chunkSize);
+        const { error } = await supabase.from('questions').insert(chunk);
+        if (error) throw error;
+      }
+
+      // บันทึกและรีเฟรช Dropdown ถ้ามีหมวดหมู่ใหม่เข้ามา
+      if (isTaxonomyUpdated) {
+        saveTaxonomy();
+        onPartChange(); 
+      }
+
+      alert(`นำเข้าข้อสอบสำเร็จทั้งหมด ${insertRows.length} ข้อ!`);
+      statusElem.innerText = `นำเข้าสำเร็จเรียบร้อย ${insertRows.length} ข้อ`;
+      fileInput.value = '';
+      loadQuestionsList();
+
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการนำเข้าข้อสอบ: ' + err.message);
+      statusElem.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ==========================================
+// 5. สลับแท็บและจัดการคลังข้อสอบ (Questions Table)
+// ==========================================
+function switchAdminTab(tabKey) {
+  const tabUsers = document.getElementById('tabContentUsers');
+  const tabDday = document.getElementById('tabContentDday');
+  const tabQuestions = document.getElementById('tabContentQuestions');
+
+  if (tabUsers) tabUsers.style.display = 'none';
+  if (tabDday) tabDday.style.display = 'none';
+  if (tabQuestions) tabQuestions.style.display = 'none';
+
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    btn.className = 'admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200';
+  });
+
+  let activeContent = null;
+  let activeBtnId = '';
+
+  if (tabKey === 'users') {
+    activeContent = tabUsers;
+    activeBtnId = 'tabBtnUsers';
+    loadAdminUsersList();
+  } else if (tabKey === 'dday') {
+    activeContent = tabDday;
+    activeBtnId = 'tabBtnDday';
+  } else if (tabKey === 'questions') {
+    activeContent = tabQuestions;
+    activeBtnId = 'tabBtnQuestions';
+    loadQuestionsList();
+  }
+
+  if (activeContent) activeContent.style.display = 'block';
+
+  const activeBtn = document.getElementById(activeBtnId);
+  if (activeBtn) {
+    activeBtn.className = 'admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#755634] text-white shadow-sm flex items-center gap-1.5 shrink-0';
+  }
+}
+
+let allLoadedQuestions = [];
+let currentlyRenderedQuestions = [];
+
+async function loadQuestionsList() {
+  const tbody = document.getElementById('questionsTableBody');
+  const countBadge = document.getElementById('totalQuestionsCount');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดข้อสอบ...</td></tr>';
+
+  try {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('id, question_text, choice_a, choice_b, choice_c, choice_d, exam_part, exam_category, exam_sub_category, exam_topic, correct_answer, explanation')
+      .order('id', { ascending: false });
+
+    if (error) throw error;
+
+    allLoadedQuestions = data || [];
+    if (countBadge) countBadge.innerText = allLoadedQuestions.length;
+
+    onTableFilterPartChange();
+    filterQuestionsTable();
+
+  } catch (err) {
+    console.error('Error fetching questions:', err);
+    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500">ไม่สามารถโหลดรายการข้อสอบได้: ' + err.message + '</td></tr>';
+  }
+}
+
+// 1. ฟังก์ชันอัปเดตดรอปดาวน์หมวดวิชาหลักด้านบน
+function onTableFilterPartChange() {
+  const part = document.getElementById('filterPartSelect').value;
+  const catSelect = document.getElementById('filterCategorySelect');
+
+  if (part === 'all') {
+    catSelect.innerHTML = '<option value="all">ทุกหมวดวิชาหลัก</option>';
+  } else {
+    const cats = Object.keys(examTaxonomy[part] || {});
+    catSelect.innerHTML = '<option value="all">ทุกหมวดวิชาหลัก</option>' + 
+      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  onTableFilterCategoryChange();
+}
+
+// 2. ฟังก์ชันอัปเดตดรอปดาวน์กลุ่มวิชาย่อยด้านบน
+function onTableFilterCategoryChange() {
+  const part = document.getElementById('filterPartSelect').value;
+  const cat = document.getElementById('filterCategorySelect').value;
+  const subSelect = document.getElementById('filterSubCategorySelect');
+
+  if (part === 'all' || cat === 'all') {
+    subSelect.innerHTML = '<option value="all">ทุกกลุ่มวิชาย่อย</option>';
+  } else {
+    const subs = Object.keys(examTaxonomy[part]?.[cat] || {});
+    subSelect.innerHTML = '<option value="all">ทุกกลุ่มวิชาย่อย</option>' + 
+      subs.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+
+  onTableFilterSubCategoryChange();
+}
+
+// 3. ฟังก์ชันอัปเดตดรอปดาวน์หัวข้อเรื่องย่อยด้านบน
+function onTableFilterSubCategoryChange() {
+  const part = document.getElementById('filterPartSelect').value;
+  const cat = document.getElementById('filterCategorySelect').value;
+  const sub = document.getElementById('filterSubCategorySelect').value;
+  const topicSelect = document.getElementById('filterTopicSelect');
+
+  if (part === 'all' || cat === 'all' || sub === 'all') {
+    topicSelect.innerHTML = '<option value="all">ทุกเรื่องย่อย</option>';
+  } else {
+    const topics = examTaxonomy[part]?.[cat]?.[sub] || [];
+    topicSelect.innerHTML = '<option value="all">ทุกเรื่องย่อย</option>' + 
+      topics.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+
+  filterQuestionsTable();
+}
+
+// ปรับฟังก์ชัน filterQuestionsTable()
+function filterQuestionsTable() {
+  const term = (document.getElementById('searchQuestionInput')?.value || '').trim().toLowerCase();
+  const part = document.getElementById('filterPartSelect')?.value || 'all';
+  const category = document.getElementById('filterCategorySelect')?.value || 'all';
+  const subCategory = document.getElementById('filterSubCategorySelect')?.value || 'all';
+  const topic = document.getElementById('filterTopicSelect')?.value || 'all';
+
+  currentlyRenderedQuestions = allLoadedQuestions.filter(q => {
+    // ถ้ากำลังกดดูเฉพาะข้อสอบที่หลุดหมวด
+    if (isShowingOnlyOrphans && !isQuestionOrphan(q)) {
+      return false;
+    }
+
+    const matchTerm = (!term) || 
+      (q.question_text || '').toLowerCase().includes(term) ||
+      (q.explanation || '').toLowerCase().includes(term) ||
+      (q.exam_topic || '').toLowerCase().includes(term);
+
+    const matchPart = (part === 'all') || (q.exam_part === part);
+    const matchCat = (category === 'all') || (q.exam_category === category);
+    const matchSub = (subCategory === 'all') || (q.exam_sub_category === subCategory);
+    const matchTopic = (topic === 'all') || (q.exam_topic === topic);
+
+    return matchTerm && matchPart && matchCat && matchSub && matchTopic;
+  });
+
+  // อัปเดตตัวเลขแสดงผล
+  const countBadge = document.getElementById('totalQuestionsCount');
+  if (countBadge) {
+    countBadge.innerText = `${currentlyRenderedQuestions.length} / ทั้งหมด ${allLoadedQuestions.length}`;
+  }
+
+  updateOrphanAlert();
+  renderQuestionsTable(currentlyRenderedQuestions);
+}
+
+// ปรับฟังก์ชัน renderQuestionsTable(list) ตรงคอลัมน์ "ภาค / หมวดวิชา / เรื่องย่อย"
+// ให้เพิ่มป้ายเตือนสีแดงหากเป็นข้อสอบหลุดหมวด
+// (ค้นหาจุดที่สร้างคอลัมน์ภาค/หมวดวิชาใน renderQuestionsTable แล้วแทนที่ส่วน td นั้นด้วยโค้ดนี้):
+
+function renderQuestionsTable(list) {
+  const tbody = document.getElementById('questionsTableBody');
+  const selectAll = document.getElementById('selectAllCheckbox');
+  if (!tbody) return;
+
+  if (selectAll) selectAll.checked = false;
+  updateBulkToolbar();
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">ไม่พบข้อสอบในระบบ หรือไม่ตรงกับคำค้นหา</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map((q, idx) => `
+    <tr class="hover:bg-amber-50/30 transition-colors border-b border-gray-100">
+      <td class="p-3 text-center">
+        <input type="checkbox" value="${q.id}" onchange="updateBulkToolbar()" class="q-row-checkbox w-4 h-4 rounded accent-[#755634] cursor-pointer" />
+      </td>
+      <td class="p-3 font-medium text-gray-900 max-w-xs break-words leading-relaxed">
+        ${q.question_text || '-'}
+      </td>
+      <td class="p-3">
+        ${(typeof isQuestionOrphan === 'function' && isQuestionOrphan(q)) ? `
+          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 mb-1">
+            <span class="material-symbols-outlined text-[12px]">warning</span> ยังไม่ตรงหมวด
+          </span>
+        ` : `
+          <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${q.exam_part === 'ภาค ก' ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'} mb-1">
+            ${q.exam_part || 'ทั่วไป'}
+          </span>
+        `}
+        <p class="text-[11px] font-bold text-gray-700 truncate max-w-[150px]" title="${q.exam_category || ''}">
+          ${q.exam_category || '<span class="text-rose-400 font-normal">ยังไม่ระบุหมวด</span>'}
+        </p>
+        <p class="text-[10px] text-gray-500 truncate max-w-[150px]" title="${q.exam_sub_category || ''}">
+          ${q.exam_sub_category ? `[${q.exam_sub_category}]` : '<span class="text-rose-400">ยังไม่ระบุกลุ่มย่อย</span>'}
+        </p>
+        <p class="text-[10px] text-gray-400 truncate max-w-[150px]" title="${q.exam_topic || ''}">
+          ${q.exam_topic || '<span class="text-rose-400">ยังไม่ระบุเรื่องย่อย</span>'}
+        </p>
+      </td>
+      <td class="p-3 text-center">
+        <span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs bg-emerald-100 text-emerald-800">
+          ${normalizeAnswerToThai(q.correct_answer)}
+        </span>
+      </td>
+      <td class="p-3 text-gray-500 text-[11px] max-w-[160px] break-words">
+        ${q.explanation || '-'}
+      </td>
+      <td class="p-3 text-center">
+        <div class="flex items-center justify-center gap-1">
+          <button type="button" onclick="openEditQuestionModal('${q.id}')" class="p-1.5 rounded-lg text-amber-700 hover:bg-amber-100 transition-colors" title="แก้ไขข้อสอบข้อนี้">
+            <span class="material-symbols-outlined text-[18px]">edit</span>
+          </button>
+          <button type="button" onclick="deleteQuestion('${q.id}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors" title="ลบข้อสอบนี้">
+            <span class="material-symbols-outlined text-[18px]">delete</span>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleSelectAllQuestions(isChecked) {
+  const checkboxes = document.querySelectorAll('.q-row-checkbox');
+  checkboxes.forEach(cb => cb.checked = isChecked);
+  updateBulkToolbar();
+}
+
+function updateBulkToolbar() {
+  const checkboxes = document.querySelectorAll('.q-row-checkbox:checked');
+  const toolbar = document.getElementById('bulkActionsToolbar');
+  const countText = document.getElementById('selectedCountText');
+  const count = checkboxes.length;
+
+  if (countText) countText.innerText = count;
+
+  if (toolbar) {
+    if (count > 0) {
+      toolbar.classList.remove('hidden');
+      toolbar.classList.add('flex');
+    } else {
+      toolbar.classList.add('hidden');
+      toolbar.classList.remove('flex');
+    }
+  }
+}
+
+async function deleteSelectedQuestions() {
+  const checkedBoxes = document.querySelectorAll('.q-row-checkbox:checked');
+  const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+  if (selectedIds.length === 0) return;
+
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อสอบจำนวน ${selectedIds.length} ข้อที่เลือกออกจากระบบอย่างถาวร?`)) {
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .in('id', selectedIds);
+
+    if (error) throw error;
+
+    alert(`ลบข้อสอบสำเร็จทั้งหมด ${selectedIds.length} ข้อ`);
+    const idSet = new Set(selectedIds);
+    allLoadedQuestions = allLoadedQuestions.filter(q => !idSet.has(q.id));
+    document.getElementById('totalQuestionsCount').innerText = allLoadedQuestions.length;
+    filterQuestionsTable();
+
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการลบหลายรายการ: ' + err.message);
+  }
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อสอบข้อนี้ออกจากระบบ?')) return;
+
+  try {
+    const { error } = await supabase.from('questions').delete().eq('id', id);
+    if (error) throw error;
+
+    allLoadedQuestions = allLoadedQuestions.filter(q => q.id !== id);
+    document.getElementById('totalQuestionsCount').innerText = allLoadedQuestions.length;
+    filterQuestionsTable();
+    alert('ลบข้อสอบเรียบร้อยแล้ว');
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
+  }
+}
+
+// ==========================================
+function openEditQuestionModal(id) {
+  const q = allLoadedQuestions.find(item => item.id === id);
+  if (!q) return;
+
+  document.getElementById('editQId').value = q.id;
+  document.getElementById('editQIdBadge').innerText = q.id;
+  document.getElementById('editQPart').value = q.exam_part || 'ภาค ก';
+  document.getElementById('editQCategory').value = q.exam_category || '';
+  document.getElementById('editQSubCategory').value = q.exam_sub_category || ''; // 👈 ดึงค่ามาแสดง
+  document.getElementById('editQTopic').value = q.exam_topic || '';
+  document.getElementById('editQText').value = q.question_text || '';
+  document.getElementById('editQA').value = q.choice_a || '';
+  document.getElementById('editQB').value = q.choice_b || '';
+  document.getElementById('editQC').value = q.choice_c || '';
+  document.getElementById('editQD').value = q.choice_d || '';
+  document.getElementById('editQCorrect').value = normalizeAnswerToThai(q.correct_answer);
+  document.getElementById('editQExp').value = q.explanation || '';
+
+  document.getElementById('editQuestionModal').classList.remove('hidden');
+}
+
+function closeEditQuestionModal() {
+  document.getElementById('editQuestionModal').classList.add('hidden');
+}
+
+async function saveEditedQuestion() {
+  const id = document.getElementById('editQId').value;
+  const question_text = document.getElementById('editQText').value.trim();
+  const choice_a = document.getElementById('editQA').value.trim();
+  const choice_b = document.getElementById('editQB').value.trim();
+  const choice_c = document.getElementById('editQC').value.trim();
+  const choice_d = document.getElementById('editQD').value.trim();
+  const correct_answer = normalizeAnswerToThai(document.getElementById('editQCorrect').value);
+  const explanation = document.getElementById('editQExp').value.trim();
+  const exam_part = document.getElementById('editQPart').value;
+  const exam_category = document.getElementById('editQCategory').value.trim();
+  const exam_sub_category = document.getElementById('editQSubCategory').value.trim(); // 👈 รับค่ามาเซฟ
+  const exam_topic = document.getElementById('editQTopic').value.trim();
+
+  if (!question_text || !choice_a || !choice_b || !choice_c || !choice_d) {
+    alert('กรุณากรอกโจทย์และตัวเลือก ก-ง ให้ครบถ้วน');
+    return;
+  }
+
+  try {
+    const payload = {
+      question_text, choice_a, choice_b, choice_c, choice_d,
+      correct_answer, explanation, exam_part, exam_category, exam_sub_category, exam_topic
+    };
+
+    const { error } = await supabase.from('questions').update(payload).eq('id', id);
+    if (error) throw error;
+
+    const index = allLoadedQuestions.findIndex(q => q.id === id);
+    if (index !== -1) {
+      allLoadedQuestions[index] = { ...allLoadedQuestions[index], ...payload };
+    }
+
+    closeEditQuestionModal();
+    filterQuestionsTable();
+    alert('บันทึกการแก้ไขข้อสอบสำเร็จ!');
+  } catch (err) {
+    alert('บันทึกไม่สำเร็จ: ' + err.message);
+  }
+}
+
+// ==========================================
+// 7. เริ่มต้นทำงานเมื่อเปิดหน้าเว็บ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadUsersList();
+  loadAdminConfigs();
+  onPartChange();
+});
+
+
+// ฟังก์ชันส่งออกข้อสอบที่กำลังกรองอยู่บนตารางเป็นไฟล์ Excel (.xlsx)
+function downloadFilteredQuestionsExcel() {
+  if (!currentlyRenderedQuestions || currentlyRenderedQuestions.length === 0) {
+    alert('ไม่พบข้อสอบในหมวดที่เลือก หรือตารางว่างเปล่า ไม่สามารถดาวน์โหลดได้');
+    return;
+  }
+
+  const exportData = currentlyRenderedQuestions.map((q, idx) => ({
+    "ลำดับ": idx + 1,
+    "ภาค (ภาค ก / ภาค ข)": q.exam_part || '',
+    "หมวดวิชา": q.exam_category || '',
+    "กลุ่มวิชาย่อย": q.exam_sub_category || '',
+    "หัวข้อย่อย": q.exam_topic || '',
+    "โจทย์คำถาม": q.question_text || '',
+    "ตัวเลือก ก": q.choice_a || '',
+    "ตัวเลือก ข": q.choice_b || '',
+    "ตัวเลือก ค": q.choice_c || '',
+    "ตัวเลือก ง": q.choice_d || '',
+    "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": normalizeAnswerToThai(q.correct_answer),
+    "คำอธิบายเฉลย": q.explanation || ''
+  }));
+
+  // 2. สร้าง Sheet และจัดขนาดความกว้างของคอลัมน์ให้อ่านง่าย
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  ws['!cols'] = [
+    { wch: 6 },  // ลำดับ
+    { wch: 12 }, // ภาค
+    { wch: 30 }, // หมวดวิชา
+    { wch: 25 }, // กลุ่มวิชาย่อย
+    { wch: 25 }, // หัวข้อย่อย
+    { wch: 50 }, // โจทย์คำถาม
+    { wch: 20 }, // ตัวเลือก ก
+    { wch: 20 }, // ตัวเลือก ข
+    { wch: 20 }, // ตัวเลือก ค
+    { wch: 20 }, // ตัวเลือก ง
+    { wch: 15 }, // เฉลย
+    { wch: 40 }  // คำอธิบาย
+  ];
+
+  // 3. กำหนดชื่อไฟล์ตามหมวดหมู่ที่กำลังกรองอยู่
+  const partVal = document.getElementById('filterPartSelect')?.value || 'all';
+  const catVal = document.getElementById('filterCategorySelect')?.value || 'all';
+  const topicVal = document.getElementById('filterTopicSelect')?.value || 'all';
+
+  let filterLabel = partVal !== 'all' ? partVal : 'คลังข้อสอบทั้งหมด';
+  if (catVal !== 'all') filterLabel += `_${catVal}`;
+  if (topicVal !== 'all') filterLabel += `_${topicVal}`;
+
+  // ตัดอักขระพิเศษที่ไม่รองรับในชื่อไฟล์
+  const safeFilename = filterLabel.replace(/[/\\?%*:|"<>]/g, '-');
+  const filename = `${safeFilename}_${currentlyRenderedQuestions.length}ข้อ.xlsx`;
+
+  // 4. บันทึกและดาวน์โหลดไฟล์
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "ข้อสอบ");
+  XLSX.writeFile(wb, filename);
+}
+let isShowingOnlyOrphans = false;
+
+// 1. ฟังก์ชันตรวจว่าข้อสอบข้อนี้ "หลุดตัวกรองมาตรฐาน" หรือไม่
+function isQuestionOrphan(q) {
+  const part = (q.exam_part || '').trim();
+  const cat = (q.exam_category || '').trim();
+  const sub = (q.exam_sub_category || '').trim();
+  const topic = (q.exam_topic || '').trim();
+
+  // ก. ไม่มีข้อมูล หรือเป็นค่าว่าง
+  if (!part || !cat || !sub || !topic) return true;
+
+  // ข. ภาคไม่ตรง
+  if (!examTaxonomy[part]) return true;
+
+  // ค. หมวดหลักไม่ตรง
+  if (!examTaxonomy[part][cat]) return true;
+
+  // ง. กลุ่มวิชาย่อยไม่ตรง
+  if (!examTaxonomy[part][cat][sub]) return true;
+
+  // จ. หัวข้อเรื่องย่อยไม่ตรง
+  if (!examTaxonomy[part][cat][sub].includes(topic)) return true;
+
+  return false; // ข้อมูลตรงตามมาตรฐานทั้งหมด
+}
+
+// 2. ฟังก์ชันนับและแสดงปุ่มแจ้งเตือนเมื่อมีข้อสอบหลุดหมวด
+function updateOrphanAlert() {
+  const orphanQuestions = allLoadedQuestions.filter(q => isQuestionOrphan(q));
+  const btn = document.getElementById('btnOrphanFilter');
+  const countText = document.getElementById('orphanCountText');
+
+  if (btn && countText) {
+    countText.innerText = orphanQuestions.length;
+    if (orphanQuestions.length > 0) {
+      btn.classList.remove('hidden');
+      btn.classList.add('flex');
+    } else {
+      btn.classList.add('hidden');
+      btn.classList.remove('flex');
+    }
+  }
+}
+
+// 3. กดปุ่มเพื่อสลับมาดู "เฉพาะข้อสอบที่หลุดหมวด"
+function toggleOrphanFilter() {
+  isShowingOnlyOrphans = !isShowingOnlyOrphans;
+  const btn = document.getElementById('btnOrphanFilter');
+
+  if (isShowingOnlyOrphans) {
+    btn.className = 'bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ring-2 ring-rose-300';
+    btn.querySelector('span:last-child').innerText = 'กำลังดู: ข้อสอบที่หลุดหมวด (คลิกเพื่อยกเลิก)';
+  } else {
+    btn.className = 'bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs animate-pulse';
+    btn.querySelector('span:last-child').innerHTML = `พบข้อสอบหลุดหมวด (<span id="orphanCountText">${allLoadedQuestions.filter(isQuestionOrphan).length}</span> ข้อ)`;
+  }
+
+  filterQuestionsTable();
+}
+
+// 4. ปุ่มล้างตัวกรองทั้งหมด (ดูข้อสอบครบทุกข้อ)
+function resetAllFilters() {
+  isShowingOnlyOrphans = false;
+  document.getElementById('searchQuestionInput').value = '';
+  document.getElementById('filterPartSelect').value = 'all';
+  onTableFilterPartChange();
+}
+</script>
+</body>
+</html>
