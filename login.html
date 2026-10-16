@@ -19,7 +19,7 @@
   <script src="supabase-config.js"></script>
   <script src="theme-manager.js"></script>
 
-  <!-- Google Fonts: Plus Jakarta Sans + Anuphan (ทันสมัย อ่านง่ายสำหรับเด็กยุคใหม่) -->
+  <!-- Google Fonts: Plus Jakarta Sans + Anuphan -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -34,31 +34,82 @@
     ::-webkit-scrollbar { display: none; }
 
     /* =========================================
-       MICRO-ANIMATIONS & KEYFRAMES
+       1. MULTI-LAYER ANIMATED BACKGROUND
        ========================================= */
-    /* 1. แอนิเมชันลอยขึ้น-ลงนุ่มๆ สำหรับโลโก้ */
+    /* พื้นหลังหลักไล่เฉดสีเคลื่อนไหวช้าๆ (Aurora Mesh) */
+    @keyframes auroraBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-aurora {
+      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+      background-size: 400% 400%;
+      animation: auroraBG 15s ease infinite;
+    }
+
+    /* ลวดลายตารางกริดดิจิทัลพร้อม Mask ให้จางบริเวณขอบ */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(117, 86, 52, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.05) 1px, transparent 1px);
+      mask-image: radial-gradient(ellipse at center, black 45%, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 45%, transparent 85%);
+    }
+
+    /* ลูกแก้วแสงออร่าเคลื่อนที่อิสระ */
+    @keyframes orbitBlob1 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.15); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    @keyframes orbitBlob2 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(-40px, 30px) scale(1.2); }
+    }
+    .animate-orbit-1 { animation: orbitBlob1 12s ease-in-out infinite; }
+    .animate-orbit-2 { animation: orbitBlob2 10s ease-in-out infinite; }
+
+    /* ไอคอนกระจกใส 3D ลอยในฉากหลัง */
+    @keyframes floatGlass {
+      0%, 100% { transform: translateY(0px) rotate(-6deg); }
+      50% { transform: translateY(-14px) rotate(6deg); }
+    }
+    @keyframes floatGlassAlt {
+      0%, 100% { transform: translateY(0px) rotate(8deg) scale(1); }
+      50% { transform: translateY(12px) rotate(-4deg) scale(1.05); }
+    }
+    .animate-glass-1 { animation: floatGlass 6s ease-in-out infinite; }
+    .animate-glass-2 { animation: floatGlassAlt 7s ease-in-out 1.5s infinite; }
+    .animate-glass-3 { animation: floatGlass 8s ease-in-out 3s infinite; }
+    .animate-glass-4 { animation: floatGlassAlt 5.5s ease-in-out 0.8s infinite; }
+
+    /* ดาววิบวับ (Twinkling Sparkles) */
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.7); }
+      50% { opacity: 0.9; transform: scale(1.2); }
+    }
+    .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+
+    /* =========================================
+       2. UI MICRO-ANIMATIONS
+       ========================================= */
     @keyframes floatSlow {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-8px) rotate(1.5deg); }
-    }
-    @keyframes floatReverse {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(5px) scale(1.06); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
     }
     .animate-float { animation: floatSlow 4s ease-in-out infinite; }
-    .animate-float-delayed { animation: floatReverse 3.5s ease-in-out 1s infinite; }
 
-    /* 2. แอนิเมชันการ์ดค่อยๆ ลอยขึ้นมาตอนเปิดหน้าเว็บ (Staggered Entrance) */
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(18px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .stagger-1 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
-    .stagger-2 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
-    .stagger-3 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
-    .stagger-4 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+    .stagger-1 { animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+    .stagger-2 { animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+    .stagger-3 { animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+    .stagger-4 { animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
 
-    /* 3. แอนิเมชันสั่นซ้าย-ขวาเมื่อกรอกรหัสผิด (Form Shake) */
     @keyframes shakeError {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-6px); }
@@ -66,7 +117,6 @@
     }
     .animate-shake { animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
 
-    /* 4. แสงวิ่งพาดผ่านปุ่มกด (Shimmer CTA) */
     @keyframes shimmerSweep {
       0% { transform: translateX(-150%) skewX(-20deg); }
       50%, 100% { transform: translateX(250%) skewX(-20deg); }
@@ -75,70 +125,98 @@
       content: '';
       position: absolute;
       top: 0; left: 0; width: 45%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32), transparent);
       animation: shimmerSweep 4s infinite;
     }
-
-    /* 5. แสงออร่าพื้นหลังเคลื่อนไหวช้าๆ */
-    @keyframes blobPulse {
-      0%, 100% { transform: scale(1) translate(0, 0); }
-      50% { transform: scale(1.12) translate(10px, -10px); }
-    }
-    .animate-blob { animation: blobPulse 8s ease-in-out infinite; }
   </style>
 </head>
 
-<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-full flex flex-col justify-center py-6 px-4 relative overflow-x-hidden select-none">
+<body class="bg-aurora text-slate-800 antialiased min-h-full flex flex-col justify-center py-6 px-4 relative overflow-x-hidden select-none">
 
-  <!-- แสงออร่าตกแต่งพื้นหลัง (Ambient Background Blobs) -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-amber-300/25 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-orange-200/30 blur-3xl animate-blob" style="animation-delay: 2s;"></div>
-    <div class="absolute -bottom-24 right-10 w-64 h-64 rounded-full bg-amber-500/15 blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+  <!-- =========================================================
+       ฉากหลังแบบ Multi-Layer (Grid + Aurora Orbs + 3D Glass Icons)
+       ========================================================= -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <!-- เลเยอร์ 1: ตารางกริดดิจิทัล -->
+    <div class="absolute inset-0 bg-grid-pattern"></div>
+
+    <!-- เลเยอร์ 2: แสงออร่าขนาดใหญ่เคลื่อนที่นุ่มนวล -->
+    <div class="absolute -top-28 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-amber-300/40 via-orange-300/25 to-transparent blur-3xl animate-orbit-1"></div>
+    <div class="absolute top-1/3 -left-32 w-80 h-80 rounded-full bg-gradient-to-tr from-rose-300/25 via-amber-200/30 to-transparent blur-3xl animate-orbit-2"></div>
+    <div class="absolute -bottom-28 right-1/4 w-96 h-96 rounded-full bg-gradient-to-t from-sky-200/35 via-indigo-200/20 to-transparent blur-3xl animate-orbit-1" style="animation-delay: -5s;"></div>
+
+    <!-- เลเยอร์ 3: การ์ดกระจกใส 3D ลอยประดับฉากหลัง (Floating Glass Elements) -->
+    <!-- มุมบนซ้าย: หมวกปริญญา -->
+    <div class="animate-glass-1 absolute top-[12%] left-[6%] sm:left-[15%] w-12 h-12 rounded-2xl bg-white/45 backdrop-blur-md border border-white/70 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-700/70">
+      <span class="material-symbols-outlined text-[24px]">workspace_premium</span>
+    </div>
+
+    <!-- มุมบนขวา: หลอดไฟไอเดีย -->
+    <div class="animate-glass-2 absolute top-[16%] right-[7%] sm:right-[16%] w-11 h-11 rounded-2xl bg-white/45 backdrop-blur-md border border-white/70 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-orange-500/75">
+      <span class="material-symbols-outlined text-[22px]">lightbulb</span>
+    </div>
+
+    <!-- มุมล่างซ้าย: กราฟวิเคราะห์ -->
+    <div class="animate-glass-3 absolute bottom-[14%] left-[8%] sm:left-[18%] w-11 h-11 rounded-2xl bg-white/45 backdrop-blur-md border border-white/70 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-emerald-600/70">
+      <span class="material-symbols-outlined text-[22px]">monitoring</span>
+    </div>
+
+    <!-- มุมล่างขวา: ถ้วยรางวัล -->
+    <div class="animate-glass-4 absolute bottom-[18%] right-[6%] sm:right-[15%] w-12 h-12 rounded-2xl bg-white/45 backdrop-blur-md border border-white/70 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-500/80">
+      <span class="material-symbols-outlined text-[24px]">emoji_events</span>
+    </div>
+
+    <!-- เลเยอร์ 4: จุดแสงดาววิบวับ (Sparkles) -->
+    <div class="animate-twinkle absolute top-[28%] left-[22%] w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></div>
+    <div class="animate-twinkle absolute top-[22%] right-[25%] w-2.5 h-2.5 rounded-full bg-orange-400 shadow-[0_0_10px_#fb923c]" style="animation-delay: 1.2s;"></div>
+    <div class="animate-twinkle absolute bottom-[26%] left-[28%] w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]" style="animation-delay: 2.1s;"></div>
   </div>
 
-  <main class="w-full max-w-[400px] mx-auto flex flex-col z-10">
+  <!-- =========================================================
+       เนื้อหาหลัก (Main Container)
+       ========================================================= -->
+  <main class="w-full max-w-[400px] mx-auto flex flex-col relative z-10">
 
     <!-- 1. แถบหัวเรื่อง + ปุ่มสลับภาษา (Stagger 1) -->
     <div class="stagger-1 flex items-center justify-between mb-4 px-1">
       <div class="flex items-center gap-2.5 group cursor-pointer">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 group-hover:scale-105 group-hover:rotate-3 transition-all duration-300 border border-amber-200/30">
           <span class="material-symbols-outlined text-[22px]">school</span>
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-1.5">
             <span class="font-extrabold text-base text-slate-800 tracking-tight leading-none">ครูในอนาคต</span>
-            <span class="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-100 text-amber-800 rounded-md uppercase tracking-wider">PRO</span>
+            <span class="px-1.5 py-0.5 text-[9px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md uppercase tracking-wider shadow-2xs">GEN 4</span>
           </div>
-          <span class="text-[11px] text-slate-400 font-medium mt-0.5">Smart Teacher Exam Platform</span>
+          <span class="text-[11px] text-slate-500 font-medium mt-0.5">Smart Teacher Exam Platform</span>
         </div>
       </div>
 
-      <!-- ปุ่มภาษาสไตล์แคปซูล -->
-      <div class="inline-flex items-center p-1 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-full text-[11px] shadow-2xs">
+      <!-- ปุ่มภาษาสไตล์แคปซูลกระจกใส -->
+      <div class="inline-flex items-center p-1 bg-white/75 backdrop-blur-md border border-white/90 rounded-full text-[11px] shadow-xs">
         <button type="button" class="px-2.5 py-0.5 rounded-full bg-[#755634] text-white font-bold shadow-2xs transition-all">TH</button>
-        <button type="button" class="px-2.5 py-0.5 rounded-full text-slate-400 hover:text-slate-600 font-semibold transition-all">EN</button>
+        <button type="button" class="px-2.5 py-0.5 rounded-full text-slate-500 hover:text-slate-700 font-semibold transition-all">EN</button>
       </div>
     </div>
 
     <!-- 2. โลโก้อินทรธนู 3D ลอยตัว & ข้อความต้อนรับ (Stagger 2) -->
-    <div class="stagger-2 flex flex-col items-center text-center my-2">
+    <div class="stagger-2 flex flex-col items-center text-center my-1.5">
       <div class="relative mb-3.5">
-        <!-- วงแหวนเรืองแสงด้านหลัง -->
-        <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-400/30 to-orange-300/10 blur-xl scale-110 animate-pulse"></div>
+        <!-- แสงออร่าสีทองด้านหลังเหรียญตรา -->
+        <div class="absolute -inset-2 rounded-full bg-gradient-to-tr from-amber-400/40 via-orange-300/25 to-yellow-200/40 blur-xl animate-pulse"></div>
         
-        <!-- กรอบเหรียญตราหลัก (ลอยขึ้น-ลง) -->
-        <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-b from-white to-[#FAF5EE] border-2 border-white shadow-[0_12px_30px_rgba(117,86,52,0.14)] flex items-center justify-center p-2 animate-float">
+        <!-- กรอบเหรียญตราหลักแบบกระจกซ้อนเลเยอร์ (ลอยขึ้น-ลง) -->
+        <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-b from-white/95 to-[#FAF5EE]/90 backdrop-blur-md border-2 border-white shadow-[0_14px_35px_rgba(117,86,52,0.18)] flex items-center justify-center p-2 animate-float">
           <!-- ตราสัญลักษณ์อินทรธนูข้าราชการครูดีไซน์มีมิติ -->
           <svg class="w-14 h-14 drop-shadow-sm" viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="goldGrad" x1="0" y1="0" x2="64" y2="80" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#FACC15"/>
-                <stop offset="50%" stop-color="#EAB308"/>
-                <stop offset="100%" stop-color="#CA8A04"/>
+                <stop offset="0%" stop-color="#FDE047"/>
+                <stop offset="45%" stop-color="#EAB308"/>
+                <stop offset="100%" stop-color="#B45309"/>
               </linearGradient>
             </defs>
-            <path d="M12 10C12 5 17 2 32 2C47 2 52 5 52 10V70C52 75 47 78 32 78C17 78 12 75 12 70V10Z" fill="url(#goldGrad)" stroke="#A16207" stroke-width="2.5"/>
+            <path d="M12 10C12 5 17 2 32 2C47 2 52 5 52 10V70C52 75 47 78 32 78C17 78 12 75 12 70V10Z" fill="url(#goldGrad)" stroke="#92400E" stroke-width="2.5"/>
             <path d="M15 25H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
             <path d="M15 39H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
             <path d="M15 53H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
@@ -147,16 +225,16 @@
         </div>
 
         <!-- ไอคอนจิ๋วลอยประกอบด้านข้าง -->
-        <span class="animate-float-delayed absolute -bottom-1 -right-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-gradient-to-br from-[#964320] to-[#755634] text-white shadow-lg border-2 border-white">
+        <span class="animate-glass-2 absolute -bottom-1 -right-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-gradient-to-br from-[#964320] to-[#755634] text-white shadow-lg border-2 border-white">
           <span class="material-symbols-outlined text-[16px]">auto_stories</span>
         </span>
-        <span class="animate-float absolute -top-2 -left-2 flex h-7 w-7 items-center justify-center rounded-xl bg-amber-400 text-amber-950 shadow-md border-2 border-white" style="animation-delay: 0.7s;">
+        <span class="animate-float absolute -top-2 -left-2 flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-md border-2 border-white" style="animation-delay: 0.7s;">
           <span class="material-symbols-outlined text-[15px]">bolt</span>
         </span>
       </div>
 
       <!-- ป้าย Badge กระตุ้นไฟในการสอบ -->
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[#755634] mb-2">
+      <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/80 backdrop-blur-md border border-amber-300/60 text-[#755634] mb-2 shadow-2xs">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-600"></span>
@@ -164,19 +242,19 @@
         <span class="text-[11px] font-bold tracking-wide">สนามสอบจำลองเสมือนจริง ภาค ก & ข</span>
       </div>
 
-      <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">พร้อมลุยสนามสอบหรือยัง?</h1>
-      <p class="text-xs text-slate-500 mt-1 max-w-[280px] leading-relaxed">
+      <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight drop-shadow-2xs">พร้อมลุยสนามสอบหรือยัง?</h1>
+      <p class="text-xs text-slate-600 mt-1 max-w-[290px] leading-relaxed font-medium">
         ฝึกทำข้อสอบจับเวลาจริง วิเคราะห์จุดอ่อนแม่นยำด้วย AI Radar เพื่อพิชิตตำแหน่งครูผู้ช่วย
       </p>
     </div>
 
-    <!-- 3. กล่องการ์ดฟอร์มล็อกอิน (Stagger 3) -->
-    <div id="loginCard" class="stagger-3 bg-white/90 backdrop-blur-xl rounded-3xl p-5 sm:p-6 shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-slate-100 mt-2 transition-all duration-300">
+    <!-- 3. กล่องการ์ดฟอร์มล็อกอินแบบ Frosted Glass (Stagger 3) -->
+    <div id="loginCard" class="stagger-3 bg-white/80 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(117,86,52,0.12)] border-2 border-white mt-2 transition-all duration-300">
       
       <!-- แถบสลับโหมดล็อกอิน พร้อม Sliding Pill วิ่งตามนิ้ว -->
-      <div class="relative grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-5 text-xs font-bold">
+      <div class="relative grid grid-cols-2 p-1 bg-slate-200/60 rounded-2xl mb-5 text-xs font-bold inner-shadow">
         <!-- ตัวพื้นหลังสีขาวที่สไลด์ซ้าย-ขวาได้ -->
-        <div id="slidingTabBg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-xs transition-transform duration-300 ease-out"></div>
+        <div id="slidingTabBg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
 
         <button type="button" id="tabLoginId" onclick="switchLoginMode('id')" class="relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200">
           <span class="material-symbols-outlined text-[17px]">badge</span>
@@ -189,7 +267,7 @@
       </div>
 
       <!-- กล่องแจ้งเตือน Error แบบสวยงาม (ซ่อนไว้เริ่มต้น) -->
-      <div id="errorAlertBox" class="hidden mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold items-center gap-2 transition-all">
+      <div id="errorAlertBox" class="hidden mb-4 p-3 rounded-2xl bg-rose-50/90 border border-rose-200 text-rose-700 text-xs font-semibold items-center gap-2 transition-all">
         <span class="material-symbols-outlined text-[18px] text-rose-500 shrink-0">error</span>
         <span id="errorAlertText">รหัสประจำตัว หรือ รหัสผ่านไม่ถูกต้อง</span>
       </div>
@@ -205,7 +283,7 @@
           <div class="relative flex items-center group">
             <span id="identifierIcon" class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">person</span>
             <input id="identifierInput" type="text" required 
-                   class="w-full bg-slate-50/80 hover:bg-slate-100/60 pl-10 pr-4 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400" 
+                   class="w-full bg-white/90 hover:bg-white pl-10 pr-4 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 shadow-2xs" 
                    placeholder="เช่น KRU-001 หรือเบอร์โทรศัพท์">
           </div>
         </div>
@@ -217,7 +295,7 @@
             <div class="relative flex items-center group">
               <span class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">lock</span>
               <input id="passwordInput" type="password" required 
-                     class="w-full bg-slate-50/80 hover:bg-slate-100/60 pl-10 pr-10 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400" 
+                     class="w-full bg-white/90 hover:bg-white pl-10 pr-10 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 shadow-2xs" 
                      placeholder="กรอกรหัสผ่านของคุณ">
               <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-slate-400 hover:text-[#755634] p-1 rounded-lg active:scale-90 transition-all">
                 <span id="eyeIcon" class="material-symbols-outlined text-[18px] block">visibility_off</span>
@@ -235,9 +313,9 @@
         </div>
 
         <!-- กล่องอธิบายสิทธิพิเศษเมื่อเลือกโหมด Guest (ซ่อนไว้เริ่มต้น) -->
-        <div id="guestInfoBanner" class="hidden p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 space-y-1">
+        <div id="guestInfoBanner" class="hidden p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/80 border border-amber-200/80 text-[11px] text-amber-900 space-y-1 shadow-2xs">
           <div class="font-bold flex items-center gap-1.5 text-amber-800">
-            <span class="material-symbols-outlined text-[16px]">verified</span>
+            <span class="material-symbols-outlined text-[16px] text-amber-600">verified</span>
             <span>โหมดทดลองสอบทันที (ไม่ต้องใช้รหัสผ่าน)</span>
           </div>
           <p class="text-amber-700/90 leading-relaxed pl-5">
@@ -247,7 +325,7 @@
 
         <!-- ปุ่มกดเข้าสู่ระบบแบบ 3D Tactile + แสงวิ่ง Shimmer -->
         <button id="btnSubmitLogin" type="submit" 
-                class="shimmer-effect relative overflow-hidden w-full mt-2 bg-gradient-to-r from-[#755634] via-[#8B653B] to-[#755634] hover:from-[#63482b] hover:to-[#755634] text-white py-3.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-amber-900/20 border-b-4 border-[#523b22] active:border-b-0 active:translate-y-1 transition-all flex justify-center items-center gap-2 group">
+                class="shimmer-effect relative overflow-hidden w-full mt-2 bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] hover:from-[#63482b] hover:to-[#755634] text-white py-3.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex justify-center items-center gap-2 group">
           <span id="btnSubmitText">เข้าสู่ระบบทำข้อสอบ</span>
           <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
         </button>
@@ -256,14 +334,14 @@
     </div>
 
     <!-- 4. ส่วนท้ายด้านล่างการ์ด (Stagger 4) -->
-    <div class="stagger-4 text-center mt-5 space-y-3">
-      <p class="text-xs text-slate-500 font-medium">
-        ยังไม่มีรหัสสมาชิกสำหรับเก็บสถิติรายบุคคล?
-        <a href="#" onclick="showCustomNotice('กรุณาติดต่อแอดมินเพื่อลงทะเบียนรับรหัสผู้สอบ (Student ID)'); return false;" class="font-extrabold text-[#755634] hover:underline ml-1 inline-flex items-center gap-0.5">
+    <div class="stagger-4 text-center mt-5">
+      <div class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/65 backdrop-blur-md border border-white/80 shadow-2xs text-xs text-slate-600 font-medium">
+        <span>ยังไม่มีรหัสสมาชิก?</span>
+        <a href="#" onclick="showCustomNotice('กรุณาติดต่อแอดมินเพื่อลงทะเบียนรับรหัสผู้สอบ (Student ID)'); return false;" class="font-extrabold text-[#755634] hover:underline inline-flex items-center gap-0.5">
           <span>ติดต่อขอรับรหัส</span>
           <span class="material-symbols-outlined text-[14px]">open_in_new</span>
         </a>
-      </p>
+      </div>
     </div>
 
   </main>
@@ -312,7 +390,6 @@
         input.placeholder = 'เช่น KRU-001 หรือเบอร์โทรศัพท์';
         icon.innerText = 'person';
         
-        // กางช่องรหัสผ่านกลับมา
         passWrapper.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
         passWrapper.classList.add('max-h-40', 'opacity-100');
         passInput.required = true;
@@ -327,7 +404,6 @@
         input.placeholder = 'พิมพ์ชื่อเล่น เช่น ครูมายด์, ครูเอิร์ธ...';
         icon.innerText = 'sentiment_satisfied';
         
-        // พับเก็บช่องรหัสผ่าน
         passWrapper.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
         passWrapper.classList.remove('max-h-40', 'opacity-100');
         passInput.required = false;
@@ -347,7 +423,7 @@
       alertBox.classList.add('flex');
 
       card.classList.remove('animate-shake');
-      void card.offsetWidth; // รีเซ็ตแอนิเมชันเพื่อให้สั่นซ้ำได้
+      void card.offsetWidth;
       card.classList.add('animate-shake');
     }
 
@@ -380,7 +456,7 @@
       btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span><span>กำลังเตรียมห้องสอบ...</span>';
 
       try {
-        // 🌟 กรณีที่ 1: โหมดทดลองสอบฟรี (Guest) -> สร้างเซสชัน guest_ ให้ผ่าน check-auth.js ได้เลย
+        // กรณีที่ 1: โหมดทดลองสอบฟรี (Guest)
         if (currentLoginMode === 'guest') {
           const guestSessionToken = "sess_guest_" + Date.now();
           const guestProfile = {
@@ -399,7 +475,7 @@
           return;
         }
 
-        // 🌟 กรณีที่ 2: โหมดรหัสผู้สอบสมาชิก -> ตรวจสอบกับฐานข้อมูล Supabase ตามปกติ
+        // กรณีที่ 2: โหมดรหัสผู้สอบสมาชิก -> ตรวจสอบกับฐานข้อมูล Supabase
         const { data: user, error } = await supabase
           .from('users')
           .select('id, student_id, name, password_hash, role')

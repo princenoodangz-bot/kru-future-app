@@ -160,7 +160,7 @@
       <div class="space-y-2 pt-2">
         <!-- แถวปุ่มดูเฉลย & แก้ตัวข้อที่ผิด -->
         <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="startReviewMode()" class="w-full py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <button type="button" onclick="enableReviewMode()" class="w-full py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
             <i class="fa-solid fa-list-check text-xs"></i>
             <span>ดูเฉลยละเอียด</span>
           </button>
@@ -278,8 +278,8 @@
 
     <!-- ปุ่มการทำงาน -->
     <div class="space-y-2 pt-1">
-      <button type="button" onclick="closeResultModal()" class="w-full py-2.5 rounded-xl bg-[#755634] hover:bg-[#5e4429] text-white font-bold text-xs shadow-md active:scale-98 transition-all flex items-center justify-center gap-1.5">
-        <span class="material-symbols-outlined text-[16px]">visibility</span>
+      <button type="button" onclick="enableReviewMode()" class="w-full py-2.5 rounded-xl bg-[#755634] hover:bg-[#5e4429] text-white font-bold text-xs shadow-md active:scale-98 transition-all flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-eye text-xs"></i>
         <span>ดูเฉลยละเอียดทุกข้อ</span>
       </button>
 
@@ -579,17 +579,17 @@ async function submitExam(isForcedTimeout = false) {
   }
 
   // -------------------------------------------------------------
-  // 4. คำนวณคะแนน (ระบบตรวจอัจฉริยะ: ดักจับทั้ง ก-ง, A-D และข้อความเต็ม)
+  // 4. คำนวณคะแนน (ระบบตรวจแม่นยำมาตรฐานเดียวกับโหมดเฉลย)
   // -------------------------------------------------------------
   let correct = 0;
   const wrongQuestionsToSave = [];
 
   const cleanText = (str) => String(str || '').replace(/^[ก-งa-dA-D0-4][\.\)]\s*/, '').trim();
-
-  const letterMap = {
-    'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง',
-    'a': 'ก', 'b': 'ข', 'c': 'ค', 'd': 'ง',
-    '0': 'ก', '1': 'ข', '2': 'ค', '3': 'ง'
+  const letterMap = { 
+    'A':'ก', 'B':'ข', 'C':'ค', 'D':'ง', 
+    'a':'ก', 'b':'ข', 'c':'ค', 'd':'ง', 
+    '1':'ก', '2':'ข', '3':'ค', '4':'ง', 
+    'ก':'ก', 'ข':'ข', 'ค':'ค', 'ง':'ง' 
   };
 
   questions.forEach((q, idx) => {
@@ -597,50 +597,35 @@ async function submitExam(isForcedTimeout = false) {
                   ? userAnswers[idx] 
                   : (userAnswers[q.id] !== undefined ? userAnswers[q.id] : userAnswers[q.question_id]);
 
-    let userStr = (typeof userRaw === 'object' && userRaw !== null)
-      ? (userRaw.answer || userRaw.choice || userRaw.selected || '')
-      : String(userRaw || '');
-    userStr = userStr.trim();
+    const choices = [
+      { key: 'ก', text: q.choice_a },
+      { key: 'ข', text: q.choice_b },
+      { key: 'ค', text: q.choice_c },
+      { key: 'ง', text: q.choice_d }
+    ];
 
-    const choices = {
-      'ก': cleanText(q.choice_a || q.choice_1 || q.option_a || q.option_1 || (q.choices ? q.choices[0] : '')),
-      'ข': cleanText(q.choice_b || q.choice_2 || q.option_b || q.option_2 || (q.choices ? q.choices[1] : '')),
-      'ค': cleanText(q.choice_c || q.choice_3 || q.option_c || q.option_3 || (q.choices ? q.choices[2] : '')),
-      'ง': cleanText(q.choice_d || q.choice_4 || q.option_d || q.option_4 || (q.choices ? q.choices[3] : ''))
-    };
-
-    let userLetter = letterMap[userStr] || userStr.charAt(0);
-    let userChoiceText = choices[userLetter] || cleanText(userStr);
-
-    if (!['ก', 'ข', 'ค', 'ง'].includes(userLetter)) {
-      for (const [k, text] of Object.entries(choices)) {
-        if (text && text === cleanText(userStr)) {
-          userLetter = k;
-          userChoiceText = text;
-          break;
-        }
-      }
+    // แปลงคำตอบผู้สอบให้อยู่ในรูป ก, ข, ค, ง
+    const uStr = String(userRaw || '').trim();
+    let userLetter = letterMap[uStr] || letterMap[uStr.toUpperCase()] || letterMap[uStr.charAt(0)] || null;
+    if (!userLetter && userRaw) {
+      const uClean = cleanText(userRaw);
+      choices.forEach(c => {
+        if (cleanText(c.text) === uClean) userLetter = c.key;
+      });
     }
 
+    // แปลงเฉลยให้อยู่ในรูป ก, ข, ค, ง (ตัดจุดและดึงตัวหน้าสุด)
     const rawCorrect = String(q.correct_answer || '').trim();
-    const correctCleanText = cleanText(rawCorrect);
-    let correctLetter = letterMap[rawCorrect] || (['ก', 'ข', 'ค', 'ง'].includes(rawCorrect) ? rawCorrect : null);
-
+    let correctLetter = letterMap[rawCorrect] || letterMap[rawCorrect.toUpperCase()] || letterMap[rawCorrect.charAt(0)] || null;
     if (!correctLetter) {
-      for (const [k, text] of Object.entries(choices)) {
-        if (text && text === correctCleanText) {
-          correctLetter = k;
-          break;
-        }
-      }
+      const cClean = cleanText(rawCorrect);
+      choices.forEach(c => {
+        if (cleanText(c.text) === cClean) correctLetter = c.key;
+      });
     }
 
-    let isCorrect = false;
-    if (userLetter && correctLetter && userLetter === correctLetter) {
-      isCorrect = true;
-    } else if (userChoiceText && correctCleanText && userChoiceText === correctCleanText) {
-      isCorrect = true;
-    }
+    // เปรียบเทียบว่าคำตอบตรงกันหรือไม่
+    const isCorrect = Boolean(userLetter && correctLetter && userLetter === correctLetter);
 
     if (isCorrect) {
       correct++;
@@ -671,13 +656,19 @@ async function submitExam(isForcedTimeout = false) {
     const currentUserId = userInfo.id || userInfo.user_id || 'anonymous_user';
 
     if (window.supabase) {
+      // รวมชื่อระดับภาค หมวดหลัก และเรื่องย่อย เพื่อให้หน้าประวัติและกราฟเรดาร์กรองได้แม่นยำ
+      const firstQ = questions[0] || {};
+      const fullExamTitle = firstQ.exam_part 
+        ? `[${firstQ.exam_part}] ${firstQ.exam_category || ''} - ${firstQ.exam_topic || 'ทั่วไป'}`
+        : (firstQ.exam_topic || firstQ.exam_category || 'ชุดข้อสอบทั่วไป');
+
       // 5.1 บันทึกลงตาราง exam_attempts
       const { data: attemptData, error: attemptError } = await supabase
         .from('exam_attempts')
         .insert([{
           id: attemptId,
           user_id: currentUserId,
-          exam_id: questions[0]?.exam_topic || questions[0]?.exam_category || 'ชุดข้อสอบทั่วไป',
+          exam_id: fullExamTitle,
           exam_mode: currentMode,
           target_questions: typeof targetQuestionCount !== 'undefined' ? targetQuestionCount : questions.length,
           total_attempted: doneCount,
@@ -899,7 +890,7 @@ async function submitExam(isForcedTimeout = false) {
     renderQuestionWithReview();
   }
 
-  // 3. เรนเดอร์โจทย์พร้อมเฉลย (แก้ไขให้ดึง currentIndex)
+  // 3. เรนเดอร์โจทย์พร้อมเฉลย (ฉบับแก้ไข: ตรวจเฉลยแม่นยำ 100%)
   function renderQuestionWithReview() {
     const q = questions[currentIndex];
     if (!q) return;
@@ -908,13 +899,10 @@ async function submitExam(isForcedTimeout = false) {
     document.getElementById('badgeQNum').innerText = `คำถามข้อที่ ${currentIndex + 1}`;
     document.getElementById('qText').innerText = q.question_text;
 
-    // รองรับการดึงคำตอบทั้งแบบ index และแบบ ID
+    // 1. ดึงคำตอบที่ผู้สอบเลือก
     const userRaw = userAnswers[currentIndex] !== undefined 
                   ? userAnswers[currentIndex] 
                   : (userAnswers[q.id] !== undefined ? userAnswers[q.id] : userAnswers[q.question_id]);
-
-    let userAns = cleanAnswer(userRaw);
-    let correctAns = cleanAnswer(q.correct_answer);
 
     const choices = [
       { key: 'ก', label: 'ก.', text: q.choice_a },
@@ -923,27 +911,56 @@ async function submitExam(isForcedTimeout = false) {
       { key: 'ง', label: 'ง.', text: q.choice_d }
     ];
 
+    const cleanText = (str) => String(str || '').replace(/^[ก-งa-dA-D0-4][\.\)]\s*/, '').trim();
+    const letterMap = { 'A':'ก', 'B':'ข', 'C':'ค', 'D':'ง', 'a':'ก', 'b':'ข', 'c':'ค', 'd':'ง', '1':'ก', '2':'ข', '3':'ค', '4':'ง', 'ก':'ก', 'ข':'ข', 'ค':'ค', 'ง':'ง' };
+
+    // 2. แปลงคำตอบที่ผู้ใช้เลือกให้อยู่ในรูป ก, ข, ค, ง
+    let userLetter = letterMap[String(userRaw || '').trim()] || letterMap[String(userRaw || '').trim().toUpperCase()] || null;
+    if (!userLetter && userRaw) {
+      const uClean = cleanText(userRaw);
+      choices.forEach(c => {
+        if (cleanText(c.text) === uClean) userLetter = c.key;
+      });
+    }
+
+    // 3. แปลงเฉลยที่ถูกต้องให้อยู่ในรูป ก, ข, ค, ง
+    const rawCorrect = String(q.correct_answer || '').trim();
+    let correctLetter = letterMap[rawCorrect] || letterMap[rawCorrect.toUpperCase()] || letterMap[rawCorrect.charAt(0)] || null;
+    if (!correctLetter) {
+      const cClean = cleanText(rawCorrect);
+      choices.forEach(c => {
+        if (cleanText(c.text) === cClean) correctLetter = c.key;
+      });
+    }
+
+    // 4. แสดงผลตัวเลือก: ข้อถูกจะแสดงเป็นสีเขียวเสมอ (✓) และข้อที่เลือกผิดจะแสดงสีแดง (❌)
     const container = document.getElementById('choicesContainer');
     container.innerHTML = choices.map(c => {
+      const isCorrectChoice = (c.key === correctLetter);
+      const isUserChoice = (c.key === userLetter);
+
       let borderClass = 'border-stone-200 bg-white text-stone-700';
       let icon = '<span class="w-2.5 h-2.5 rounded-full border border-stone-300"></span>';
 
-      if (c.key === correctAns) {
-        // ข้อที่ถูกต้อง (สีเขียว)
+      if (isCorrectChoice) {
+        // ข้อที่ถูกต้อง: แสดงสีเขียวเสมอ
         borderClass = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold';
         icon = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
-      } else if (userAns === c.key && userAns !== correctAns) {
-        // ข้อที่ผู้สอบเลือกแต่ผิด (สีแดง)
+      } else if (isUserChoice && !isCorrectChoice) {
+        // ข้อที่เลือกแต่ผิด: แสดงสีแดง
         borderClass = 'border-rose-500 bg-rose-50 text-rose-900 font-bold';
         icon = '<i class="fa-solid fa-xmark text-rose-600 text-xs"></i>';
       }
 
       return `
-        <div class="p-3 rounded-xl border ${borderClass} flex items-center gap-2.5 text-xs transition-all">
-          <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
-            ${icon}
+        <div class="p-3 rounded-xl border ${borderClass} flex items-center justify-between gap-2.5 text-xs transition-all">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+              ${icon}
+            </div>
+            <span class="truncate">${c.label} ${c.text || '-'}</span>
           </div>
-          <span>${c.label} ${c.text || '-'}</span>
+          ${isUserChoice ? `<span class="text-[10px] px-2 py-0.5 rounded-full shrink-0 ${isCorrectChoice ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">คำตอบของคุณ</span>` : ''}
         </div>
       `;
     }).join('');
@@ -1041,7 +1058,7 @@ async function submitExam(isForcedTimeout = false) {
     return arr;
   }
 
-  // 2. ฟังก์ชันสลับตัวเลือก ก, ข, ค, ง (A, B, C, D) พร้อมอัปเดตเฉลย
+  // 2. ฟังก์ชันสลับตัวเลือก ก, ข, ค, ง (A, B, C, D) พร้อมอัปเดตเฉลย (ฉบับแก้บั๊กเฉลยหลุด)
   function shuffleChoicesForQuestion(q) {
     const originalChoices = [
       { key: 'A', text: q.choice_a },
@@ -1050,23 +1067,25 @@ async function submitExam(isForcedTimeout = false) {
       { key: 'D', text: q.choice_d }
     ];
 
-    // Smart Guard: ตรวจสอบว่ามีตัวเลือกแบบสัมพัทธ์หรือไม่
-    // หากมี เช่น "ถูกทุกข้อ", "ไม่มีข้อถูก", "ก และ ข ถูก" จะไม่สลับช้อยส์เพื่อคงความหมายเดิมไว้
     const relativePattern = /ถูกทุกข้อ|ผิดทุกข้อ|ไม่มีข้อใดถูก|ข้อ.*และ.*ถูก|ถูกทั้ง/i;
     const hasRelative = originalChoices.some(c => relativePattern.test(c.text || ''));
 
     if (hasRelative) {
-      return q; // ไม่สลับตัวเลือกข้อนี้
+      return q;
     }
+
+    // แปลงเฉลยเดิมให้กลายเป็น A, B, C, D ก่อน เพื่อให้เทียบตำแหน่งได้ถูกต้อง
+    const toEngKey = { 'ก':'A', 'ข':'B', 'ค':'C', 'ง':'D', 'A':'A', 'B':'B', 'C':'C', 'D':'D', '1':'A', '2':'B', '3':'C', '4':'D' };
+    const rawChar = String(q.correct_answer || '').trim().replace(/[\.\)\s]/g, '').toUpperCase().charAt(0);
+    const targetOriginalKey = toEngKey[rawChar] || 'A';
 
     // สุ่มสลับตำแหน่งช้อยส์
     const shuffledChoices = shuffleArray(originalChoices);
     const keys = ['A', 'B', 'C', 'D'];
-    let newCorrectAnswer = q.correct_answer;
+    let newCorrectAnswer = targetOriginalKey;
 
-    // หาว่าเฉลยเดิม (เช่น 'B') ตอนนี้ย้ายไปอยู่ที่ตำแหน่งตัวอักษรใดใหม่
     shuffledChoices.forEach((item, index) => {
-      if (item.key === q.correct_answer) {
+      if (item.key === targetOriginalKey) {
         newCorrectAnswer = keys[index];
       }
     });
@@ -1077,7 +1096,7 @@ async function submitExam(isForcedTimeout = false) {
       choice_b: shuffledChoices[1].text,
       choice_c: shuffledChoices[2].text,
       choice_d: shuffledChoices[3].text,
-      correct_answer: newCorrectAnswer // เฉลยถูกเปลี่ยนตามตำแหน่งช้อยส์ใหม่เรียบร้อย
+      correct_answer: newCorrectAnswer
     };
   }
 
@@ -1150,7 +1169,7 @@ async function submitExam(isForcedTimeout = false) {
     // รีเซ็ตโหมดและเริ่มจับเวลาใหม่
     isReviewMode = false;
     renderQuestion();
-    startExamTimers();
+    startTotalTimer();
   }
 
   // 2. ฟังก์ชันเรนเดอร์การ์ดผลสอบด้วย HTML5 Canvas และดาวน์โหลดไฟล์ .PNG

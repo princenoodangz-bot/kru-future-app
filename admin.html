@@ -642,9 +642,14 @@ async function loadUsersList() {
             </span>
           </td>
           <td class="p-3 text-center">
-            <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-3 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1 mx-auto">
-              <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
-            </button>
+            <div class="flex items-center justify-center gap-1.5 mx-auto">
+              <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-2.5 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
+              </button>
+              <button onclick="deleteUser('${u.id}', '${u.student_id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1" title="ลบบัญชีนี้">
+                <span class="material-symbols-outlined text-[15px]">delete</span> ลบ
+              </button>
+            </div>
           </td>
         </tr>
       `}).join('');
@@ -670,6 +675,21 @@ function editUser(id, studentId, name, password, role) {
   document.getElementById('newStdName').focus();
   document.getElementById('newStdId').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+
+// ✅ เพิ่มฟังก์ชันลบผู้ใช้งาน
+async function deleteUser(id, studentId) {
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี [${studentId}] ออกจากระบบอย่างถาวร?`)) return;
+  try {
+    const { error } = await supabase.from('users').delete().eq('id', id);
+    if (error) throw error;
+    alert(`ลบบัญชี ${studentId} เรียบร้อยแล้ว`);
+    loadUsersList();
+    loadAdminUsersList();
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
+  }
+}
+
 
 async function loadAdminUsersList() {
   const tbody = document.getElementById('adminUsersTableBody');
@@ -1130,6 +1150,7 @@ function switchAdminTab(tabKey) {
   } else if (tabKey === 'dday') {
     activeContent = tabDday;
     activeBtnId = 'tabBtnDday';
+    loadAdminConfigs(); // ดึงข้อมูลวันสอบและคำคมล่าสุดเสมอ
   } else if (tabKey === 'questions') {
     activeContent = tabQuestions;
     activeBtnId = 'tabBtnQuestions';
@@ -1164,6 +1185,20 @@ async function loadQuestionsList() {
 
     allLoadedQuestions = data || [];
     if (countBadge) countBadge.innerText = allLoadedQuestions.length;
+
+    // ซิงค์หมวดหมู่จากข้อสอบจริงในฐานข้อมูลเข้าสู่ตัวกรองอัตโนมัติ
+    allLoadedQuestions.forEach(q => {
+      const p = (q.exam_part || '').trim();
+      const c = (q.exam_category || '').trim();
+      const s = (q.exam_sub_category || '').trim();
+      const t = (q.exam_topic || '').trim();
+      if (p && c && s && t) {
+        if (!examTaxonomy[p]) examTaxonomy[p] = {};
+        if (!examTaxonomy[p][c]) examTaxonomy[p][c] = {};
+        if (!examTaxonomy[p][c][s]) examTaxonomy[p][c][s] = [];
+        if (!examTaxonomy[p][c][s].includes(t)) examTaxonomy[p][c][s].push(t);
+      }
+    });
 
     onTableFilterPartChange();
     filterQuestionsTable();
@@ -1373,9 +1408,16 @@ async function deleteSelectedQuestions() {
     if (error) throw error;
 
     alert(`ลบข้อสอบสำเร็จทั้งหมด ${selectedIds.length} ข้อ`);
-    const idSet = new Set(selectedIds);
-    allLoadedQuestions = allLoadedQuestions.filter(q => !idSet.has(q.id));
+    // ใน deleteSelectedQuestions
+    const idSet = new Set(selectedIds.map(String));
+    allLoadedQuestions = allLoadedQuestions.filter(q => !idSet.has(String(q.id)));
     document.getElementById('totalQuestionsCount').innerText = allLoadedQuestions.length;
+    
+    // รีเซ็ตปุ่มติ๊กทั้งหมดและซ่อนแถบแจ้งเตือน
+    const selectAll = document.getElementById('selectAllCheckbox');
+    if (selectAll) selectAll.checked = false;
+    updateBulkToolbar();
+    
     filterQuestionsTable();
 
   } catch (err) {
@@ -1390,7 +1432,8 @@ async function deleteQuestion(id) {
     const { error } = await supabase.from('questions').delete().eq('id', id);
     if (error) throw error;
 
-    allLoadedQuestions = allLoadedQuestions.filter(q => q.id !== id);
+    // ใน deleteQuestion
+    allLoadedQuestions = allLoadedQuestions.filter(q => String(q.id) !== String(id));
     document.getElementById('totalQuestionsCount').innerText = allLoadedQuestions.length;
     filterQuestionsTable();
     alert('ลบข้อสอบเรียบร้อยแล้ว');
@@ -1401,7 +1444,7 @@ async function deleteQuestion(id) {
 
 // ==========================================
 function openEditQuestionModal(id) {
-  const q = allLoadedQuestions.find(item => item.id === id);
+  const q = allLoadedQuestions.find(item => String(item.id) === String(id));
   if (!q) return;
 
   document.getElementById('editQId').value = q.id;
@@ -1453,7 +1496,8 @@ async function saveEditedQuestion() {
     const { error } = await supabase.from('questions').update(payload).eq('id', id);
     if (error) throw error;
 
-    const index = allLoadedQuestions.findIndex(q => q.id === id);
+    // ใน saveEditedQuestion
+    const index = allLoadedQuestions.findIndex(q => String(q.id) === String(id));
     if (index !== -1) {
       allLoadedQuestions[index] = { ...allLoadedQuestions[index], ...payload };
     }

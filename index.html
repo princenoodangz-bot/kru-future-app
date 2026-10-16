@@ -82,11 +82,45 @@
               <span id="cdMinutes" class="text-base font-extrabold text-[#755634] leading-none">00</span>
               <span class="text-[9px] text-gray-500 mt-0.5">นาที</span>
             </div>
+            <span class="text-[#755634] font-bold text-xs">:</span>
+            <div class="flex flex-col items-center justify-center bg-white rounded-lg px-1.5 py-1.5 min-w-[40px] shadow-xs border border-[#e8ded4]">
+              <span id="cdSeconds" class="text-sm font-extrabold text-[#964320] leading-none animate-pulse">00</span>
+              <span class="text-[8px] text-gray-500 mt-0.5">วิ</span>
+            </div>
           </div>
         </div>
 
         <div class="shrink-0 w-20 h-20 flex items-center justify-center">
-          <img src="https://lh3.googleusercontent.com/aida/AEtjO1WnnLTUlc3B8R3EB5uffpl4-bthYDtx-CYku4vbQeSAYZb_3EujV88k-8LXnKwQDk7dJVvbqEVFyjEuAE0NEmhcq3ucUw9MBspibY-8aNR9wHOVlrWiv5OKlWviTt3zPlnrv8ctCX7t0BxtQpGy3lhVnncQd4KlR3AzqTnxQIzg4vqG0YlodlG4LkYm6DX_95SB8MipeMxp3bKnPIIVzXl2z3lLe1x2-qJIun0nWX-0oBOCylBdvs8yydI" alt="Mascot" class="w-full h-full object-contain drop-shadow-sm">
+          <!-- เวกเตอร์การ์ตูนครูผู้ช่วยสุดน่ารัก ลอยดุ๊กดิ๊กเบาๆ โหลดไว ไม่ต้องพึ่งเน็ต -->
+          <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- หมวกครู/หมวกปริญญา -->
+            <path d="M50 14L82 25L50 36L18 25L50 14Z" fill="#755634"/>
+            <path d="M78 28V42C78 44 76 46 73 46" stroke="#964320" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="73" cy="48" r="3" fill="#D97706"/>
+            <!-- ใบหน้ากลมยิ้ม -->
+            <circle cx="50" cy="52" r="26" fill="#FDE68A"/>
+            <!-- ทรงผม -->
+            <path d="M26 44C28 34 38 28 50 28C62 28 72 34 74 44C66 40 56 42 50 45C44 42 34 40 26 44Z" fill="#451A03"/>
+            <!-- แว่นตาคุณครู -->
+            <circle cx="41" cy="51" r="7" stroke="#755634" stroke-width="2.5" fill="#FFFFFF" fill-opacity="0.8"/>
+            <circle cx="59" cy="51" r="7" stroke="#755634" stroke-width="2.5" fill="#FFFFFF" fill-opacity="0.8"/>
+            <path d="M48 51H52" stroke="#755634" stroke-width="2.5"/>
+            <!-- ดวงตา -->
+            <circle cx="41" cy="51" r="3" fill="#1E1B1A"/>
+            <circle cx="59" cy="51" r="3" fill="#1E1B1A"/>
+            <!-- แก้มชมพู -->
+            <circle cx="34" cy="58" r="4" fill="#FCA5A5" fill-opacity="0.7"/>
+            <circle cx="66" cy="58" r="4" fill="#FCA5A5" fill-opacity="0.7"/>
+            <!-- รอยยิ้ม -->
+            <path d="M45 61C47 64 53 64 55 61" stroke="#964320" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- เสื้อสูทครู -->
+            <path d="M30 76C30 70 38 68 50 68C62 68 70 70 70 76V88H30V76Z" fill="#755634"/>
+            <path d="M43 68L50 80L57 68" fill="#FFFFFF"/>
+            <path d="M48 74L50 84L52 74" fill="#D97706"/>
+            <!-- หนังสือคู่มือเตรียมสอบ -->
+            <rect x="62" y="70" width="18" height="15" rx="2" fill="#964320"/>
+            <path d="M65 74H77M65 78H74" stroke="#FEF3C7" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </div>
       </div>
 
@@ -218,6 +252,30 @@
     </section>
 
   </main>
+  <!-- แถบเมนูด้านล่าง (Bottom Navigation Bar) สำหรับหน้าแรก -->
+  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#fff8f6]/95 backdrop-blur-md border-t border-[#e8ded4] px-4 py-2 z-40">
+    <div class="flex items-center justify-around">
+      <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 text-[#755634] font-bold">
+        <i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">หน้าแรก</span>
+      </a>
+      <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px] font-medium">รวมข้อสอบ</span>
+      </a>
+      <a href="quiz.html" class="flex flex-col items-center -mt-5 group active:scale-95 transition-transform">
+        <div class="w-12 h-12 rounded-full bg-[#755634] flex items-center justify-center text-white shadow-lg border-2 border-white">
+          <i class="fa-solid fa-pen-nib text-base"></i>
+        </div>
+        <span class="text-[10px] font-bold text-slate-700 mt-1">ทำข้อสอบ</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px] font-medium">ประวัติ</span>
+      </a>
+      <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px] font-medium">ตั้งค่า</span>
+      </a>
+    </div>
+    <div class="w-32 h-1 bg-[#d9cabe] rounded-full mx-auto mt-2 mb-0.5"></div>
+  </nav>
 
   <!-- หน้าต่างเลือกโหมดการสอบและจำนวนข้อ (Modal) สำหรับหน้าแรก -->
 <div id="examModeModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
@@ -333,16 +391,21 @@
           const days = Math.floor(distance / (1000 * 60 * 60 * 24));
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000); // 👈 เพิ่มการคำนวณวินาที
 
           document.getElementById('cdDays').innerText = String(days).padStart(2, '0');
           document.getElementById('cdHours').innerText = String(hours).padStart(2, '0');
           document.getElementById('cdMinutes').innerText = String(minutes).padStart(2, '0');
+          
+          const secEl = document.getElementById('cdSeconds');
+          if (secEl) secEl.innerText = String(seconds).padStart(2, '0'); // 👈 แสดงค่าวินาที
+
           document.getElementById('dDayBadge').innerText = `D-${days}`;
         }
       }
 
       update();
-      setInterval(update, 60000);
+      setInterval(update, 1000); // 👈 เปลี่ยนเป็นอัปเดตทุก 1 วินาที (1,000 ms)
     }
     let currentLeaderboardCount = 10;
 
