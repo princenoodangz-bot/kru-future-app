@@ -525,7 +525,8 @@ function normalizeAnswerToThai(ans) {
     const box = document.getElementById('solutionBox');
     const text = document.getElementById('solutionText');
     if (box.classList.contains('hidden')) {
-      text.innerHTML = `<strong>คำตอบที่ถูกต้องคือ: ข้อ ${q.correct_answer}</strong><br>${q.explanation || 'ไม่มีคำอธิบายเพิ่มเติม'}`;
+      const thaiAnswer = normalizeAnswerToThai(q.correct_answer);
+      text.innerHTML = `<strong>คำตอบที่ถูกต้องคือ: ข้อ ${thaiAnswer}.</strong><br>${q.explanation || 'ไม่มีคำอธิบายเพิ่มเติม'}`;
       box.classList.remove('hidden');
     } else {
       box.classList.add('hidden');
@@ -757,10 +758,16 @@ async function submitExam(isForcedTimeout = false) {
       if (perQBadge) perQBadge.style.display = 'none';
     }
 
-    // ถ้าเปิด "โหมดจำลองสอบจริง" -> ซ่อนปุ่มเฉลย ไม่ให้แอบดูระหว่างสอบ
-    if (isRealMode) {
+    // ซ่อนปุ่มเฉลยเมื่อเปิดตั้งค่าไว้ หรือเมื่อเข้าสู่โหมดแข่งขัน/จำลองจริง เพื่อความโปร่งใส
+    const isLockedMode = (examMode === 'competition' || examMode === 'mock' || isRealMode);
+    if (isLockedMode) {
       const btnSolution = document.querySelector('button[onclick="toggleSolution()"]');
-      if (btnSolution) btnSolution.style.display = 'none';
+      if (btnSolution) {
+        btnSolution.style.display = 'none';
+        // ปรับขนาดปุ่มที่เหลือให้ขยายเต็มแถวอย่างสวยงาม
+        const btnParent = btnSolution.parentElement;
+        if (btnParent) btnParent.className = 'grid grid-cols-3 gap-2';
+      }
     }
   });
 
@@ -1144,11 +1151,12 @@ async function submitExam(isForcedTimeout = false) {
   }
 
 
-  // 1. ฟังก์ชันเริ่มสอบซ่อมเฉพาะข้อที่ตอบผิดทันที
+  // 1. ฟังก์ชันเริ่มสอบซ่อมเฉพาะข้อที่ตอบผิดทันที (แปลงค่าตัวอักษรให้ตรงกันก่อนตรวจสอบ)
   function retryWrongQuestions() {
-    // กรองเอาเฉพาะข้อที่ตอบผิด หรือข้อที่ไม่ได้ตอบ
     const wrongQuestions = questions.filter((q, idx) => {
-      return userAnswers[idx] !== q.correct_answer;
+      const uAns = normalizeAnswerToThai(userAnswers[idx]);
+      const cAns = normalizeAnswerToThai(q.correct_answer);
+      return uAns !== cAns;
     });
 
     if (wrongQuestions.length === 0) {
@@ -1157,7 +1165,8 @@ async function submitExam(isForcedTimeout = false) {
     }
 
     // ปิด Modal สรุปผล
-    document.getElementById('resultModal').classList.add('hidden');
+    document.getElementById('resultModal')?.classList.add('hidden');
+    document.getElementById('resultSummaryModal')?.classList.add('hidden');
 
     // นำเฉพาะข้อผิดมาเป็นชุดข้อสอบใหม่
     questions = wrongQuestions;
@@ -1183,10 +1192,12 @@ async function submitExam(isForcedTimeout = false) {
     const userName = (typeof userInfo !== 'undefined' && userInfo && userInfo.name) ? userInfo.name : 'ผู้เตรียมสอบ';
     const examTitle = document.getElementById('examTitleHeader')?.innerText || 'ชุดข้อสอบเตรียมสอบครูผู้ช่วย';
     
-    // คำนวณคะแนน
+    // คำนวณคะแนน (แปลงค่าตัวอักษรให้ตรงกันเพื่อให้ตัวเลขบนรูปภาพตรง 100%)
     let correct = 0;
     questions.forEach((q, idx) => {
-      if (userAnswers[idx] === q.correct_answer) correct++;
+      const uAns = normalizeAnswerToThai(userAnswers[idx]);
+      const cAns = normalizeAnswerToThai(q.correct_answer);
+      if (uAns === cAns) correct++;
     });
     const percentage = Math.round((correct / questions.length) * 100);
     const isPassed = percentage >= 60;

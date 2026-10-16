@@ -2,216 +2,346 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
   <title>ครูในอนาคต - รวมข้อสอบและคอร์สเรียน</title>
 
-  <!-- สคริปต์เชื่อมต่อ Supabase, Auth และ Theme Manager -->
+  <!-- สคริปต์เชื่อมต่อ Supabase, Auth และ Theme Manager เดิม -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="check-auth.js"></script>
   <script src="theme-manager.js"></script>
 
-  <!-- Fonts & Icons -->
+  <!-- Fonts & Icons: Plus Jakarta Sans + Anuphan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     body {
-      font-family: 'Sarabun', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Anuphan', sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
     ::-webkit-scrollbar { display: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* =========================================
+       1. ANIMATED AURORA & GRID BACKGROUND
+       ========================================= */
+    @keyframes auroraBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-aurora {
+      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+      background-size: 400% 400%;
+      animation: auroraBG 18s ease infinite;
+    }
+
+    .bg-grid-pattern {
+      background-size: 28px 28px;
+      background-image: 
+        linear-gradient(to right, rgba(117, 86, 52, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.04) 1px, transparent 1px);
+    }
+
+    @keyframes orbitBlob {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(20px, -25px) scale(1.12); }
+    }
+    .animate-blob { animation: orbitBlob 10s ease-in-out infinite; }
+
+    /* =========================================
+       2. CARD & MODAL MICRO-ANIMATIONS
+       ========================================= */
+    @keyframes cardPopIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-card-in {
+      animation: cardPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes sheetSlideUp {
+      from { opacity: 0; transform: translateY(100%); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-sheet-up {
+      animation: sheetSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-150%) skewX(-20deg); }
+      50%, 100% { transform: translateX(250%) skewX(-20deg); }
+    }
+    .shimmer-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      animation: shimmerSweep 4s infinite;
+    }
   </style>
 </head>
-<body class="bg-[#F7F4EE] text-slate-800 antialiased flex justify-center min-h-screen">
 
-<div class="w-full max-w-[425px] min-h-screen bg-[#F7F4EE] flex flex-col relative pb-28 shadow-2xl">
+<body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- แถบด้านบน (Header) -->
-  <header class="sticky top-0 z-30 bg-[#FBF9F5]/95 backdrop-blur-md border-b border-[#E8DFD3] px-4 pt-3.5 pb-2.5 flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#755634] font-bold shrink-0">
-        <i class="fa-solid fa-graduation-cap text-sm"></i>
-      </div>
-      <div>
-        <h1 class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">EXAM HUB</h1>
-        <p class="text-base font-bold text-slate-800 leading-tight">คลังข้อสอบครูผู้ช่วย</p>
-      </div>
-    </div>
-    <!-- ไอคอนโปรไฟล์แสดงตัวย่อชื่อ -->
-    <div id="userHeaderBadge" class="w-8 h-8 rounded-full bg-[#EFE8DD] border border-[#C2A88A] flex items-center justify-center text-xs font-bold text-[#755634] shadow-xs">
-      ครู
-    </div>
-  </header>
-
-  <!-- เนื้อหาหลัก -->
-  <main class="flex-1 px-4 pt-3 space-y-4">
-    <!-- 1. ช่องค้นหาข้อสอบ -->
-    <div class="relative flex items-center">
-      <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 text-xs"></i>
-      <input id="searchInput" oninput="handleSearch(this.value)" class="w-full pl-9 pr-4 py-2 bg-white rounded-xl border border-[#E8DFD3] text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#755634] shadow-xs transition-colors" placeholder="ค้นหาหัวข้อย่อย หรือเรื่องที่ต้องการ..." type="text">
-    </div>
-
-    <!-- 2. แถบเลือกระดับที่ 1 (ภาค) + ปุ่มสลับ Grid/List -->
-    <div class="flex items-center justify-between gap-2 pt-1">
-      <div class="flex items-center gap-1.5 p-1 bg-[#ede4d8] rounded-2xl w-fit">
-        <button id="tabPartA" onclick="selectMainPart('ภาค ก')" class="px-4 py-1.5 rounded-xl bg-[#755634] text-white text-xs font-bold shadow-xs transition-all">
-          ภาค ก (ความรู้ทั่วไป)
-        </button>
-        <button id="tabPartB" onclick="selectMainPart('ภาค ข')" class="px-4 py-1.5 rounded-xl text-slate-600 text-xs font-bold hover:text-slate-800 transition-all">
-          ภาค ข (มาตรฐานวิชาชีพ)
-        </button>
-      </div>
-
-      <!-- ปุ่มสลับ Grid / List -->
-      <div class="flex items-center bg-white p-0.5 rounded-xl border border-[#E8DFD3] shrink-0 shadow-2xs">
-        <button id="btnViewGrid" onclick="setViewMode('grid')" title="แสดงแบบตาราง" class="w-7 h-7 rounded-lg flex items-center justify-center text-[#755634] bg-[#f5eee6] transition-all">
-          <span class="material-symbols-outlined text-[16px]">grid_view</span>
-        </button>
-        <button id="btnViewList" onclick="setViewMode('list')" title="แสดงแบบรายการ" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all">
-          <span class="material-symbols-outlined text-[16px]">view_agenda</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 3. แถบเลือกระดับที่ 2 (หมวดวิชาหลัก) -->
-    <div id="categoryContainer" class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold">
-      <!-- สร้างผ่าน JS ตามภาคที่เลือก -->
-    </div>
-
-    <!-- 4. แถบเลือกระดับที่ 3 (กลุ่มวิชาย่อย) -->
-    <div id="subCategoryContainer" class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
-      <!-- สร้างผ่าน JS ตามหมวดวิชาหลักที่เลือก -->
-    </div>
-
-    <!-- 5. หัวข้อแสดงจำนวนเรื่องย่อยที่พบ -->
-    <div class="flex items-center justify-between px-1 pt-1 border-t border-[#ede4d8]">
-      <div class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-[#755634]"></span>
-        <h3 id="displayTopicCountTitle" class="text-xs font-bold text-slate-800">หัวข้อฝึกทำข้อสอบ</h3>
-        
-      </div>
-      
-      <span id="topicCountBadge" class="text-[10px] text-slate-500 font-bold bg-[#ede4d8] px-2 py-0.5 rounded-full">0 เรื่อง</span>
-    </div>
-    
-
-    <!-- 6. พื้นที่เรนเดอร์การ์ดระดับที่ 4 (เรื่องย่อย) -->
-    <div id="cardsDisplayContainer" class="grid grid-cols-2 gap-2.5 transition-all">
-      <!-- การ์ดเรื่องย่อยสั้นกระชับจะถูกเรนเดอร์ที่นี่ -->
-    </div>
-
-    <!-- กล่องแจ้งเตือนเมื่อค้นหาไม่พบ -->
-    <div id="noResultsNotice" class="hidden text-center py-10 text-slate-400 space-y-2">
-      <span class="material-symbols-outlined text-[36px] text-slate-300">search_off</span>
-      <p class="text-xs">ไม่พบหัวข้อข้อสอบที่ตรงกับคำค้นหาหรือตัวกรอง</p>
-    </div>
-    
-
-  </main>
-
-  <!-- หน้าต่างเลือกโหมดการสอบและจำนวนข้อ (Mode & Count Modal) -->
-  <div id="examModeModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#e8ded4] space-y-4 animate-in fade-in zoom-in-95 duration-150">
-      
-      <!-- ส่วนหัว Modal -->
-      <div class="flex items-start justify-between border-b border-gray-100 pb-2.5">
-        <div class="pr-2">
-          <span id="modalPartTag" class="text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded">ภาค ก</span>
-          <h3 id="modalSubjectTitle" class="text-sm font-bold text-slate-800 mt-1 leading-tight">ชื่อหัวข้อย่อย</h3>
-          <p id="modalCategorySubtitle" class="text-[10px] text-slate-400 mt-0.5">หมวดวิชา</p>
-        </div>
-        <button type="button" onclick="closeModeModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-
-      <!-- 1. เลือกโหมดการสอบ -->
-      <div class="space-y-1.5">
-        <label class="text-xs font-bold text-slate-700 block">1. เลือกโหมดการสอบ</label>
-        <div class="grid grid-cols-3 gap-1.5">
-          <!-- โหมดฝึกซ้อม -->
-          <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn p-2 rounded-xl border-2 border-[#755634] bg-[#f5eee6] text-center transition-all">
-            <span class="material-symbols-outlined text-[#755634] text-[20px] block mx-auto">edit_note</span>
-            <span class="text-[11px] font-bold text-stone-800 block mt-0.5">ฝึกซ้อม</span>
-            <span class="text-[9px] text-stone-500 block">เฉลยทันที</span>
-          </button>
-          <!-- โหมดแข่งขัน -->
-          <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn p-2 rounded-xl border border-gray-200 bg-white hover:bg-stone-50 text-center transition-all">
-            <span class="material-symbols-outlined text-amber-600 text-[20px] block mx-auto">speed</span>
-            <span class="text-[11px] font-bold text-stone-800 block mt-0.5">แข่งขัน</span>
-            <span class="text-[9px] text-amber-600 font-bold block">1 นาที/ข้อ</span>
-          </button>
-          <!-- โหมดจำลองจริง -->
-          <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn p-2 rounded-xl border border-gray-200 bg-white hover:bg-stone-50 text-center transition-all">
-            <span class="material-symbols-outlined text-purple-600 text-[20px] block mx-auto">fact_check</span>
-            <span class="text-[11px] font-bold text-stone-800 block mt-0.5">จำลองจริง</span>
-            <span class="text-[9px] text-purple-600 font-bold block">ตรงเวลาจริง</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. เลือกจำนวนข้อ -->
-      <div class="space-y-1.5" id="questionCountGroup">
-        <label class="text-xs font-bold text-slate-700 flex justify-between items-center">
-          <span>2. จำนวนข้อสอบ</span>
-          <span id="mockNotice" class="text-[10px] text-purple-600 hidden font-bold">* โหมดจำลองล็อก 20 ข้อ</span>
-        </label>
-        <div class="grid grid-cols-3 gap-2">
-          <button type="button" onclick="selectModalCount(10)" id="optCount10" class="count-opt-btn py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all">
-            10 ข้อ
-          </button>
-          <button type="button" onclick="selectModalCount(20)" id="optCount20" class="count-opt-btn py-2 rounded-xl border-2 border-[#755634] bg-[#f5eee6] text-xs font-bold text-[#755634] shadow-2xs transition-all">
-            20 ข้อ
-          </button>
-          <button type="button" onclick="selectModalCount(50)" id="optCount50" class="count-opt-btn py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all">
-            50 ข้อ
-          </button>
-        </div>
-      </div>
-
-      <!-- ปุ่มเข้าสู่ห้องสอบ -->
-      <button type="button" onclick="startSelectedQuiz()" class="w-full py-2.5 rounded-xl bg-[#755634] hover:bg-[#896443] text-white font-bold text-xs shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 mt-1">
-        <span>เข้าสู่ห้องสอบทันที</span>
-        <i class="fa-solid fa-arrow-right text-[11px]"></i>
-      </button>
-
-    </div>
+  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่า) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute inset-0 bg-grid-pattern"></div>
+    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/2 -left-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-sky-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
   </div>
 
-  <!-- แถบเมนูด้านล่าง (Bottom Navigation Bar) -->
-  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[425px] bg-[#FBF9F5]/95 backdrop-blur-md border-t border-[#E8DFD3] px-3 py-2 z-40">
-    <div class="flex items-center justify-around">
-      <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
-        <i class="fa-solid fa-house text-sm"></i><span class="text-[10px] font-medium">หน้าแรก</span>
-      </a>
-      <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 text-[#755634] font-bold">
-        <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px]">รวมข้อสอบ</span>
-      </a>
-      <a href="quiz.html" class="flex flex-col items-center -mt-5 group active:scale-95 transition-transform">
-        <div class="w-12 h-12 rounded-full bg-[#755634] flex items-center justify-center text-white shadow-lg border-2 border-white">
-          <i class="fa-solid fa-pen-nib text-base"></i>
+  <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
+  <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
+
+    <!-- แถบด้านบน (Sticky Glass Header) -->
+    <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
+          <span class="material-symbols-outlined text-[20px]">local_library</span>
         </div>
-        <span class="text-[10px] font-bold text-slate-700 mt-1">ทำข้อสอบ</span>
-      </a>
-      <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
-        <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px] font-medium">ประวัติ</span>
-      </a>
-      <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-600">
-        <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px] font-medium">ตั้งค่า</span>
-      </a>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-[10px] font-extrabold text-[#755634] tracking-widest uppercase">EXAM ARENA</h1>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          </div>
+          <p class="text-base font-extrabold text-slate-800 leading-tight tracking-tight">คลังข้อสอบครูผู้ช่วย</p>
+        </div>
+      </div>
+
+      <!-- ไอคอนโปรไฟล์แสดงตัวย่อชื่อ -->
+      <div id="userHeaderBadge" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white flex items-center justify-center text-xs font-extrabold text-[#755634] shadow-sm">
+        ครู
+      </div>
+    </header>
+
+    <!-- เนื้อหาหลัก -->
+    <main class="flex-1 px-4 pt-3.5 space-y-3.5">
+
+      <!-- 1. ช่องค้นหาข้อสอบแบบ Floating Search Bar -->
+      <div class="relative flex items-center group">
+        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all absolute left-3.5 text-[19px]">search</span>
+        <input id="searchInput" oninput="handleSearch(this.value)" 
+               class="w-full pl-10 pr-9 py-2.5 bg-white/85 backdrop-blur-md rounded-2xl border-2 border-white focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-[0_4px_15px_rgba(0,0,0,0.03)] transition-all" 
+               placeholder="ค้นหาชื่อเรื่อง เช่น อนุกรม, พ.ร.บ., จิตวิทยา..." type="text">
+        <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-3 w-5 h-5 rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 items-center justify-center text-[10px]">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 2. แถบเลือกระดับที่ 1 (ภาค ก / ภาค ข แบบ Sliding Pill) + ปุ่มสลับ Grid/List -->
+      <div class="flex items-center justify-between gap-2">
+        <!-- Sliding Pill Container -->
+        <div class="relative grid grid-cols-2 p-1 bg-white/70 backdrop-blur-md border border-white rounded-2xl flex-1 shadow-2xs">
+          <div id="partSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#755634] to-[#8F683E] rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
+          
+          <button id="tabPartA" onclick="selectMainPart('ภาค ก')" class="relative z-10 py-1.5 px-2 rounded-xl text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200">
+            <span class="material-symbols-outlined text-[15px]">psychology</span>
+            <span>ภาค ก (ทั่วไป)</span>
+          </button>
+          <button id="tabPartB" onclick="selectMainPart('ภาค ข')" class="relative z-10 py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-800 text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200">
+            <span class="material-symbols-outlined text-[15px]">school</span>
+            <span>ภาค ข (วิชาชีพ)</span>
+          </button>
+        </div>
+
+        <!-- ปุ่มสลับ Grid / List -->
+        <div class="flex items-center bg-white/80 backdrop-blur-md p-1 rounded-2xl border border-white shrink-0 shadow-2xs">
+          <button id="btnViewGrid" onclick="setViewMode('grid')" title="แสดงแบบการ์ดตาราง" class="w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90">
+            <span class="material-symbols-outlined text-[18px]">grid_view</span>
+          </button>
+          <button id="btnViewList" onclick="setViewMode('list')" title="แสดงแบบรายการยาว" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90">
+            <span class="material-symbols-outlined text-[18px]">view_agenda</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. กล่องรวมตัวกรองระดับที่ 2 (หมวดวิชาหลัก) & ระดับที่ 3 (กลุ่มวิชาย่อย) -->
+      <div class="space-y-2">
+        <!-- ระดับที่ 2: หมวดวิชาหลัก -->
+        <div id="categoryContainer" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs font-bold">
+          <!-- สร้างผ่าน JS -->
+        </div>
+
+        <!-- ระดับที่ 3: กลุ่มวิชาย่อย -->
+        <div id="subCategoryContainer" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[11px]">
+          <!-- สร้างผ่าน JS -->
+        </div>
+      </div>
+
+      <!-- 4. แบนเนอร์ปุ่มลัด: สุ่มทำข้อสอบรวมในหมวดที่กำลังเลือก (เรียกใช้ startScopeExam) -->
+      <div onclick="startScopeExam()" class="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#755634] via-[#8B653B] to-[#63482B] p-3 text-white shadow-md shadow-amber-900/15 cursor-pointer active:scale-[0.98] transition-all flex items-center justify-between border border-amber-300/30">
+        <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-amber-200 shrink-0 group-hover:rotate-12 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[20px]">shuffle</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] font-extrabold uppercase tracking-wider bg-amber-400 text-amber-950 px-1.5 py-0.5 rounded-md">QUICK MIX</span>
+              <h4 id="scopeBannerTitle" class="text-xs font-extrabold truncate">สุ่มสอบรวมหมวดนี้ (20 ข้อ)</h4>
+            </div>
+            <p class="text-[10px] text-amber-100/80 truncate mt-0.5">คละข้อสอบทุกเรื่องย่อยในหมวดที่เลือกอยู่ทันที</p>
+          </div>
+        </div>
+        <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
+          <i class="fa-solid fa-play text-[10px] ml-0.5"></i>
+        </div>
+      </div>
+
+      <!-- 5. หัวข้อแสดงจำนวนเรื่องย่อยที่พบ -->
+      <div class="flex items-center justify-between px-1 pt-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#755634] ring-4 ring-amber-500/15"></span>
+          <h3 id="displayTopicCountTitle" class="text-xs font-extrabold text-slate-800 tracking-tight">เลือกหัวข้อเรื่องย่อยที่ต้องการฝึก</h3>
+        </div>
+        <span id="topicCountBadge" class="text-[10px] text-[#755634] font-extrabold bg-white/80 border border-amber-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">0 เรื่อง</span>
+      </div>
+
+      <!-- 6. พื้นที่เรนเดอร์การ์ดระดับที่ 4 (เรื่องย่อย) -->
+      <div id="cardsDisplayContainer" class="grid grid-cols-2 gap-3 transition-all">
+        <!-- การ์ดเรื่องย่อยจะถูกเรนเดอร์ที่นี่ -->
+      </div>
+
+      <!-- กล่องแจ้งเตือนเมื่อค้นหาไม่พบ -->
+      <div id="noResultsNotice" class="hidden bg-white/70 backdrop-blur-md rounded-3xl p-8 text-center border border-white shadow-xs space-y-2 my-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-1">
+          <span class="material-symbols-outlined text-[28px]">search_off</span>
+        </div>
+        <p class="text-xs font-bold text-slate-700">ไม่พบหัวข้อข้อสอบที่ค้นหา</p>
+        <p class="text-[11px] text-slate-400">ลองเปลี่ยนคำค้นหา หรือเลือกดู "ทั้งหมดทุกหมวด"</p>
+      </div>
+
+    </main>
+
+    <!-- =========================================================
+         หน้าต่างเลือกโหมดการสอบ (iOS-Style Bottom Sheet Modal)
+         ========================================================= -->
+    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="animate-sheet-up bg-white/95 backdrop-blur-2xl w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-5 pb-7 sm:pb-5 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t-2 border-white space-y-4">
+        
+        <!-- แถบจับด้านบนสำหรับ Bottom Sheet -->
+        <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto -mt-1 mb-1 sm:hidden"></div>
+
+        <!-- ส่วนหัว Modal -->
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div class="pr-2">
+            <div class="flex items-center gap-1.5">
+              <span id="modalPartTag" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">ภาค ก</span>
+              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมสอบ
+              </span>
+            </div>
+            <h3 id="modalSubjectTitle" class="text-base font-extrabold text-slate-800 mt-1.5 leading-snug">ชื่อหัวข้อย่อย</h3>
+            <p id="modalCategorySubtitle" class="text-[11px] text-slate-400 font-medium mt-0.5">หมวดวิชา</p>
+          </div>
+          <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center active:scale-90 transition-all shrink-0">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <!-- 1. เลือกโหมดการสอบ -->
+        <div class="space-y-2">
+          <label class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-[#755634]">tune</span>
+            <span>1. เลือกโหมดการฝึกซ้อม</span>
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <!-- โหมดฝึกซ้อม -->
+            <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95">
+              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-[#755634] group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">ฝึกซ้อม</span>
+              <span class="text-[10px] text-slate-500 font-medium block">เฉลยทีละข้อ</span>
+            </button>
+            <!-- โหมดแข่งขัน -->
+            <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
+              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-amber-500 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-[20px]">bolt</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">แข่งขัน</span>
+              <span class="text-[10px] text-amber-600 font-bold block">1 นาที/ข้อ</span>
+            </button>
+            <!-- โหมดจำลองจริง -->
+            <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
+              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-purple-600 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">จำลองจริง</span>
+              <span class="text-[10px] text-purple-600 font-bold block">จับเวลาสนามจริง</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. เลือกจำนวนข้อ -->
+        <div class="space-y-2" id="questionCountGroup">
+          <label class="text-xs font-extrabold text-slate-700 flex justify-between items-center">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-[#755634]">format_list_numbered</span>
+              <span>2. จำนวนข้อสอบ</span>
+            </span>
+            <span id="mockNotice" class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full hidden font-bold">* โหมดจำลองล็อก 20 ข้อ</span>
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="selectModalCount(10)" id="optCount10" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
+              10 ข้อ <span class="block text-[9px] font-normal text-slate-400">ไวๆ 10 นาที</span>
+            </button>
+            <button type="button" onclick="selectModalCount(20)" id="optCount20" class="count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95">
+              20 ข้อ <span class="block text-[9px] font-bold text-amber-700/80">แนะนำ 🔥</span>
+            </button>
+            <button type="button" onclick="selectModalCount(50)" id="optCount50" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
+              50 ข้อ <span class="block text-[9px] font-normal text-slate-400">จัดเต็มชุดใหญ่</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ปุ่มเข้าสู่ห้องสอบ 3D Tactile -->
+        <button type="button" onclick="startSelectedQuiz()" class="shimmer-effect relative overflow-hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] text-white font-extrabold text-xs shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 group">
+          <span>เข้าสู่ห้องสอบทันที</span>
+          <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+        </button>
+
+      </div>
     </div>
-    <div class="w-32 h-1 bg-[#D9CABE] rounded-full mx-auto mt-2 mb-0.5"></div>
-  </nav>
 
-</div>
+    <!-- แถบเมนูด้านล่างแบบลอยตัว (Floating Glass Bottom Nav) -->
+    <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[406px] bg-white/85 backdrop-blur-xl border-2 border-white rounded-3xl px-3 py-2 z-40 shadow-[0_10px_30px_rgba(117,86,52,0.12)]">
+      <div class="flex items-center justify-around">
+        <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-house text-sm"></i><span class="text-[10px] font-semibold">หน้าแรก</span>
+        </a>
+        <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 text-[#755634] font-extrabold relative">
+          <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px]">รวมข้อสอบ</span>
+          <span class="w-1 h-1 rounded-full bg-[#755634] absolute -bottom-0.5"></span>
+        </a>
+        <a href="quiz.html" class="flex flex-col items-center -mt-6 group active:scale-90 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-lg shadow-amber-900/25 border-2 border-white group-hover:rotate-6 transition-transform">
+            <i class="fa-solid fa-pen-nib text-base"></i>
+          </div>
+          <span class="text-[10px] font-extrabold text-slate-700 mt-1">ทำข้อสอบ</span>
+        </a>
+        <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px] font-semibold">ประวัติ</span>
+        </a>
+        <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px] font-semibold">ตั้งค่า</span>
+        </a>
+      </div>
+    </nav>
 
+  </div>
 
 <script>
-// TOPIC PRESETS สำหรับจับคู่ไอคอนและคำอธิบาย
+  // TOPIC PRESETS สำหรับจับคู่ไอคอนและคำอธิบาย
   const TOPIC_PRESETS = {
     'อนุกรมตัวเลข': { desc: 'อนุกรมเดี่ยว ซ้อนสองชั้น และอนุกรมผสม', icon: 'calculate' },
     'คณิตศาสตร์ทั่วไปและร้อยละ': { desc: 'อัตราส่วน กำไร-ขาดทุน และสมการทั่วไป', icon: 'percent' },
@@ -242,6 +372,28 @@
     'ฮาร์ดแวร์และระบบเครือข่าย': { desc: 'สถาปัตยกรรมคอมพิวเตอร์ LAN, IP และ Network', icon: 'dns' },
     'ความมั่นคงปลอดภัยและกฎหมายดิจิทัล': { desc: 'Cybersecurity, PDPA และ พ.ร.บ.คอมพิวเตอร์', icon: 'security' }
   };
+
+  // 🎨 ฟังก์ชันกำหนดโทนสีการ์ดแยกตามหมวดวิชา (Color-Coded Visuals)
+  function getCategoryTheme(category = '', subCategory = '') {
+    const text = `${category} ${subCategory}`.toLowerCase();
+    if (text.includes('ปริมาณ') || text.includes('คณิต') || text.includes('นามธรรม')) {
+      return { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700', accent: 'group-hover:border-indigo-300', dot: 'bg-indigo-500' };
+    }
+    if (text.includes('ภาษาไทย') || text.includes('เชิงภาษา')) {
+      return { iconBg: 'bg-amber-50 text-amber-700 border-amber-100', badge: 'bg-amber-50 text-amber-800', accent: 'group-hover:border-amber-300', dot: 'bg-amber-500' };
+    }
+    if (text.includes('อังกฤษ') || text.includes('english')) {
+      return { iconBg: 'bg-rose-50 text-rose-600 border-rose-100', badge: 'bg-rose-50 text-rose-700', accent: 'group-hover:border-rose-300', dot: 'bg-rose-500' };
+    }
+    if (text.includes('ราชการ') || text.includes('กฎหมาย') || text.includes('จริยธรรม')) {
+      return { iconBg: 'bg-purple-50 text-purple-600 border-purple-100', badge: 'bg-purple-50 text-purple-700', accent: 'group-hover:border-purple-300', dot: 'bg-purple-500' };
+    }
+    if (text.includes('คอมพิวเตอร์') || text.includes('เอก')) {
+      return { iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-100', badge: 'bg-cyan-50 text-cyan-700', accent: 'group-hover:border-cyan-300', dot: 'bg-cyan-500' };
+    }
+    // ค่าเริ่มต้น (มาตรฐานวิชาชีพครู / ทั่วไป) -> เขียวมรกตสดใส
+    return { iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', badge: 'bg-emerald-50 text-emerald-700', accent: 'group-hover:border-emerald-300', dot: 'bg-emerald-500' };
+  }
 
   let EXAM_TOPIC_DATABASE = [];
   let currentPart = 'ภาค ก';
@@ -295,24 +447,41 @@
     }
   }
 
-  // เลือกระดับที่ 1: ภาค ก หรือ ข
+  // เลือกระดับที่ 1: ภาค ก หรือ ข (พร้อมสไลด์ Pill)
   function selectMainPart(part) {
     currentPart = part;
     currentCategory = 'all';
     currentSubCategory = 'all';
 
+    const pill = document.getElementById('partSlidingPill');
     const tabA = document.getElementById('tabPartA');
     const tabB = document.getElementById('tabPartB');
 
     if (part === 'ภาค ก') {
-      tabA.className = 'px-4 py-1.5 rounded-xl bg-[#755634] text-white text-xs font-bold shadow-xs transition-all';
-      tabB.className = 'px-4 py-1.5 rounded-xl text-slate-600 text-xs font-bold hover:text-slate-800 transition-all';
+      if (pill) pill.style.transform = 'translateX(0%)';
+      tabA.className = 'relative z-10 py-1.5 px-2 rounded-xl text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200';
+      tabB.className = 'relative z-10 py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-800 text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200';
     } else {
-      tabB.className = 'px-4 py-1.5 rounded-xl bg-[#755634] text-white text-xs font-bold shadow-xs transition-all';
-      tabA.className = 'px-4 py-1.5 rounded-xl text-slate-600 text-xs font-bold hover:text-slate-800 transition-all';
+      if (pill) pill.style.transform = 'translateX(100%)';
+      tabB.className = 'relative z-10 py-1.5 px-2 rounded-xl text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200';
+      tabA.className = 'relative z-10 py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-800 text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200';
     }
 
+    updateScopeBannerText();
     renderCategoryLevel2();
+  }
+
+  // อัปเดตข้อความบนแบนเนอร์สุ่มสอบรวม
+  function updateScopeBannerText() {
+    const titleEl = document.getElementById('scopeBannerTitle');
+    if (!titleEl) return;
+    if (currentSubCategory !== 'all') {
+      titleEl.innerText = `สุ่มสอบ: ${currentSubCategory}`;
+    } else if (currentCategory !== 'all') {
+      titleEl.innerText = `สุ่มสอบรวม: ${currentCategory}`;
+    } else {
+      titleEl.innerText = `สุ่มสอบรวมทั้ง ${currentPart} (20 ข้อ)`;
+    }
   }
 
   // เลือกระดับที่ 2: หมวดวิชาหลัก
@@ -323,14 +492,14 @@
 
     container.innerHTML = categories.map(cat => {
       const isSelected = (currentCategory === cat);
-      const title = cat === 'all' ? 'ทั้งหมดทุกหมวด' : cat;
+      const title = cat === 'all' ? '✨ ทั้งหมดทุกหมวด' : cat;
       const btnStyle = isSelected 
-        ? 'bg-[#755634] text-white border-[#755634]' 
-        : 'bg-white text-slate-600 border-[#E8DFD3] hover:bg-stone-50';
+        ? 'bg-[#755634] text-white border-[#755634] shadow-sm scale-[1.02]' 
+        : 'bg-white/80 backdrop-blur-xs text-slate-600 border-white hover:bg-white';
 
       return `
         <button onclick="selectCategoryLevel2('${cat.replace(/'/g, "\\'")}')" 
-                class="px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-2xs ${btnStyle}">
+                class="px-3.5 py-1.5 rounded-2xl border text-xs font-bold whitespace-nowrap shrink-0 transition-all active:scale-95 ${btnStyle}">
           ${title}
         </button>
       `;
@@ -342,6 +511,7 @@
   function selectCategoryLevel2(cat) {
     currentCategory = cat;
     currentSubCategory = 'all';
+    updateScopeBannerText();
     renderCategoryLevel2();
   }
 
@@ -364,12 +534,12 @@
       const isSelected = (currentSubCategory === sub);
       const title = sub === 'all' ? '• ทุกกลุ่มย่อย' : sub;
       const btnStyle = isSelected 
-        ? 'bg-[#f5eee6] text-[#755634] border-[#755634] font-bold' 
-        : 'bg-white/80 text-slate-500 border-slate-200 hover:text-slate-800';
+        ? 'bg-amber-100/90 text-[#755634] border-amber-300 font-extrabold shadow-2xs' 
+        : 'bg-white/60 text-slate-500 border-white hover:bg-white hover:text-slate-800';
 
       return `
         <button onclick="selectSubCategoryLevel3('${sub.replace(/'/g, "\\'")}')" 
-                class="px-2.5 py-0.5 rounded-lg border text-[11px] whitespace-nowrap shrink-0 transition-all ${btnStyle}">
+                class="px-3 py-1 rounded-xl border text-[11px] whitespace-nowrap shrink-0 transition-all active:scale-95 ${btnStyle}">
           ${title}
         </button>
       `;
@@ -380,10 +550,11 @@
 
   function selectSubCategoryLevel3(sub) {
     currentSubCategory = sub;
+    updateScopeBannerText();
     renderSubCategoryLevel3();
   }
 
-  // เลือกระดับที่ 4: การ์ดเรื่องย่อย
+  // เลือกระดับที่ 4: การ์ดเรื่องย่อย (Bento Color-Coded + Staggered Animation)
   function renderCardsLevel4() {
     const container = document.getElementById('cardsDisplayContainer');
     const badgeCount = document.getElementById('topicCountBadge');
@@ -391,7 +562,7 @@
     if (!container) return;
 
     const isGrid = (currentViewMode === 'grid');
-    container.className = isGrid ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2';
+    container.className = isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
 
     const results = EXAM_TOPIC_DATABASE.filter(item => {
       const matchPart = (item.part === currentPart);
@@ -415,7 +586,7 @@
 
     if (notice) notice.classList.add('hidden');
 
-    container.innerHTML = results.map(item => {
+    container.innerHTML = results.map((item, idx) => {
       const safePart = (item.part || '').replace(/'/g, "\\'");
       const safeCat = (item.category || '').replace(/'/g, "\\'");
       const safeTopic = (item.topic || '').replace(/'/g, "\\'");
@@ -423,25 +594,32 @@
       const iconName = item.icon || 'menu_book';
       const questionCountText = item.count ? `${item.count} ข้อ` : item.part;
       const shortSub = item.subCategory ? item.subCategory.split(' ')[0] : (item.category || '');
+      
+      const theme = getCategoryTheme(item.category, item.subCategory);
+      const delayMs = Math.min(idx * 40, 400); // Staggered animation delay
 
       if (isGrid) {
         return `
           <div onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
-               class="bg-white rounded-2xl p-3 border border-[#E8DFD3] shadow-2xs hover:border-[#755634] flex flex-col justify-between transition-all cursor-pointer active:scale-97">
-            <div class="space-y-1">
+               style="animation-delay: ${delayMs}ms;"
+               class="animate-card-in group bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white ${theme.accent} shadow-[0_8px_25px_rgba(117,86,52,0.06)] hover:shadow-[0_12px_30px_rgba(117,86,52,0.12)] hover:-translate-y-1 flex flex-col justify-between transition-all duration-200 cursor-pointer active:scale-95">
+            <div class="space-y-1.5">
               <div class="flex items-center justify-between">
-                <div class="w-7 h-7 rounded-lg bg-[#FAF6F0] text-[#755634] flex items-center justify-center font-bold shrink-0">
-                  <span class="material-symbols-outlined text-[17px]">${iconName}</span>
+                <div class="w-9 h-9 rounded-2xl border ${theme.iconBg} flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200 shadow-2xs">
+                  <span class="material-symbols-outlined text-[20px]">${iconName}</span>
                 </div>
-                <span class="text-[9px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded-full">${questionCountText}</span>
+                <span class="text-[10px] font-extrabold ${theme.badge} px-2 py-0.5 rounded-full">${questionCountText}</span>
               </div>
-              <h4 class="text-xs font-bold text-slate-800 leading-snug line-clamp-1 pt-0.5" title="${item.topic || ''}">${item.topic || '-'}</h4>
+              <h4 class="text-xs font-extrabold text-slate-800 leading-snug line-clamp-2 pt-1 min-h-[2.25rem]" title="${item.topic || ''}">${item.topic || '-'}</h4>
               <p class="text-[10px] text-slate-400 line-clamp-1 leading-tight">${item.desc || ''}</p>
             </div>
-            <div class="pt-2 mt-1.5 border-t border-slate-100 flex items-center justify-between">
-              <span class="text-[9px] text-[#755634] font-medium truncate max-w-[85px]">${shortSub}</span>
-              <span class="text-[10px] font-bold text-[#755634] flex items-center gap-0.5">
-                <span>เริ่ม</span><i class="fa-solid fa-arrow-right text-[8px]"></i>
+            <div class="pt-2.5 mt-2 border-t border-slate-100/80 flex items-center justify-between">
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="w-1.5 h-1.5 rounded-full ${theme.dot} shrink-0"></span>
+                <span class="text-[10px] text-slate-500 font-semibold truncate max-w-[85px]">${shortSub}</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-[#755634] bg-amber-50 group-hover:bg-[#755634] group-hover:text-white px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors">
+                <span>ลุย</span><i class="fa-solid fa-arrow-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
               </span>
             </div>
           </div>
@@ -449,20 +627,21 @@
       } else {
         return `
           <div onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
-               class="bg-white rounded-xl p-2.5 border border-[#E8DFD3] shadow-2xs hover:border-[#755634] flex items-center justify-between gap-2.5 transition-all cursor-pointer active:scale-[0.99]">
-            <div class="w-8 h-8 rounded-lg bg-[#FAF6F0] text-[#755634] flex items-center justify-center font-bold shrink-0">
-              <span class="material-symbols-outlined text-[18px]">${iconName}</span>
+               style="animation-delay: ${delayMs}ms;"
+               class="animate-card-in group bg-white/90 backdrop-blur-md rounded-2xl p-3 border-2 border-white ${theme.accent} shadow-[0_6px_20px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.98]">
+            <div class="w-10 h-10 rounded-2xl border ${theme.iconBg} flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform">
+              <span class="material-symbols-outlined text-[20px]">${iconName}</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1.5">
-                <span class="text-[8px] font-bold text-amber-800 bg-amber-50 px-1 rounded">${questionCountText}</span>
-                <span class="text-[9px] text-stone-400 truncate">${item.subCategory || item.category || ''}</span>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-[9px] font-extrabold ${theme.badge} px-1.5 py-0.2 rounded-md">${questionCountText}</span>
+                <span class="text-[10px] text-slate-400 font-medium truncate">${item.subCategory || item.category || ''}</span>
               </div>
-              <h4 class="text-xs font-bold text-slate-800 truncate">${item.topic || '-'}</h4>
+              <h4 class="text-xs font-extrabold text-slate-800 truncate">${item.topic || '-'}</h4>
               <p class="text-[10px] text-slate-400 truncate">${item.desc || ''}</p>
             </div>
-            <div class="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-stone-50 text-[#755634]">
-              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-amber-50 text-[#755634] group-hover:bg-[#755634] group-hover:text-white transition-colors">
+              <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
             </div>
           </div>
         `;
@@ -472,7 +651,23 @@
 
   function handleSearch(val) {
     currentSearchQuery = (val || '').trim().toLowerCase();
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) {
+      if (currentSearchQuery.length > 0) {
+        clearBtn.classList.remove('hidden');
+        clearBtn.classList.add('flex');
+      } else {
+        clearBtn.classList.add('hidden');
+        clearBtn.classList.remove('flex');
+      }
+    }
     renderCardsLevel4();
+  }
+
+  function clearSearchInput() {
+    const input = document.getElementById('searchInput');
+    if (input) input.value = '';
+    handleSearch('');
   }
 
   function setViewMode(mode) {
@@ -481,11 +676,11 @@
     const btnList = document.getElementById('btnViewList');
 
     if (mode === 'grid') {
-      btnGrid.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-[#755634] bg-[#f5eee6] transition-all';
-      btnList.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all';
+      btnGrid.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90';
+      btnList.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90';
     } else {
-      btnList.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-[#755634] bg-[#f5eee6] transition-all';
-      btnGrid.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all';
+      btnList.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90';
+      btnGrid.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90';
     }
     renderCardsLevel4();
   }
@@ -515,8 +710,8 @@
       const btn = document.getElementById(m === 'practice' ? 'optModePractice' : m === 'competition' ? 'optModeCompetition' : 'optModeMock');
       if (btn) {
         btn.className = (m === mode) 
-          ? 'mode-opt-btn p-2 rounded-xl border-2 border-[#755634] bg-[#f5eee6] text-center transition-all'
-          : 'mode-opt-btn p-2 rounded-xl border border-gray-200 bg-white hover:bg-stone-50 text-center transition-all';
+          ? 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs'
+          : 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95';
       }
     });
 
@@ -537,8 +732,8 @@
       const btn = document.getElementById(`optCount${cnt}`);
       if (btn) {
         btn.className = (cnt === count)
-          ? 'count-opt-btn py-2 rounded-xl border-2 border-[#755634] bg-[#f5eee6] text-xs font-bold text-[#755634] shadow-2xs transition-all'
-          : 'count-opt-btn py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all';
+          ? 'count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95'
+          : 'count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95';
       }
     });
   }
@@ -575,8 +770,6 @@
     await fetchRealtimeTopics();
     selectMainPart('ภาค ก');
   });
-
-
 </script>
 </body>
 </html>
