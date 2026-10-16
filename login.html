@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
   <title>ครูในอนาคต - เข้าสู่ระบบ</title>
-  <!-- แท็กสำหรับ iPhone / iPad (iOS Safari) ต้องเขียนตรงนี้เท่านั้น -->
+  
+  <!-- แท็กสำหรับ iPhone / iPad (iOS Safari) -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
   <link rel="manifest" href="manifest.json">
@@ -13,139 +14,270 @@
   <meta name="apple-mobile-web-app-title" content="ครูในอนาคต">
   <meta name="theme-color" content="#755634">
 
-  <!-- เชื่อมต่อ Supabase -->
+  <!-- เชื่อมต่อ Supabase และ Theme Manager เดิม -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="theme-manager.js"></script>
 
+  <!-- Google Fonts: Plus Jakarta Sans + Anuphan (ทันสมัย อ่านง่ายสำหรับเด็กยุคใหม่) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    body { -webkit-tap-highlight-color: transparent; }
+    body { 
+      font-family: 'Plus Jakarta Sans', 'Anuphan', sans-serif;
+      -webkit-tap-highlight-color: transparent; 
+    }
     ::-webkit-scrollbar { display: none; }
+
+    /* =========================================
+       MICRO-ANIMATIONS & KEYFRAMES
+       ========================================= */
+    /* 1. แอนิเมชันลอยขึ้น-ลงนุ่มๆ สำหรับโลโก้ */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1.5deg); }
+    }
+    @keyframes floatReverse {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(5px) scale(1.06); }
+    }
+    .animate-float { animation: floatSlow 4s ease-in-out infinite; }
+    .animate-float-delayed { animation: floatReverse 3.5s ease-in-out 1s infinite; }
+
+    /* 2. แอนิเมชันการ์ดค่อยๆ ลอยขึ้นมาตอนเปิดหน้าเว็บ (Staggered Entrance) */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stagger-1 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+    .stagger-2 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+    .stagger-3 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+    .stagger-4 { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+
+    /* 3. แอนิเมชันสั่นซ้าย-ขวาเมื่อกรอกรหัสผิด (Form Shake) */
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake { animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+    /* 4. แสงวิ่งพาดผ่านปุ่มกด (Shimmer CTA) */
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-150%) skewX(-20deg); }
+      50%, 100% { transform: translateX(250%) skewX(-20deg); }
+    }
+    .shimmer-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      animation: shimmerSweep 4s infinite;
+    }
+
+    /* 5. แสงออร่าพื้นหลังเคลื่อนไหวช้าๆ */
+    @keyframes blobPulse {
+      0%, 100% { transform: scale(1) translate(0, 0); }
+      50% { transform: scale(1.12) translate(10px, -10px); }
+    }
+    .animate-blob { animation: blobPulse 8s ease-in-out infinite; }
   </style>
 </head>
-<body class="bg-[#fff8f6] text-[#1e1b1a] antialiased min-h-full flex flex-col justify-center py-6 px-4">
 
-  <main class="w-full max-w-[390px] mx-auto flex flex-col">
+<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-full flex flex-col justify-center py-6 px-4 relative overflow-x-hidden select-none">
 
-    <!-- แถบหัวเรื่อง + ภาษา -->
-    <div class="flex items-center justify-between mb-4 px-1">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl bg-[#755634] flex items-center justify-center text-white shadow-xs">
-          <span class="material-symbols-outlined text-[20px]">school</span>
+  <!-- แสงออร่าตกแต่งพื้นหลัง (Ambient Background Blobs) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-amber-300/25 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-orange-200/30 blur-3xl animate-blob" style="animation-delay: 2s;"></div>
+    <div class="absolute -bottom-24 right-10 w-64 h-64 rounded-full bg-amber-500/15 blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+  </div>
+
+  <main class="w-full max-w-[400px] mx-auto flex flex-col z-10">
+
+    <!-- 1. แถบหัวเรื่อง + ปุ่มสลับภาษา (Stagger 1) -->
+    <div class="stagger-1 flex items-center justify-between mb-4 px-1">
+      <div class="flex items-center gap-2.5 group cursor-pointer">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+          <span class="material-symbols-outlined text-[22px]">school</span>
         </div>
         <div class="flex flex-col">
-          <span class="font-bold text-base text-[#1e1b1a] leading-none">ครูในอนาคต</span>
-          <span class="text-[10px] text-gray-500 mt-0.5">ระบบทดสอบความรู้ของการเป็นครู</span>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-base text-slate-800 tracking-tight leading-none">ครูในอนาคต</span>
+            <span class="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-100 text-amber-800 rounded-md uppercase tracking-wider">PRO</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium mt-0.5">Smart Teacher Exam Platform</span>
         </div>
       </div>
-      <div class="inline-flex items-center p-0.5 bg-gray-200/60 rounded-full text-xs">
-        <button type="button" class="px-2.5 py-0.5 rounded-full bg-white text-[#755634] font-bold shadow-xs">TH</button>
-        <button type="button" class="px-2.5 py-0.5 rounded-full text-gray-500">EN</button>
+
+      <!-- ปุ่มภาษาสไตล์แคปซูล -->
+      <div class="inline-flex items-center p-1 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-full text-[11px] shadow-2xs">
+        <button type="button" class="px-2.5 py-0.5 rounded-full bg-[#755634] text-white font-bold shadow-2xs transition-all">TH</button>
+        <button type="button" class="px-2.5 py-0.5 rounded-full text-slate-400 hover:text-slate-600 font-semibold transition-all">EN</button>
       </div>
     </div>
 
-    <!-- โลโก้อินทรธนู / มาสคอต & คำต้อนรับ -->
-    <div class="flex flex-col items-center text-center my-2">
-      <div class="relative mb-3">
-        <div class="w-24 h-24 rounded-full bg-[#f2e1bf]/40 border border-[#e8ded4] flex items-center justify-center shadow-inner overflow-hidden p-2">
-          <!-- ตราสัญลักษณ์อินทรธนูข้าราชการครู -->
-          <svg class="w-14 h-14" viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 8C12 4 16 2 32 2C48 2 52 4 52 8V72C52 76 48 78 32 78C16 78 12 76 12 72V8Z" fill="#EAB308" stroke="#CA8A04" stroke-width="2"/>
-            <path d="M14 24H50" stroke="#FEF08A" stroke-width="4"/>
-            <path d="M14 38H50" stroke="#FEF08A" stroke-width="4"/>
-            <path d="M14 52H50" stroke="#FEF08A" stroke-width="4"/>
-            <circle cx="32" cy="14" r="4" fill="#FEF08A"/>
+    <!-- 2. โลโก้อินทรธนู 3D ลอยตัว & ข้อความต้อนรับ (Stagger 2) -->
+    <div class="stagger-2 flex flex-col items-center text-center my-2">
+      <div class="relative mb-3.5">
+        <!-- วงแหวนเรืองแสงด้านหลัง -->
+        <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-400/30 to-orange-300/10 blur-xl scale-110 animate-pulse"></div>
+        
+        <!-- กรอบเหรียญตราหลัก (ลอยขึ้น-ลง) -->
+        <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-b from-white to-[#FAF5EE] border-2 border-white shadow-[0_12px_30px_rgba(117,86,52,0.14)] flex items-center justify-center p-2 animate-float">
+          <!-- ตราสัญลักษณ์อินทรธนูข้าราชการครูดีไซน์มีมิติ -->
+          <svg class="w-14 h-14 drop-shadow-sm" viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="goldGrad" x1="0" y1="0" x2="64" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FACC15"/>
+                <stop offset="50%" stop-color="#EAB308"/>
+                <stop offset="100%" stop-color="#CA8A04"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 10C12 5 17 2 32 2C47 2 52 5 52 10V70C52 75 47 78 32 78C17 78 12 75 12 70V10Z" fill="url(#goldGrad)" stroke="#A16207" stroke-width="2.5"/>
+            <path d="M15 25H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M15 39H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M15 53H49" stroke="#FEF9C3" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="32" cy="14" r="4.5" fill="#FEF9C3"/>
           </svg>
         </div>
-        <span class="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-[#964320] text-white shadow">
-          <span class="material-symbols-outlined text-[13px]">auto_stories</span>
+
+        <!-- ไอคอนจิ๋วลอยประกอบด้านข้าง -->
+        <span class="animate-float-delayed absolute -bottom-1 -right-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-gradient-to-br from-[#964320] to-[#755634] text-white shadow-lg border-2 border-white">
+          <span class="material-symbols-outlined text-[16px]">auto_stories</span>
+        </span>
+        <span class="animate-float absolute -top-2 -left-2 flex h-7 w-7 items-center justify-center rounded-xl bg-amber-400 text-amber-950 shadow-md border-2 border-white" style="animation-delay: 0.7s;">
+          <span class="material-symbols-outlined text-[15px]">bolt</span>
         </span>
       </div>
 
-      <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#f2e1bf]/70 text-[#755634] mb-1.5 shadow-2xs">
-        <span class="text-xs">🔥</span>
-        <span class="text-[11px] font-bold">เข้าสู่ระบบเพื่อทำข้อสอบ</span>
+      <!-- ป้าย Badge กระตุ้นไฟในการสอบ -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[#755634] mb-2">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-600"></span>
+        </span>
+        <span class="text-[11px] font-bold tracking-wide">สนามสอบจำลองเสมือนจริง ภาค ก & ข</span>
       </div>
 
-      <h1 class="text-xl font-extrabold text-gray-800">ยินดีต้อนรับกลับมา!</h1>
-      <p class="text-xs text-gray-500 mt-1 max-w-xs">
-        ไม่ใช่แค่เพียงอ่านหนังสือ แล้วจะทำให้ทำข้อสอบได้เต็ม
+      <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">พร้อมลุยสนามสอบหรือยัง?</h1>
+      <p class="text-xs text-slate-500 mt-1 max-w-[280px] leading-relaxed">
+        ฝึกทำข้อสอบจับเวลาจริง วิเคราะห์จุดอ่อนแม่นยำด้วย AI Radar เพื่อพิชิตตำแหน่งครูผู้ช่วย
       </p>
     </div>
 
-    <!-- กล่องฟอร์มล็อกอิน -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-[#e8ded4] mt-2">
+    <!-- 3. กล่องการ์ดฟอร์มล็อกอิน (Stagger 3) -->
+    <div id="loginCard" class="stagger-3 bg-white/90 backdrop-blur-xl rounded-3xl p-5 sm:p-6 shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-slate-100 mt-2 transition-all duration-300">
       
-      <!-- แท็บสลับประเภทล็อกอิน -->
-      <div class="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl mb-4 text-xs font-semibold">
-        <button type="button" id="tabLoginId" onclick="switchLoginMode('id')" class="py-2 rounded-lg bg-white text-[#755634] shadow-xs flex items-center justify-center gap-1 transition-all">
-          <span class="material-symbols-outlined text-[16px]">smartphone</span>
-          <span>เบอร์โทร / รหัสผู้ใช้</span>
+      <!-- แถบสลับโหมดล็อกอิน พร้อม Sliding Pill วิ่งตามนิ้ว -->
+      <div class="relative grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-5 text-xs font-bold">
+        <!-- ตัวพื้นหลังสีขาวที่สไลด์ซ้าย-ขวาได้ -->
+        <div id="slidingTabBg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-xs transition-transform duration-300 ease-out"></div>
+
+        <button type="button" id="tabLoginId" onclick="switchLoginMode('id')" class="relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200">
+          <span class="material-symbols-outlined text-[17px]">badge</span>
+          <span>รหัสผู้สอบสมาชิก</span>
         </button>
-        <button type="button" id="tabLoginGuest" onclick="switchLoginMode('guest')" class="py-2 rounded-lg text-gray-500 hover:text-gray-800 flex items-center justify-center gap-1 transition-all">
-          <span class="material-symbols-outlined text-[16px]">assignment_turned_in</span>
-          <span>ทดลองทำข้อสอบ</span>
+        <button type="button" id="tabLoginGuest" onclick="switchLoginMode('guest')" class="relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200">
+          <span class="material-symbols-outlined text-[17px]">rocket_launch</span>
+          <span>ทดลองสอบฟรี</span>
         </button>
       </div>
 
-      <form onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+      <!-- กล่องแจ้งเตือน Error แบบสวยงาม (ซ่อนไว้เริ่มต้น) -->
+      <div id="errorAlertBox" class="hidden mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold items-center gap-2 transition-all">
+        <span class="material-symbols-outlined text-[18px] text-rose-500 shrink-0">error</span>
+        <span id="errorAlertText">รหัสประจำตัว หรือ รหัสผ่านไม่ถูกต้อง</span>
+      </div>
+
+      <!-- ฟอร์มกรอกข้อมูล -->
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        
+        <!-- ช่องที่ 1: รหัสผู้สอบ หรือ ชื่อเล่น (สำหรับโหมดทดลองสอบ) -->
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1" id="loginLabel">
-            รหัสประจำตัวผู้สอบ / Student ID
+          <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-0.5" id="loginLabel">
+            รหัสประจำตัวผู้สอบ (Student ID)
           </label>
-          <div class="relative flex items-center">
-            <span class="material-symbols-outlined absolute left-3 text-gray-400 text-[18px]">mail</span>
-            <input id="identifierInput" type="text" required class="w-full bg-[#faf6f0] pl-9 pr-3 py-2.5 rounded-xl border border-transparent focus:border-[#755634] focus:bg-white text-xs outline-none transition-all placeholder:text-gray-400" placeholder="อีเมล หรือ เบอร์โทร">
+          <div class="relative flex items-center group">
+            <span id="identifierIcon" class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">person</span>
+            <input id="identifierInput" type="text" required 
+                   class="w-full bg-slate-50/80 hover:bg-slate-100/60 pl-10 pr-4 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400" 
+                   placeholder="เช่น KRU-001 หรือเบอร์โทรศัพท์">
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">รหัสผ่าน</label>
-          <div class="relative flex items-center">
-            <span class="material-symbols-outlined absolute left-3 text-gray-400 text-[18px]">lock</span>
-            <input id="passwordInput" type="password" required class="w-full bg-[#faf6f0] pl-9 pr-9 py-2.5 rounded-xl border border-transparent focus:border-[#755634] focus:bg-white text-xs outline-none transition-all placeholder:text-gray-400" placeholder="รหัสผ่านที่ได้รับ">
-            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 text-gray-400 hover:text-gray-600 p-1">
-              <span id="eyeIcon" class="material-symbols-outlined text-[18px]">visibility_off</span>
-            </button>
+        <!-- ช่องที่ 2: รหัสผ่าน (จะพับเก็บอย่างนุ่มนวลเมื่อเลือกโหมดทดลองสอบฟรี) -->
+        <div id="passwordFieldWrapper" class="space-y-4 overflow-hidden transition-all duration-300 max-h-40 opacity-100">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-0.5">รหัสผ่าน (Password)</label>
+            <div class="relative flex items-center group">
+              <span class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">lock</span>
+              <input id="passwordInput" type="password" required 
+                     class="w-full bg-slate-50/80 hover:bg-slate-100/60 pl-10 pr-10 py-3 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400" 
+                     placeholder="กรอกรหัสผ่านของคุณ">
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-slate-400 hover:text-[#755634] p-1 rounded-lg active:scale-90 transition-all">
+                <span id="eyeIcon" class="material-symbols-outlined text-[18px] block">visibility_off</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs px-0.5">
+            <label class="flex items-center gap-2 cursor-pointer text-slate-600 font-medium select-none">
+              <input type="checkbox" checked class="w-4 h-4 accent-[#755634] rounded-md cursor-pointer">
+              <span>จดจำฉันไว้ในระบบ</span>
+            </label>
+            <a href="#" onclick="showCustomNotice('กรุณาติดต่อแอดมินผู้ดูแลระบบ เพื่อรีเซ็ตรหัสผ่านของคุณ'); return false;" class="text-xs font-bold text-[#755634] hover:underline">ลืมรหัสผ่าน?</a>
           </div>
         </div>
 
-        <div class="flex items-center justify-between text-xs pt-0.5">
-          <label class="flex items-center gap-1.5 cursor-pointer text-gray-600">
-            <input type="checkbox" checked class="w-3.5 h-3.5 accent-[#755634] rounded">
-            <span>จดจำการเข้าสู่ระบบ</span>
-          </label>
-          <a href="#" onclick="alert('กรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน');" class="text-xs text-gray-500 hover:underline">ลืมรหัสผ่าน?</a>
+        <!-- กล่องอธิบายสิทธิพิเศษเมื่อเลือกโหมด Guest (ซ่อนไว้เริ่มต้น) -->
+        <div id="guestInfoBanner" class="hidden p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[11px] text-amber-900 space-y-1">
+          <div class="font-bold flex items-center gap-1.5 text-amber-800">
+            <span class="material-symbols-outlined text-[16px]">verified</span>
+            <span>โหมดทดลองสอบทันที (ไม่ต้องใช้รหัสผ่าน)</span>
+          </div>
+          <p class="text-amber-700/90 leading-relaxed pl-5">
+            เพียงพิมพ์ชื่อเล่นของคุณด้านบน ก็สามารถเข้าไปทดลองฝึกทำข้อสอบและจับเวลาเสมือนจริงได้ทันที!
+          </p>
         </div>
 
-        <button id="btnSubmitLogin" type="submit" class="w-full mt-2 bg-[#755634] hover:bg-[#896443] text-white py-3 rounded-xl text-xs font-bold shadow-sm transition-all flex justify-center items-center gap-1.5 active:scale-[0.99]">
-          <span>เข้าสู่ระบบ (Sign In)</span>
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        <!-- ปุ่มกดเข้าสู่ระบบแบบ 3D Tactile + แสงวิ่ง Shimmer -->
+        <button id="btnSubmitLogin" type="submit" 
+                class="shimmer-effect relative overflow-hidden w-full mt-2 bg-gradient-to-r from-[#755634] via-[#8B653B] to-[#755634] hover:from-[#63482b] hover:to-[#755634] text-white py-3.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-amber-900/20 border-b-4 border-[#523b22] active:border-b-0 active:translate-y-1 transition-all flex justify-center items-center gap-2 group">
+          <span id="btnSubmitText">เข้าสู่ระบบทำข้อสอบ</span>
+          <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
         </button>
       </form>
 
-      <div class="relative my-4 flex items-center justify-center">
-        <div class="w-full border-t border-gray-200"></div>
-        <span class="absolute bg-white px-2 text-[10px] text-gray-400">หรือเข้าสู่ระบบด้วย</span>
-      </div>
-
     </div>
 
-    <!-- ส่วนท้ายด้านล่างการ์ด -->
-    <div class="text-center mt-5 text-xs text-gray-500">
-      ยังไม่มีบัญชี ExamPro? 
-      <a href="#" onclick="alert('กรุณาติดต่อแอดมินเพื่อลงทะเบียนสอบ');" class="font-bold text-[#755634] hover:underline ml-0.5">สมัครสมาชิกใหม่</a>
+    <!-- 4. ส่วนท้ายด้านล่างการ์ด (Stagger 4) -->
+    <div class="stagger-4 text-center mt-5 space-y-3">
+      <p class="text-xs text-slate-500 font-medium">
+        ยังไม่มีรหัสสมาชิกสำหรับเก็บสถิติรายบุคคล?
+        <a href="#" onclick="showCustomNotice('กรุณาติดต่อแอดมินเพื่อลงทะเบียนรับรหัสผู้สอบ (Student ID)'); return false;" class="font-extrabold text-[#755634] hover:underline ml-1 inline-flex items-center gap-0.5">
+          <span>ติดต่อขอรับรหัส</span>
+          <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+        </a>
+      </p>
     </div>
 
   </main>
 
   <script>
-    // 1. ซ่อน/แสดงรหัสผ่าน
+    let currentLoginMode = 'id'; // 'id' หรือ 'guest'
+
+    // 1. ซ่อน/แสดงรหัสผ่าน พร้อมแอนิเมชันเด้งไอคอนตา
     function togglePasswordVisibility() {
       const passInput = document.getElementById('passwordInput');
       const eyeIcon = document.getElementById('eyeIcon');
+      eyeIcon.classList.add('scale-75');
+      setTimeout(() => eyeIcon.classList.remove('scale-75'), 150);
+
       if (passInput.type === 'password') {
         passInput.type = 'text';
         eyeIcon.innerText = 'visibility';
@@ -155,37 +287,119 @@
       }
     }
 
-    // 2. สลับโหมดล็อกอิน
+    // 2. สลับโหมดล็อกอิน (สไลด์แถบสีขาว + พับเก็บช่องรหัสผ่านสำหรับ Guest)
     function switchLoginMode(mode) {
+      currentLoginMode = mode;
+      const slidingBg = document.getElementById('slidingTabBg');
       const tabId = document.getElementById('tabLoginId');
       const tabGuest = document.getElementById('tabLoginGuest');
       const label = document.getElementById('loginLabel');
       const input = document.getElementById('identifierInput');
+      const icon = document.getElementById('identifierIcon');
+      const passWrapper = document.getElementById('passwordFieldWrapper');
+      const passInput = document.getElementById('passwordInput');
+      const guestBanner = document.getElementById('guestInfoBanner');
+      const btnText = document.getElementById('btnSubmitText');
+
+      hideErrorAlert();
 
       if (mode === 'id') {
-        tabId.className = 'py-2 rounded-lg bg-white text-[#755634] shadow-xs flex items-center justify-center gap-1 transition-all';
-        tabGuest.className = 'py-2 rounded-lg text-gray-500 hover:text-gray-800 flex items-center justify-center gap-1 transition-all';
-        label.innerText = 'รหัสประจำตัวผู้สอบ / Student ID';
-        input.placeholder = 'อีเมล หรือ เบอร์โทร';
+        slidingBg.style.transform = 'translateX(0%)';
+        tabId.className = 'relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200';
+        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200';
+        
+        label.innerText = 'รหัสประจำตัวผู้สอบ (Student ID)';
+        input.placeholder = 'เช่น KRU-001 หรือเบอร์โทรศัพท์';
+        icon.innerText = 'person';
+        
+        // กางช่องรหัสผ่านกลับมา
+        passWrapper.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
+        passWrapper.classList.add('max-h-40', 'opacity-100');
+        passInput.required = true;
+        guestBanner.classList.add('hidden');
+        btnText.innerText = 'เข้าสู่ระบบทำข้อสอบ';
       } else {
-        tabGuest.className = 'py-2 rounded-lg bg-white text-[#755634] shadow-xs flex items-center justify-center gap-1 transition-all';
-        tabId.className = 'py-2 rounded-lg text-gray-500 hover:text-gray-800 flex items-center justify-center gap-1 transition-all';
-        label.innerText = 'รหัสทดสอบ / Guest ID';
-        input.placeholder = 'กรอกรหัสทดสอบ';
+        slidingBg.style.transform = 'translateX(100%)';
+        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200';
+        tabId.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200';
+        
+        label.innerText = 'ชื่อเล่นของคุณ (สำหรับแสดงบนหน้าจอ)';
+        input.placeholder = 'พิมพ์ชื่อเล่น เช่น ครูมายด์, ครูเอิร์ธ...';
+        icon.innerText = 'sentiment_satisfied';
+        
+        // พับเก็บช่องรหัสผ่าน
+        passWrapper.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
+        passWrapper.classList.remove('max-h-40', 'opacity-100');
+        passInput.required = false;
+        guestBanner.classList.remove('hidden');
+        btnText.innerText = 'เริ่มทดลองทำข้อสอบทันที';
       }
     }
 
-    // 3. ส่งข้อมูลตรวจสอบกับ Supabase
+    // ฟังก์ชันแสดงกล่องแจ้งเตือนพร้อมแอนิเมชันสั่นการ์ด
+    function triggerErrorShake(message) {
+      const card = document.getElementById('loginCard');
+      const alertBox = document.getElementById('errorAlertBox');
+      const alertText = document.getElementById('errorAlertText');
+
+      alertText.innerText = message;
+      alertBox.classList.remove('hidden');
+      alertBox.classList.add('flex');
+
+      card.classList.remove('animate-shake');
+      void card.offsetWidth; // รีเซ็ตแอนิเมชันเพื่อให้สั่นซ้ำได้
+      card.classList.add('animate-shake');
+    }
+
+    function hideErrorAlert() {
+      const alertBox = document.getElementById('errorAlertBox');
+      alertBox.classList.add('hidden');
+      alertBox.classList.remove('flex');
+    }
+
+    function showCustomNotice(msg) {
+      triggerErrorShake(msg);
+    }
+
+    // 3. ส่งข้อมูลตรวจสอบกับ Supabase (รองรับทั้งสมาชิกและ Guest)
     async function handleLoginSubmit(e) {
       e.preventDefault();
+      hideErrorAlert();
+
       const identifier = document.getElementById('identifierInput').value.trim();
       const password = document.getElementById('passwordInput').value;
       const btn = document.getElementById('btnSubmitLogin');
 
+      if (!identifier) {
+        triggerErrorShake('กรุณากรอกข้อมูลให้ครบถ้วน');
+        return;
+      }
+
       btn.disabled = true;
-      btn.innerHTML = '<span>กำลังตรวจสอบ...</span>';
+      const originalBtnHTML = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span><span>กำลังเตรียมห้องสอบ...</span>';
 
       try {
+        // 🌟 กรณีที่ 1: โหมดทดลองสอบฟรี (Guest) -> สร้างเซสชัน guest_ ให้ผ่าน check-auth.js ได้เลย
+        if (currentLoginMode === 'guest') {
+          const guestSessionToken = "sess_guest_" + Date.now();
+          const guestProfile = {
+            id: "guest_" + Date.now(),
+            studentId: "GUEST",
+            name: identifier,
+            role: "student"
+          };
+
+          localStorage.setItem('kru_active_session', guestSessionToken);
+          localStorage.setItem('kru_user_info', JSON.stringify(guestProfile));
+          
+          setTimeout(() => {
+            location.href = 'index.html';
+          }, 300);
+          return;
+        }
+
+        // 🌟 กรณีที่ 2: โหมดรหัสผู้สอบสมาชิก -> ตรวจสอบกับฐานข้อมูล Supabase ตามปกติ
         const { data: user, error } = await supabase
           .from('users')
           .select('id, student_id, name, password_hash, role')
@@ -193,7 +407,7 @@
           .single();
 
         if (error || !user || user.password_hash !== password) {
-          alert('รหัสประจำตัว หรือ รหัสผ่านไม่ถูกต้อง');
+          triggerErrorShake('รหัสประจำตัวผู้สอบ หรือ รหัสผ่านไม่ถูกต้อง');
           return;
         }
 
@@ -215,10 +429,10 @@
         }
 
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
+        triggerErrorShake('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<span>เข้าสู่ระบบ (Sign In)</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
+        btn.innerHTML = originalBtnHTML;
       }
     }
   </script>

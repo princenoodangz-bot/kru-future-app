@@ -75,6 +75,7 @@
           <span class="material-symbols-outlined text-[#755634]">person_add</span>
           เพิ่ม/แก้ไขบัญชีผู้ใช้งาน
         </h3>
+        <input type="hidden" id="editUserOriginalId" value="" />
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-semibold mb-1 text-gray-600">รหัสประจำตัว (Student ID) *</label>
@@ -247,23 +248,8 @@
         <span class="material-symbols-outlined text-[18px]">post_add</span> บันทึกข้อสอบลง Supabase
       </button>
     </div>
-     <!-- กล่องตารางแสดงและจัดการคลังข้อสอบทั้งหมด -->
-    <!-- กล่องตารางแสดงและจัดการคลังข้อสอบทั้งหมด -->
-    <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 border border-gray-100">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
-        <div>
-          <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#755634]">quiz</span>
-            รายการข้อสอบในระบบ (<span id="totalQuestionsCount">0</span> ข้อ)
-          </h3>
-          <p class="text-xs text-gray-500">ตรวจสอบ แก้ไข และเลือกลบข้อสอบรายข้อหรือลบเป็นชุด</p>
-        </div>
-        <button onclick="loadQuestionsList()" type="button" class="bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto shadow-xs">
-          <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรชรายการ
-        </button>
-      </div>
       
-
+      <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 border border-gray-100">
       <!-- แถบค้นหาและตัวกรองแยกตาม 4 ระดับตรงกับด้านล่าง -->
       <div class="space-y-2">
         <!-- ช่องพิมพ์ค้นหาคำ -->
@@ -467,14 +453,15 @@
           </div>
         </div>
         <button type="button" onclick="closeEditQuestionModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors">
-          <i class="fa-solid fa-xmark text-xs"></i>
+          <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
+      
 
       <input type="hidden" id="editQId" />
 
-      <!-- หมวดหมู่ของข้อสอบ -->
-      <div class="grid grid-cols-2 gap-2 text-xs">
+      <!-- หมวดหมู่ของข้อสอบ 4 ระดับ -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div>
           <label class="block font-bold text-gray-700 mb-1">ระดับภาค</label>
           <select id="editQPart" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]">
@@ -487,9 +474,13 @@
           <input id="editQCategory" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
         </div>
         <div>
-       <label class="block font-bold text-gray-700 mb-1">กลุ่มวิชาย่อย</label>
-       <input id="editQSubCategory" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
-     </div>
+          <label class="block font-bold text-gray-700 mb-1">กลุ่มวิชาย่อย</label>
+          <input id="editQSubCategory" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">หัวข้อเรื่องย่อย</label>
+          <input id="editQTopic" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
       </div>
 
       <!-- โจทย์ -->
@@ -571,6 +562,7 @@ async function createNewUser() {
   const name = document.getElementById('newStdName').value.trim();
   const password = document.getElementById('newStdPass').value;
   const role = document.getElementById('newStdRole').value;
+  const originalId = document.getElementById('editUserOriginalId')?.value;
 
   if (!studentId || !password) {
     alert('กรุณากรอกรหัสประจำตัวผู้สอบและรหัสผ่านให้ครบถ้วน');
@@ -583,21 +575,27 @@ async function createNewUser() {
   btn.disabled = true;
 
   try {
-    const newId = "usr_" + Date.now();
-    const { error } = await supabase
-      .from('users')
-      .upsert([
-        { 
-          id: newId, 
-          student_id: studentId, 
-          name: name || `ผู้สอบ ${studentId}`, 
-          password_hash: password, 
-          role: role 
-        }
-      ], { onConflict: 'student_id' });
+    const payload = {
+      student_id: studentId,
+      name: name || `ผู้สอบ ${studentId}`,
+      password_hash: password,
+      role: role
+    };
 
-    if (error) throw error;
+    if (originalId) {
+      // แก้ไขผู้ใช้เดิม โดยใช้ ID เดิม ประวัติสอบจะไม่หลุด
+      const { error } = await supabase.from('users').update(payload).eq('id', originalId);
+      if (error) throw error;
+      alert('แก้ไขบัญชีผู้ใช้เรียบร้อยแล้ว');
+    } else {
+      // เพิ่มผู้ใช้ใหม่
+      payload.id = "usr_" + Date.now();
+      const { error } = await supabase.from('users').insert([payload]);
+      if (error) throw error;
+      alert('เพิ่มบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว');
+    }
 
+    document.getElementById('editUserOriginalId').value = '';
     document.getElementById('newStdId').value = '';
     document.getElementById('newStdName').value = '';
     document.getElementById('newStdPass').value = '';
@@ -620,7 +618,7 @@ async function loadUsersList() {
   try {
     const { data: users, error } = await supabase
       .from('users')
-      .select('student_id, name, password_hash, role, updated_at, created_at')
+      .select('id, student_id, name, password_hash, role, updated_at, created_at')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -643,9 +641,8 @@ async function loadUsersList() {
               ${u.role}
             </span>
           </td>
-          <td class="p-3 text-xs text-gray-600">${loginTime}</td>
           <td class="p-3 text-center">
-            <button onclick="editUser('${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-3 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1 mx-auto">
+            <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-3 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1 mx-auto">
               <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
             </button>
           </td>
@@ -660,7 +657,10 @@ async function loadUsersList() {
   }
 }
 
-function editUser(studentId, name, password, role) {
+function editUser(id, studentId, name, password, role) {
+  const hiddenId = document.getElementById('editUserOriginalId');
+  if (hiddenId) hiddenId.value = id;
+
   document.getElementById('newStdId').value = studentId;
   document.getElementById('newStdName').value = name;
   document.getElementById('newStdPass').value = password;
@@ -1473,6 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUsersList();
   loadAdminConfigs();
   onPartChange();
+  loadAdminUsersList();
 });
 
 
