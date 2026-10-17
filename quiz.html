@@ -749,8 +749,9 @@
     }
   });
 
+  // 1. ตัวแปรควบคุมโหมดและเวลา 2 รูปแบบ (เปลี่ยนเป็น let เพื่อรองรับการปรับค่า)
   const urlParams = new URLSearchParams(window.location.search);
-  const examMode = urlParams.get('mode') || 'practice';
+  const examMode = urlParams.get('mode') || 'practice'; // practice, competition, mock
   let targetQuestionCount = parseInt(urlParams.get('count')) || (examMode === 'mock' ? 20 : 20);
 
   let totalSecondsElapsed = 0;

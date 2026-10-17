@@ -424,8 +424,8 @@
       const topicMap = {};
       data.forEach(q => {
         const part = (q.exam_part || 'ภาค ก').trim();
-        const cat = (q.exam_category || 'หมวดวิชาทั่วไป').trim();
-        const sub = (q.exam_sub_category || 'กลุ่มวิชาย่อย').trim();
+        const cat = (q.exam_category || '').trim();
+        const sub = (q.exam_sub_category || '').trim();
         const top = (q.exam_topic || '').trim();
 
         if (!top) return;
@@ -434,8 +434,14 @@
         if (!topicMap[uniqueKey]) {
           const preset = TOPIC_PRESETS[top] || { desc: `แบบฝึกหัดข้อสอบเรื่อง ${top}`, icon: 'menu_book' };
           topicMap[uniqueKey] = {
-            part, category: cat, subCategory: sub, topic: top,
-            desc: preset.desc, icon: preset.icon, count: 0
+            part, 
+            category: cat || 'วิชาทั่วไป', 
+            realCategory: cat, // เก็บค่าจริงในฐานข้อมูลสำหรับส่งต่อ
+            subCategory: sub, 
+            topic: top,
+            desc: preset.desc, 
+            icon: preset.icon, 
+            count: 0
           };
         }
         topicMap[uniqueKey].count++;
@@ -587,10 +593,11 @@
     if (notice) notice.classList.add('hidden');
 
     container.innerHTML = results.map((item, idx) => {
-      const safePart = (item.part || '').replace(/'/g, "\\'");
-      const safeCat = (item.category || '').replace(/'/g, "\\'");
-      const safeTopic = (item.topic || '').replace(/'/g, "\\'");
-      const safeSub = (item.subCategory || '').replace(/'/g, "\\'");
+      const escapeStr = (s) => String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const safePart = escapeStr(item.part);
+      const safeCat = escapeStr(item.realCategory !== undefined ? item.realCategory : item.category);
+      const safeTopic = escapeStr(item.topic);
+      const safeSub = escapeStr(item.subCategory);
       const iconName = item.icon || 'menu_book';
       const questionCountText = item.count ? `${item.count} ข้อ` : item.part;
       const shortSub = item.subCategory ? item.subCategory.split(' ')[0] : (item.category || '');
@@ -740,10 +747,12 @@
 
   function startSelectedQuiz() {
     const params = new URLSearchParams();
-    params.set('part', activeExamConfig.part);
-    params.set('category', activeExamConfig.category);
+    if (activeExamConfig.part) params.set('part', activeExamConfig.part);
+    if (activeExamConfig.category && activeExamConfig.category !== 'วิชาทั่วไป') {
+      params.set('category', activeExamConfig.category);
+    }
     if (activeExamConfig.subCategory) params.set('sub_category', activeExamConfig.subCategory);
-    params.set('topic', activeExamConfig.topic);
+    if (activeExamConfig.topic) params.set('topic', activeExamConfig.topic);
     params.set('mode', activeExamConfig.mode);
     params.set('count', activeExamConfig.count);
     window.location.href = `quiz.html?${params.toString()}`;

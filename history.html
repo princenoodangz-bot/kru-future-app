@@ -180,6 +180,7 @@
             <span id="statTotalExams" class="text-lg font-extrabold text-slate-800 mt-0.5 tracking-tight">0 ชุด</span>
           </div>
 
+          <!-- ช่อง 2: คะแนนเฉลี่ย -->
           <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden">
             <div class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
               <span class="material-symbols-outlined text-[16px]">query_stats</span>
@@ -491,7 +492,7 @@
     } else if (filterValue === 'cat_law') {
       filtered = filtered.filter(a => matchText(a, 'ข้าราชการที่ดี') || matchText(a, 'กฎหมาย'));
     } else if (filterValue === 'cat_comp') {
-      filtered = filtered.filter(a => matchText(a, 'คอมพิวเตอร์') || matchText(a, 'ภาค ข'));
+      filtered = filtered.filter(a => matchText(a, 'คอมพิวเตอร์'));
     }
 
     const total = filtered.length;
@@ -813,14 +814,15 @@
 
     if (currentMode === 'all_overview') {
       const dimensions = [
-        { name: 'คิดวิเคราะห์ภาษาไทย', check: a => hasTerm(a, ['ภาษา', 'ไทย', 'สรุปความ']) },
-        { name: 'คณิตศาสตร์ & เหตุผล', check: a => hasTerm(a, ['นามธรรม', 'คณิต', 'อนุกรม', 'สถิติ']) },
+        { name: 'วิเคราะห์ภาษา', check: a => hasTerm(a, ['ภาษา', 'ไทย', 'สรุปความ']) },
+        { name: 'คำนวณ/เหตุผล', check: a => hasTerm(a, ['นามธรรม', 'คณิต', 'อนุกรม', 'สถิติ']) },
         { name: 'ภาษาอังกฤษ', check: a => hasTerm(a, ['อังกฤษ', 'english', 'vocab', 'grammar']) },
-        { name: 'กฎหมาย & วินัยราชการ', check: a => hasTerm(a, ['กฎหมาย', 'ข้าราชการ', 'วินัย', 'จริยธรรม']) },
-        { name: 'มาตรฐานวิชาชีพครู', check: a => hasTerm(a, ['วิชาชีพ', 'หลักสูตร', 'การสอน', 'จิตวิทยา', 'วัดผล']) },
-        { name: 'วิชาเอกเฉพาะทาง', check: a => hasTerm(a, ['คอมพิวเตอร์', 'ภาค ข']) }
+        { name: 'กฎหมาย/วินัย', check: a => hasTerm(a, ['กฎหมาย', 'ข้าราชการ', 'วินัย', 'จริยธรรม']) },
+        { name: 'วิชาชีพครู', check: a => hasTerm(a, ['วิชาชีพ', 'หลักสูตร', 'การสอน', 'จิตวิทยา', 'วัดผล']) },
+        { name: 'วิชาเอก', check: a => hasTerm(a, ['คอมพิวเตอร์', 'วิชาเอก', 'เฉพาะทาง']) }
       ];
-      fullLabels = dimensions.map(d => d.name);
+
+      labels = dimensions.map(d => d.name);
       radarValues = dimensions.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
     } else {
       const isPartA = (currentMode === 'part_a');

@@ -182,3 +182,158 @@
     });
   }
 })();
+// =========================================================
+// 🐾 AI Mascot & Tutor Cat (Safe Injector for All Pages)
+// =========================================================
+function initAiMascot() {
+  if (document.getElementById('aiCatMascotContainer')) return;
+  if (!document.body) return; // ป้องกันกรณี body ยังไม่พร้อม
+
+  // ในฟังก์ชัน initAiMascot() ภายใน theme-manager.js
+  const mascotHTML = `
+    <div id="aiCatMascotContainer" class="fixed bottom-24 right-2 z-50 flex items-center pointer-events-auto select-none">
+      <div id="catSpeechBubble" class="hidden mr-1 bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-xl border border-amber-200 text-xs font-extrabold text-slate-700 animate-bounce max-w-[150px] text-center">
+        "สู้ๆ นะคะคุณครู! 🐾"
+      </div>
+      <!-- ตัวละครแมว 3D จากไฟล์ cat.glb -->
+      <div onclick="toggleCatChat()" class="relative cursor-pointer group active:scale-95 transition-transform" title="แตะเพื่อคุยกับน้องเหมียวติวเตอร์ AI">
+        <div class="absolute inset-0 rounded-full bg-amber-400/20 blur-md group-hover:scale-110 transition-transform pointer-events-none"></div>
+        <div class="relative w-24 h-24 flex items-center justify-center animate-float">
+          <model-viewer 
+            id="catModelViewer"
+            src="./cat.glb" 
+            alt="Toon Cat AI" 
+            autoplay 
+            auto-rotate
+            rotation-per-second="30deg"
+            shadow-intensity="1"
+            exposure="1"
+            bounds="tight"
+            camera-controls
+            disable-zoom
+            style="display: block; width: 90px; height: 90px; background: transparent; --poster-color: transparent;">
+          </model-viewer>
+        </div>
+      </div>
+    </div>
+
+    <div id="catChatModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border-t-2 border-white space-y-3 animate-sheet-up flex flex-col max-h-[80vh]">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-amber-100 flex items-center justify-center text-xl shadow-2xs">🐱</div>
+            <div>
+              <h4 class="text-xs font-extrabold text-slate-800">น้องเหมียวติวเตอร์ AI</h4>
+              <span class="text-[9px] font-bold text-emerald-600 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> พร้อมช่วยคุณครูติวข้อสอบ
+              </span>
+            </div>
+          </div>
+          <button onclick="toggleCatChat()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div id="catChatMessages" class="flex-1 overflow-y-auto space-y-2.5 p-2 text-xs bg-slate-50/80 rounded-2xl border border-slate-100 min-h-[220px] max-h-[300px]">
+          <div class="flex items-start gap-2">
+            <span class="text-base">🐱</span>
+            <div class="bg-white p-3 rounded-2xl rounded-tl-xs shadow-2xs text-slate-700 font-medium leading-relaxed">
+              เมี๊ยว! สวัสดีค่ะคุณครู มีเรื่องไหนสงสัย หรืออยากให้เหมียวช่วยติวข้อสอบ ถามมาได้เลยนะคะ! 📚✨
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input id="catChatInput" type="text" placeholder="พิมพ์คำถามที่สงสัย เช่น ถามเรื่องอนุกรม..." 
+                 class="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-amber-500 focus:bg-white transition-all"
+                 onkeydown="if(event.key==='Enter') sendCatMessage()">
+          <button onclick="sendCatMessage()" class="bg-[#755634] hover:bg-[#5E4325] text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center">
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (!document.getElementById('catCustomStyle')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'catCustomStyle';
+    styleEl.innerHTML = `
+      @keyframes catFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-5px) rotate(3deg); }
+      }
+      .animate-float { animation: catFloat 3s ease-in-out infinite; }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = mascotHTML;
+  document.body.appendChild(wrapper);
+}
+
+// รอให้หน้าเว็บโหลดโครงสร้าง HTML เสร็จก่อน ค่อยเรียกฟังก์ชันสร้างแมว
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAiMascot);
+} else {
+  initAiMascot();
+}
+
+function toggleCatChat() {
+  const modal = document.getElementById('catChatModal');
+  if (modal) {
+    modal.classList.toggle('hidden');
+    document.getElementById('catSpeechBubble')?.classList.add('hidden');
+  }
+}
+
+function sendCatMessage() {
+  const input = document.getElementById('catChatInput');
+  const msgContainer = document.getElementById('catChatMessages');
+  if (!input || !input.value.trim()) return;
+
+  const userText = input.value.trim();
+  input.value = '';
+
+  msgContainer.innerHTML += `
+    <div class="flex items-end justify-end gap-2">
+      <div class="bg-[#755634] text-white p-3 rounded-2xl rounded-tr-xs shadow-2xs font-medium max-w-[80%] leading-relaxed">
+        ${userText}
+      </div>
+    </div>
+  `;
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  setTimeout(() => {
+    let reply = "เมี๊ยว! เป็นคำถามที่ดีมากค่ะคุณครู สู้ๆ นะคะ เดี๋ยวเราไปลองลุยทำข้อสอบในคลังกันต่อเลย! 💪";
+    if (userText.includes('อนุกรม') || userText.includes('เลข')) {
+      reply = "เทคนิคข้อสอบอนุกรม ให้ลองหาผลต่างทีละชั้นก่อนนะคะ ถ้าชั้นแรกไม่เท่ากัน ให้ลองหาผลต่างชั้นที่สองต่อค่ะ! 🧮";
+    } else if (userText.includes('กฎหมาย') || userText.includes('พ.ร.บ.')) {
+      reply = "สู้ๆ ค่ะคุณครู หมวด พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน ออกสอบบ่อยมาก อย่าลืมจำโครงสร้าง ส่วนกลาง ส่วนภูมิภาค และท้องถิ่นให้แม่นนะคะ ⚖️";
+    }
+
+    msgContainer.innerHTML += `
+      <div class="flex items-start gap-2">
+        <span class="text-base">🐱</span>
+        <div class="bg-white p-3 rounded-2xl rounded-tl-xs shadow-2xs text-slate-700 font-medium leading-relaxed max-w-[80%]">
+          ${reply}
+        </div>
+      </div>
+    `;
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }, 600);
+}
+
+// สุ่มเด้งบอลลูนทักทาย
+setInterval(() => {
+  const bubble = document.getElementById('catSpeechBubble');
+  const modal = document.getElementById('catChatModal');
+  if (bubble && modal && modal.classList.contains('hidden')) {
+    const messages = ['คลิกเหมียวได้นะ! 🐾', 'สู้ๆ เพื่อตั๋วครูค่ะ! ✨', 'วันนี้ทำข้อสอบยังเอ่ย? 📚', 'พักดื่มน้ำก่อนได้น้า 🍵'];
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+    bubble.innerText = `"${randomMsg}"`;
+    bubble.classList.remove('hidden');
+    setTimeout(() => bubble.classList.add('hidden'), 5000);
+  }
+}, 25000);
