@@ -1,59 +1,11 @@
+// =========================================================
+// theme-manager.js (ฉบับแก้บั๊ก: หันหน้าตรงตลอดเวลา ไม่ค้าง ไม่เดินถอยหลัง)
+// =========================================================
 
-
-  // 2. ปรับขนาดตัวอักษรทั้งหน้าจอตามที่ตั้งค่าไว้ใน settings.html (sm / md / lg)
-  function applyFontSize() {
-    const size = localStorage.getItem('kru_font_size') || 'md';
-    let rootSize = '16px'; // ปกติ (md)
-    if (size === 'sm') rootSize = '14px'; // เล็ก
-    if (size === 'lg') rootSize = '18.5px'; // ใหญ่
-
-    // ปรับ root font-size ซึ่งจะทำให้คลาส text-sm, text-base, text-lg ของ Tailwind ขยายตามทั้งหน้าทันที
-    document.documentElement.style.fontSize = rootSize;
-  }
-
-  // 3. ปรับโทนสีหลักและกำหนดฟอนต์มาตรฐาน
-  const style = document.createElement('style');
-  style.id = 'global-theme-style';
-  style.innerHTML = `
-    /* กำหนดฟอนต์หลักทั้งระบบ */
-    body, button, input, select, textarea {
-      font-family: 'Sarabun', sans-serif !important;
-    }
-    h1, h2, h3, h4, h5, h6, .font-heading, .font-display {
-      font-family: 'Prompt', sans-serif !important;
-    }
-
-    /* คุมโทนสีหลักของแบรนด์ (Academic Khaki & Cream Linen) */
-    :root {
-      --color-primary: #755634;
-      --color-primary-dark: #583f2b;
-      --color-surface: #fff8f6;
-      --color-linen: #faf6f0;
-      --color-accent: #964320;
-    }
-
-    /* บังคับสีพื้นหลังของแอปให้เป็นโทนธรรมชาติเนียนตาเหมือนกันทุกหน้า */
-    body {
-      background-color: #fff8f6 !important;
-      color: #1e1b1a !important;
-    }
-  `;
-  document.head.appendChild(style);
-
-  // รันปรับขนาดฟอนต์ทันทีที่เปิดหน้า
-  applyFontSize();
-
-  // ดักฟังเหตุการณ์เมื่อมีการเปลี่ยนขนาดฟอนต์ในหน้า settings แบบเรียลไทม์
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'kru_font_size') {
-      applyFontSize();
-    }
-  });
-
-
-// theme-manager.js (ฉบับแก้ไข: จัดระเบียบใหม่ ลบส่วนที่ซ้ำซ้อน)
+// ---------------------------------------------------------
+// 1. ระบบจัดการธีม, ฟอนต์ และขนาดตัวอักษรทั้งระบบ
+// ---------------------------------------------------------
 (function initGlobalTheme() {
-  // 1. นำเข้าฟอนต์และไอคอนเพียงครั้งเดียว
   if (!document.getElementById('global-fonts')) {
     const fontLink = document.createElement('link');
     fontLink.id = 'global-fonts';
@@ -69,7 +21,6 @@
     document.head.appendChild(iconLink);
   }
 
-  // 2. ปรับขนาดฟอนต์ตาม settings
   function applyFontSize() {
     const size = localStorage.getItem('kru_font_size') || 'md';
     let rootSize = '16px';
@@ -79,7 +30,6 @@
   }
   applyFontSize();
 
-  // 3. กำหนดโทนสีและฟอนต์มาตรฐาน
   if (!document.getElementById('global-theme-style')) {
     const style = document.createElement('style');
     style.id = 'global-theme-style';
@@ -87,19 +37,41 @@
       body, button, input, select, textarea { font-family: 'Sarabun', sans-serif !important; }
       h1, h2, h3, h4, h5, h6, .font-heading, .font-display, .font-prompt { font-family: 'Prompt', sans-serif !important; }
       body { background-color: #fff8f6 !important; color: #1e1b1a !important; }
+
+      /* แอนิเมชันกระโดดโค้งกลางอากาศ (Squash & Stretch Arc) */
+      @keyframes catPhysicsJump {
+        0% { transform: translateY(0) scale(1, 1); }
+        15% { transform: translateY(8px) scale(1.2, 0.75); }
+        45% { transform: translateY(-65px) scale(0.9, 1.2); }
+        85% { transform: translateY(5px) scale(1.18, 0.78); }
+        100% { transform: translateY(0) scale(1, 1); }
+      }
+
+      /* เงาใต้ฝ่าเท้าหด-ขยายตามความสูง */
+      @keyframes shadowPhysicsShrink {
+        0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.25; }
+        15% { transform: translateX(-50%) scale(1.2); opacity: 0.35; }
+        45% { transform: translateX(-50%) scale(0.4); opacity: 0.08; }
+        85% { transform: translateX(-50%) scale(1.25); opacity: 0.38; }
+      }
+
+      .cat-leaping {
+        animation: catPhysicsJump var(--jump-dur, 1.1s) cubic-bezier(0.35, 0, 0.25, 1) forwards !important;
+      }
+      .shadow-leaping {
+        animation: shadowPhysicsShrink var(--jump-dur, 1.1s) cubic-bezier(0.35, 0, 0.25, 1) forwards !important;
+      }
     `;
     document.head.appendChild(style);
   }
 
-  // ดักฟังการเปลี่ยนขนาดฟอนต์แบบเรียลไทม์
   window.addEventListener('storage', (e) => {
     if (e.key === 'kru_font_size') applyFontSize();
   });
 
-  // 4. ตรวจจับหน้าปัจจุบันและสร้างแถบ Nav ด้านล่างให้อัตโนมัติ (ยกเว้นหน้าบางหน้า)
+  // สร้างแถบเมนูด้านล่าง (Bottom Nav) อัตโนมัติ (ยกเว้น login, admin, quiz)
   document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname.toLowerCase();
-    
     if (path.endsWith('login.html') || path.endsWith('admin.html') || path.endsWith('quiz.html')) return;
     if (document.querySelector('nav[data-auto-nav]')) return;
 
@@ -137,13 +109,13 @@
     document.body.appendChild(nav);
   });
 })();
-// ==========================================
-// ลงทะเบียน PWA อัตโนมัติทุกหน้า
-// ==========================================
+
+// ---------------------------------------------------------
+// 2. ระบบลงทะเบียน PWA (เว็บแอปมือถือ)
+// ---------------------------------------------------------
 (function registerPWA() {
   if (typeof document === 'undefined') return;
 
-  // 1. เพิ่ม Meta & Link สำหรับ PWA ลงใน <head>
   if (!document.querySelector('link[rel="manifest"]')) {
     const head = document.head;
 
@@ -173,7 +145,6 @@
     head.appendChild(appleStatus);
   }
 
-  // 2. ลงทะเบียน Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
@@ -182,41 +153,62 @@
     });
   }
 })();
-// =========================================================
-// 🐾 AI Mascot & Tutor Cat (Safe Injector for All Pages)
-// =========================================================
-function initAiMascot() {
-  if (document.getElementById('aiCatMascotContainer')) return;
-  if (!document.body) return; // ป้องกันกรณี body ยังไม่พร้อม
 
-  // ในฟังก์ชัน initAiMascot() ภายใน theme-manager.js
+// ---------------------------------------------------------
+// 3. 🐾 น้องแมว 3D AI ผู้ช่วยติวข้อสอบ (หันหน้าตรงตลอดเวลา ไม่ค้าง ไม่เดินถอยหลัง)
+// ---------------------------------------------------------
+function initAiMascot() {
+  const path = window.location.pathname.toLowerCase();
+  // ยกเว้นไม่ให้แมวปรากฏในหน้า quiz.html, login.html และ admin.html
+  if (path.includes('quiz.html') || path.includes('login.html') || path.endsWith('admin.html')) return;
+
+  if (document.getElementById('aiCatMascotContainer')) return;
+  if (!document.body) return;
+
+  if (!document.querySelector('script[src*="model-viewer"]')) {
+    const mvScript = document.createElement('script');
+    mvScript.type = 'module';
+    mvScript.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+    document.head.appendChild(mvScript);
+  }
+
   const mascotHTML = `
-    <div id="aiCatMascotContainer" class="fixed bottom-24 right-2 z-50 flex items-center pointer-events-auto select-none">
-      <div id="catSpeechBubble" class="hidden mr-1 bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-xl border border-amber-200 text-xs font-extrabold text-slate-700 animate-bounce max-w-[150px] text-center">
+    <!-- กล่องพิกัดน้องแมว -->
+    <div id="aiCatMascotContainer" 
+         class="fixed z-40 select-none pointer-events-none"
+         style="left: calc(100vw - 110px); top: calc(100vh - 185px); width: 95px; height: 95px;">
+      
+      <!-- บอลลูนคำพูดลอยเหนือหัว -->
+      <div id="catSpeechBubble" 
+           class="hidden absolute -top-10 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-xl border border-amber-200 text-[11px] font-extrabold text-slate-700 whitespace-nowrap z-50">
         "สู้ๆ นะคะคุณครู! 🐾"
       </div>
-      <!-- ตัวละครแมว 3D จากไฟล์ cat.glb -->
-      <div onclick="toggleCatChat()" class="relative cursor-pointer group active:scale-95 transition-transform" title="แตะเพื่อคุยกับน้องเหมียวติวเตอร์ AI">
-        <div class="absolute inset-0 rounded-full bg-amber-400/20 blur-md group-hover:scale-110 transition-transform pointer-events-none"></div>
-        <div class="relative w-24 h-24 flex items-center justify-center animate-float">
+
+      <!-- เงาใต้ฝ่าเท้า -->
+      <div id="catGroundShadow" 
+           class="absolute bottom-1 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-amber-950/20 blur-[1px]"></div>
+
+      <!-- กล่องฟิสิกส์กระโดด -->
+      <div id="catJumpPhysicsWrapper" class="relative w-full h-full pointer-events-auto">
+        <!-- กล่องกลับด้านซ้าย-ขวา (Flipper) -->
+        <div id="catFlipper" onclick="onCatClicked(event)" class="relative w-full h-full cursor-pointer transition-transform duration-300">
           <model-viewer 
             id="catModelViewer"
             src="./cat.glb" 
             alt="Toon Cat AI" 
             autoplay 
-            auto-rotate
-            rotation-per-second="30deg"
             shadow-intensity="1"
             exposure="1"
             bounds="tight"
-            camera-controls
-            disable-zoom
-            style="display: block; width: 90px; height: 90px; background: transparent; --poster-color: transparent;">
+            interaction-prompt="none"
+            camera-orbit="15deg 75deg 105%"
+            style="display: block; width: 95px; height: 95px; background: transparent; --poster-color: transparent; pointer-events: none;">
           </model-viewer>
         </div>
       </div>
     </div>
 
+    <!-- หน้าต่างแชต AI ติวเตอร์ -->
     <div id="catChatModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border-t-2 border-white space-y-3 animate-sheet-up flex flex-col max-h-[80vh]">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -255,29 +247,174 @@ function initAiMascot() {
     </div>
   `;
 
-  if (!document.getElementById('catCustomStyle')) {
-    const styleEl = document.createElement('style');
-    styleEl.id = 'catCustomStyle';
-    styleEl.innerHTML = `
-      @keyframes catFloat {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-5px) rotate(3deg); }
-      }
-      .animate-float { animation: catFloat 3s ease-in-out infinite; }
-    `;
-    document.head.appendChild(styleEl);
-  }
-
   const wrapper = document.createElement('div');
   wrapper.innerHTML = mascotHTML;
   document.body.appendChild(wrapper);
+
+  // ระบบจัดการพิกัดและการเคลื่อนที่
+  const catEl = document.getElementById('aiCatMascotContainer');
+  const catJumpWrapper = document.getElementById('catJumpPhysicsWrapper');
+  const catShadow = document.getElementById('catGroundShadow');
+  const catFlipper = document.getElementById('catFlipper');
+  const catViewer = document.getElementById('catModelViewer');
+
+  let currentPosX = window.innerWidth - 110;
+  let currentPosY = window.innerHeight - 185;
+  let isMoving = false;
+
+  // 1. ฟังก์ชันก้าวเดินจริงข้ามจอ (หันหน้าตามทิศทางที่ถูกต้อง ไม่เดินถอยหลัง)
+  window.walkCatTo = function(targetX, targetY, callback) {
+    if (!catEl || isMoving) return;
+
+    const minX = 15;
+    const maxX = window.innerWidth - 110;
+    const minY = 80;
+    const maxY = window.innerHeight - 180;
+
+    const clampedX = Math.max(minX, Math.min(maxX, targetX));
+    const clampedY = Math.max(minY, Math.min(maxY, targetY));
+
+    const distX = clampedX - currentPosX;
+    const distY = clampedY - currentPosY;
+    const distance = Math.hypot(distX, distY);
+
+    if (distance < 20) {
+      if (callback) callback();
+      return;
+    }
+
+    const walkDuration = Math.max(1.2, distance / 70);
+
+    // แก้ไขบั๊กทิศทาง: โมเดลหน้าเดิมหันไปทางซ้าย
+    // ถ้าเดินไปทางซ้าย (clampedX < currentPosX) ให้ใช้ scaleX(1)
+    // ถ้าเดินไปทางขวา (clampedX > currentPosX) ให้กลับด้าน scaleX(-1) เพื่อหันไปทางขวา
+    if (catFlipper) {
+      catFlipper.style.transform = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+
+    isMoving = true;
+
+    catEl.style.transition = `left ${walkDuration}s linear, top ${walkDuration}s linear`;
+    catEl.style.left = `${clampedX}px`;
+    catEl.style.top = `${clampedY}px`;
+
+    currentPosX = clampedX;
+    currentPosY = clampedY;
+
+    // รีเซ็ตสถานะเมื่อเดินถึงที่หมาย (และมี Watchdog ป้องกันค้าง)
+    setTimeout(() => {
+      isMoving = false;
+      if (callback) callback();
+    }, walkDuration * 1000);
+  };
+
+  // 2. ฟังก์ชันกระโดดโค้งข้ามจอ
+  window.jumpCatTo = function(targetX, targetY) {
+    if (!catEl || isMoving) return;
+
+    const minX = 15;
+    const maxX = window.innerWidth - 110;
+    const minY = 80;
+    const maxY = window.innerHeight - 180;
+
+    const clampedX = Math.max(minX, Math.min(maxX, targetX));
+    const clampedY = Math.max(minY, Math.min(maxY, targetY));
+
+    const distX = clampedX - currentPosX;
+    const distY = clampedY - currentPosY;
+    const distance = Math.hypot(distX, distY);
+
+    if (distance < 25) return;
+
+    const jumpDur = Math.min(1.4, Math.max(0.9, distance / 220));
+
+    if (catFlipper) {
+      catFlipper.style.transform = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+
+    isMoving = true;
+
+    catJumpWrapper.style.setProperty('--jump-dur', `${jumpDur}s`);
+    catShadow.style.setProperty('--jump-dur', `${jumpDur}s`);
+
+    catJumpWrapper.classList.remove('cat-leaping');
+    catShadow.classList.remove('shadow-leaping');
+    void catJumpWrapper.offsetWidth;
+    catJumpWrapper.classList.add('cat-leaping');
+    catShadow.classList.add('shadow-leaping');
+
+    catEl.style.transition = `left ${jumpDur}s cubic-bezier(0.35, 0, 0.25, 1), top ${jumpDur}s cubic-bezier(0.35, 0, 0.25, 1)`;
+    catEl.style.left = `${clampedX}px`;
+    catEl.style.top = `${clampedY}px`;
+
+    currentPosX = clampedX;
+    currentPosY = clampedY;
+
+    setTimeout(() => {
+      isMoving = false;
+      catJumpWrapper.classList.remove('cat-leaping');
+      catShadow.classList.remove('shadow-leaping');
+    }, jumpDur * 1000);
+  };
+
+  // แตะที่ว่างบนหน้าจอ -> เดินมาหาทันที
+  document.addEventListener('click', (e) => {
+    const ignoreTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'NAV'];
+    if (ignoreTags.includes(e.target.tagName)) return;
+    if (e.target.closest('button, a, nav, #catChatModal, #aiCatMascotContainer, [onclick]')) return;
+
+    showCatBubble('เหมียว! กำลังเดินไปหา 🐾', 2000);
+    walkCatTo(e.clientX - 45, e.clientY - 45);
+  });
+
+  // สุ่มเดิน / กระโดดทุกๆ 30–60 วินาที
+  function scheduleNextCatAction() {
+    const randomDelay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
+
+    setTimeout(() => {
+      const modal = document.getElementById('catChatModal');
+      if (!modal || modal.classList.contains('hidden')) {
+        const actionType = Math.random();
+
+        if (actionType < 0.6) {
+          // เดินลาดตระเวนแนวนอน
+          const targetX = (currentPosX > window.innerWidth / 2) ? 25 : (window.innerWidth - 110);
+          const targetY = window.innerHeight - 185;
+          walkCatTo(targetX, targetY);
+        } else {
+          // กระโดดเปลี่ยนมุม
+          const randomX = Math.random() * (window.innerWidth - 130) + 15;
+          const randomY = Math.random() * (window.innerHeight - 270) + 90;
+          showCatBubble('ฮึบ! กระโดดแล้วน้า 💨', 2000);
+          jumpCatTo(randomX, randomY);
+        }
+      }
+      scheduleNextCatAction();
+    }, randomDelay);
+  }
+
+  scheduleNextCatAction();
+
+  window.addEventListener('resize', () => {
+    if (!isMoving) {
+      catEl.style.transition = 'none';
+      catEl.style.left = `${Math.min(currentPosX, window.innerWidth - 110)}px`;
+      catEl.style.top = `${Math.min(currentPosY, window.innerHeight - 180)}px`;
+    }
+  });
 }
 
-// รอให้หน้าเว็บโหลดโครงสร้าง HTML เสร็จก่อน ค่อยเรียกฟังก์ชันสร้างแมว
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAiMascot);
-} else {
-  initAiMascot();
+function onCatClicked(event) {
+  event.stopPropagation();
+  toggleCatChat();
+}
+
+function showCatBubble(text, duration = 3000) {
+  const bubble = document.getElementById('catSpeechBubble');
+  if (!bubble) return;
+  bubble.innerText = `"${text}"`;
+  bubble.classList.remove('hidden');
+  setTimeout(() => bubble.classList.add('hidden'), duration);
 }
 
 function toggleCatChat() {
@@ -325,15 +462,19 @@ function sendCatMessage() {
   }, 600);
 }
 
-// สุ่มเด้งบอลลูนทักทาย
+// สุ่มคำพูดทักทายทุก 35 วินาที
 setInterval(() => {
   const bubble = document.getElementById('catSpeechBubble');
   const modal = document.getElementById('catChatModal');
   if (bubble && modal && modal.classList.contains('hidden')) {
-    const messages = ['คลิกเหมียวได้นะ! 🐾', 'สู้ๆ เพื่อตั๋วครูค่ะ! ✨', 'วันนี้ทำข้อสอบยังเอ่ย? 📚', 'พักดื่มน้ำก่อนได้น้า 🍵'];
+    const messages = ['คลิกเหมียวได้นะ! 🐾', 'สู้ๆ เพื่อตั๋วครูค่ะ! ✨', 'แตะที่ว่างเรียกเหมียวเดินไปหาได้น้า 🏃', 'พักดื่มน้ำก่อนได้น้า 🍵'];
     const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-    bubble.innerText = `"${randomMsg}"`;
-    bubble.classList.remove('hidden');
-    setTimeout(() => bubble.classList.add('hidden'), 5000);
+    showCatBubble(randomMsg, 3500);
   }
-}, 25000);
+}, 35000);
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAiMascot);
+} else {
+  initAiMascot();
+}
