@@ -131,6 +131,47 @@
         </div>
       </div>
     </section>
+    <!-- การ์ดตั้งค่าโทนสีของแอปพลิเคชัน -->
+<div class="bg-white rounded-3xl p-5 shadow-sm border border-[#E8DFD3] space-y-4">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-2xl bg-amber-100 flex items-center justify-center text-[#755634]">
+      <i class="fa-solid fa-palette text-sm"></i>
+    </div>
+    <div>
+      <h3 class="font-bold text-slate-800 text-sm">ธีมสีของแอปพลิเคชัน</h3>
+      <p class="text-xs text-slate-400">เลือกโทนสีที่คุณชอบเพื่อความสบายตาในการอ่าน</p>
+    </div>
+  </div>
+
+  <!-- ปุ่มวงกลมเลือกสี -->
+  <div class="flex items-center justify-between gap-2 pt-2" id="colorPickerContainer">
+    <!-- น้ำตาล -->
+    <button onclick="setAppTheme('brown')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="brown">
+      <span class="w-8 h-8 rounded-full bg-[#755634] shadow-sm"></span>
+      <span class="text-[10px] font-bold text-slate-600">น้ำตาลครู</span>
+    </button>
+    <!-- น้ำเงิน -->
+    <button onclick="setAppTheme('blue')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="blue">
+      <span class="w-8 h-8 rounded-full bg-[#1e40af] shadow-sm"></span>
+      <span class="text-[10px] font-bold text-slate-600">น้ำเงินวิทย์</span>
+    </button>
+    <!-- เขียว -->
+    <button onclick="setAppTheme('green')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="green">
+      <span class="w-8 h-8 rounded-full bg-[#166534] shadow-sm"></span>
+      <span class="text-[10px] font-bold text-slate-600">เขียวสบายตา</span>
+    </button>
+    <!-- ม่วง -->
+    <button onclick="setAppTheme('purple')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="purple">
+      <span class="w-8 h-8 rounded-full bg-[#6b21a8] shadow-sm"></span>
+      <span class="text-[10px] font-bold text-slate-600">ม่วงเข้ม</span>
+    </button>
+    <!-- ส้มอิฐ -->
+    <button onclick="setAppTheme('orange')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="orange">
+      <span class="w-8 h-8 rounded-full bg-[#c2410c] shadow-sm"></span>
+      <span class="text-[10px] font-bold text-slate-600">ส้มอิฐ</span>
+    </button>
+  </div>
+</div>
 
     <!-- Sign Out Button -->
     <div class="pt-4">
@@ -142,36 +183,11 @@
         ครูในอนาคต • ระบบทดสอบความรู้เพื่อการเป็นครู
       </p>
     </div>
+    
 
   </main>
 
-  <!-- Bottom Navigation (แก้ไขลิงก์พังให้ตรงกับชื่อไฟล์จริง) -->
-  <nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
-    <div class="relative max-w-md mx-auto flex items-center justify-around h-16 px-2">
-      <a href="index.html" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary">
-        <span class="material-symbols-outlined text-[22px]">home</span>
-        <span class="text-[10px] font-medium">หน้าแรก</span>
-      </a>
-      <a href="all-exams.html" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary">
-        <span class="material-symbols-outlined text-[22px]">library_books</span>
-        <span class="text-[10px] font-medium">รวมข้อสอบ</span>
-      </a>
-      <div class="relative -top-4 flex flex-col items-center">
-        <a href="quiz.html" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-md active:scale-95 transition-transform">
-          <span class="material-symbols-outlined text-[24px]">edit_document</span>
-        </a>
-        <span class="text-[10px] font-bold text-on-surface-variant mt-1">ทำข้อสอบ</span>
-      </div>
-      <a href="history.html" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary">
-        <span class="material-symbols-outlined text-[22px]">history</span>
-        <span class="text-[10px] font-medium">ประวัติ</span>
-      </a>
-      <a href="settings.html" class="flex flex-col items-center gap-1 text-primary font-bold">
-        <span class="material-symbols-outlined text-[22px]">settings</span>
-        <span class="text-[10px]">ตั้งค่า</span>
-      </a>
-    </div>
-  </nav>
+  
 
   <script>
     // 1. โหลดข้อมูลผู้ใช้ที่ล็อกอินอยู่
@@ -190,18 +206,24 @@
       changeFontSize(currentSize, false);
     });
 
-    // 2. ฟังก์ชันเปลี่ยนขนาดฟอนต์
+    // 2. ฟังก์ชันเปลี่ยนขนาดฟอนต์ (ฉบับสมบูรณ์)
     function changeFontSize(size, save = true) {
       ['fontSm', 'fontMd', 'fontLg'].forEach(id => {
-        document.getElementById(id).className = 'py-1.5 rounded text-center text-xs font-semibold text-on-surface-variant transition-all';
+        const btn = document.getElementById(id);
+        if (btn) btn.className = 'py-1.5 rounded text-center text-xs font-semibold text-slate-500 transition-all';
       });
       const activeBtn = document.getElementById(size === 'sm' ? 'fontSm' : size === 'lg' ? 'fontLg' : 'fontMd');
-      if (activeBtn) activeBtn.className = 'py-1.5 rounded text-center text-xs font-semibold bg-white text-primary shadow-xs transition-all';
+      if (activeBtn) activeBtn.className = 'py-1.5 rounded text-center text-xs font-semibold bg-white text-[#755634] shadow-xs transition-all';
 
       const label = document.getElementById('fontSizeLabel');
-      if (size === 'sm') label.innerText = 'ปกติ (Regular)';
-      else if (size === 'lg') label.innerText = 'ใหญ่ (Large)';
-      else label.innerText = 'ปานกลาง (Medium)';
+      if (label) {
+        if (size === 'sm') label.innerText = 'ปกติ (Regular)';
+        else if (size === 'lg') label.innerText = 'ใหญ่ (Large)';
+        else label.innerText = 'ปานกลาง (Medium)';
+      }
+
+      let rootSize = size === 'sm' ? '14px' : size === 'lg' ? '18.5px' : '16px';
+      document.documentElement.style.fontSize = rootSize;
 
       if (save) localStorage.setItem('kru_font_size', size);
     }
@@ -222,22 +244,34 @@
         }
       }
     }
-    function changeFontSize(size) {
-  // 1. สลับไฮไลต์ปุ่มในหน้า settings
-  ['fontSm', 'fontMd', 'fontLg'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) btn.className = 'py-1.5 rounded text-center text-xs font-semibold text-gray-500 transition-all';
-  });
-  const activeBtn = document.getElementById(size === 'sm' ? 'fontSm' : size === 'lg' ? 'fontLg' : 'fontMd');
-  if (activeBtn) activeBtn.className = 'py-1.5 rounded text-center text-xs font-semibold bg-white text-[#755634] shadow-xs transition-all';
+    
+// ฟังก์ชันบันทึกสีลง localStorage และอัปเดต UI ทันที
+  function setAppTheme(colorName) {
+    localStorage.setItem('kru_theme_color', colorName);
+    
+    // เรียกฟังก์ชันใน theme-manager.js เพื่อให้สีเปลี่ยนทันที
+    if (typeof applyThemeColor === 'function') {
+      applyThemeColor();
+    }
+    highlightActiveTheme();
+  }
 
-  // 2. บันทึกลงความจำเครื่อง
-  localStorage.setItem('kru_font_size', size);
+  // ไฮไลต์ขอบปุ่มสีที่กำลังเลือกอยู่
+  function highlightActiveTheme() {
+    const activeColor = localStorage.getItem('kru_theme_color') || 'brown';
+    document.querySelectorAll('.theme-color-btn').forEach(btn => {
+      if (btn.getAttribute('data-color') === activeColor) {
+        btn.classList.add('border-slate-800', 'bg-slate-50', 'scale-105');
+        btn.classList.remove('border-transparent');
+      } else {
+        btn.classList.remove('border-slate-800', 'bg-slate-50', 'scale-105');
+        btn.classList.add('border-transparent');
+      }
+    });
+  }
 
-  // 3. ปรับขนาดบนหน้าจอปัจจุบันทันที
-  let rootSize = size === 'sm' ? '14px' : size === 'lg' ? '18.5px' : '16px';
-  document.documentElement.style.fontSize = rootSize;
-}
+  // ตรวจสอบสถานะสีปัจจุบันตอนเปิดหน้า settings
+  document.addEventListener('DOMContentLoaded', highlightActiveTheme);
   </script>
 </body>
 </html>

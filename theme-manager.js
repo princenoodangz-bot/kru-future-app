@@ -1,9 +1,43 @@
 // =========================================================
-// theme-manager.js (ฉบับแก้บั๊ก: หันหน้าตรงตลอดเวลา ไม่ค้าง ไม่เดินถอยหลัง)
+// theme-manager.js (ฉบับสมบูรณ์: Theme Color, Clean Floating Nav, PWA & 3D Cat)
 // =========================================================
 
+// ชุดสีมาตรฐานสำหรับสลับธีมของแอป
+const THEME_PALETTES = {
+  brown:  { primary: '#755634', dark: '#583f2b', light: '#fff8f6', accent: 'linear-gradient(135deg, #8B653B, #5E4325)' },
+  blue:   { primary: '#1e40af', dark: '#172554', light: '#f0f7ff', accent: 'linear-gradient(135deg, #2563eb, #1e40af)' },
+  green:  { primary: '#166534', dark: '#14532d', light: '#f0fdf4', accent: 'linear-gradient(135deg, #16a34a, #166534)' },
+  purple: { primary: '#6b21a8', dark: '#581c87', light: '#faf5ff', accent: 'linear-gradient(135deg, #9333ea, #6b21a8)' },
+  orange: { primary: '#c2410c', dark: '#9a3412', light: '#fff7ed', accent: 'linear-gradient(135deg, #ea580c, #c2410c)' }
+};
+
+// ฟังก์ชันปรับสีหลักทั้งระบบ (รองรับการเปลี่ยนสีแบบ Realtime)
+function applyThemeColor() {
+  const currentTheme = localStorage.getItem('kru_theme_color') || 'brown';
+  const palette = THEME_PALETTES[currentTheme] || THEME_PALETTES.brown;
+
+  document.documentElement.style.setProperty('--color-primary', palette.primary);
+  document.documentElement.style.setProperty('--color-primary-dark', palette.dark);
+
+  let dynamicStyle = document.getElementById('dynamic-theme-override');
+  if (!dynamicStyle) {
+    dynamicStyle = document.createElement('style');
+    dynamicStyle.id = 'dynamic-theme-override';
+    document.head.appendChild(dynamicStyle);
+  }
+
+  // ดักทับคลาสสีของ Tailwind เพื่อให้ทุกหน้าเปลี่ยนสีตามทันทีโดยไม่ต้องแก้ HTML
+  dynamicStyle.innerHTML = `
+    .bg-\\[\\#755634\\], .bg-\\[\\#755634\\]\\/95, .bg-\\[\\#755634\\]\\/90 { background-color: ${palette.primary} !important; }
+    .text-\\[\\#755634\\] { color: ${palette.primary} !important; }
+    .border-\\[\\#755634\\] { border-color: ${palette.primary} !important; }
+    .theme-accent-bg { background: ${palette.accent} !important; }
+    .hover\\:bg-\\[\\#583f2b\\]:hover, .hover\\:bg-\\[\\#5e4325\\]:hover { background-color: ${palette.dark} !important; }
+  `;
+}
+
 // ---------------------------------------------------------
-// 1. ระบบจัดการธีม, ฟอนต์ และขนาดตัวอักษรทั้งระบบ
+// 1. ระบบจัดการธีม, ฟอนต์ และเมนูล่าง
 // ---------------------------------------------------------
 (function initGlobalTheme() {
   if (!document.getElementById('global-fonts')) {
@@ -29,6 +63,7 @@
     document.documentElement.style.fontSize = rootSize;
   }
   applyFontSize();
+  applyThemeColor();
 
   if (!document.getElementById('global-theme-style')) {
     const style = document.createElement('style');
@@ -38,7 +73,6 @@
       h1, h2, h3, h4, h5, h6, .font-heading, .font-display, .font-prompt { font-family: 'Prompt', sans-serif !important; }
       body { background-color: #fff8f6 !important; color: #1e1b1a !important; }
 
-      /* แอนิเมชันกระโดดโค้งกลางอากาศ (Squash & Stretch Arc) */
       @keyframes catPhysicsJump {
         0% { transform: translateY(0) scale(1, 1); }
         15% { transform: translateY(8px) scale(1.2, 0.75); }
@@ -47,7 +81,6 @@
         100% { transform: translateY(0) scale(1, 1); }
       }
 
-      /* เงาใต้ฝ่าเท้าหด-ขยายตามความสูง */
       @keyframes shadowPhysicsShrink {
         0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.25; }
         15% { transform: translateX(-50%) scale(1.2); opacity: 0.35; }
@@ -67,13 +100,21 @@
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'kru_font_size') applyFontSize();
+    if (e.key === 'kru_theme_color') applyThemeColor();
   });
 
-  // สร้างแถบเมนูด้านล่าง (Bottom Nav) อัตโนมัติ (ยกเว้น login, admin, quiz)
-  document.addEventListener('DOMContentLoaded', () => {
+  // สร้างแถบเมนูนำทางด้านล่างแบบ Floating Glass (ตัดปัญหาแท็บซ้อน 100%)
+  function renderCleanBottomNav() {
     const path = window.location.pathname.toLowerCase();
-    if (path.endsWith('login.html') || path.endsWith('admin.html') || path.endsWith('quiz.html')) return;
-    if (document.querySelector('nav[data-auto-nav]')) return;
+    
+    // ยกเว้นหน้า login, admin, quiz ไม่ต้องมีเมนูล่าง
+    if (path.endsWith('login.html') || path.endsWith('admin.html') || path.endsWith('quiz.html')) {
+      document.querySelectorAll('nav').forEach(el => el.remove());
+      return;
+    }
+
+    // ล้างแท็บเก่าที่อาจค้างอยู่ออกทั้งหมด
+    document.querySelectorAll('nav').forEach(el => el.remove());
 
     const isHome = path.endsWith('index.html') || path.endsWith('/') || path === '';
     const isAllExams = path.endsWith('all-exams.html');
@@ -82,32 +123,41 @@
 
     const nav = document.createElement('nav');
     nav.setAttribute('data-auto-nav', 'true');
-    nav.className = 'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[425px] bg-[#FBF9F5]/95 backdrop-blur-md border-t border-[#E8DFD3] px-3 py-2 z-50';
+    nav.className = 'fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[406px] bg-white/90 backdrop-blur-xl border-2 border-white rounded-3xl px-3 py-2 z-40 shadow-[0_10px_30px_rgba(117,86,52,0.12)] select-none';
     nav.innerHTML = `
       <div class="flex items-center justify-around">
-        <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isHome ? 'text-[#755634] font-bold' : 'text-slate-400 hover:text-slate-600'}">
-          <i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">หน้าแรก</span>
+        <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isHome ? 'text-[var(--color-primary)] font-extrabold relative' : 'text-slate-400 hover:text-slate-700 transition-colors'}">
+          <i class="fa-solid fa-house text-sm"></i><span class="text-[10px] font-semibold">หน้าแรก</span>
+          ${isHome ? '<span class="w-1 h-1 rounded-full bg-[var(--color-primary)] absolute -bottom-0.5"></span>' : ''}
         </a>
-        <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isAllExams ? 'text-[#755634] font-bold' : 'text-slate-400 hover:text-slate-600'}">
-          <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px]">รวมข้อสอบ</span>
+        <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isAllExams ? 'text-[var(--color-primary)] font-extrabold relative' : 'text-slate-400 hover:text-slate-700 transition-colors'}">
+          <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px] font-semibold">รวมข้อสอบ</span>
+          ${isAllExams ? '<span class="w-1 h-1 rounded-full bg-[var(--color-primary)] absolute -bottom-0.5"></span>' : ''}
         </a>
-        <a href="quiz.html" class="flex flex-col items-center -mt-5 group active:scale-95 transition-transform">
-          <div class="w-12 h-12 rounded-full bg-[#755634] flex items-center justify-center text-white shadow-lg border-2 border-white">
+        <a href="quiz.html" class="flex flex-col items-center -mt-6 group active:scale-90 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-lg shadow-amber-900/25 border-2 border-white group-hover:rotate-6 transition-transform theme-accent-bg">
             <i class="fa-solid fa-pen-nib text-base"></i>
           </div>
-          <span class="text-[10px] font-bold text-slate-700 mt-1">ทำข้อสอบ</span>
+          <span class="text-[10px] font-extrabold text-slate-700 mt-1">ทำข้อสอบ</span>
         </a>
-        <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isHistory ? 'text-[#755634] font-bold' : 'text-slate-400 hover:text-slate-600'}">
-          <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px]">ประวัติ</span>
+        <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isHistory ? 'text-[var(--color-primary)] font-extrabold relative' : 'text-slate-400 hover:text-slate-700 transition-colors'}">
+          <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px] font-semibold">ประวัติ</span>
+          ${isHistory ? '<span class="w-1 h-1 rounded-full bg-[var(--color-primary)] absolute -bottom-0.5"></span>' : ''}
         </a>
-        <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isSettings ? 'text-[#755634] font-bold' : 'text-slate-400 hover:text-slate-600'}">
-          <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px]">ตั้งค่า</span>
+        <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 ${isSettings ? 'text-[var(--color-primary)] font-extrabold relative' : 'text-slate-400 hover:text-slate-700 transition-colors'}">
+          <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px] font-semibold">ตั้งค่า</span>
+          ${isSettings ? '<span class="w-1 h-1 rounded-full bg-[var(--color-primary)] absolute -bottom-0.5"></span>' : ''}
         </a>
       </div>
-      <div class="w-32 h-1 bg-[#D9CABE] rounded-full mx-auto mt-2 mb-0.5"></div>
     `;
     document.body.appendChild(nav);
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderCleanBottomNav);
+  } else {
+    renderCleanBottomNav();
+  }
 })();
 
 // ---------------------------------------------------------
@@ -155,11 +205,10 @@
 })();
 
 // ---------------------------------------------------------
-// 3. 🐾 น้องแมว 3D AI ผู้ช่วยติวข้อสอบ (หันหน้าตรงตลอดเวลา ไม่ค้าง ไม่เดินถอยหลัง)
+// 3. 🐾 น้องแมว 3D AI ผู้ช่วยติวข้อสอบ (ระบบจำพิกัดต่อเนื่องข้ามหน้า)
 // ---------------------------------------------------------
 function initAiMascot() {
   const path = window.location.pathname.toLowerCase();
-  // ยกเว้นไม่ให้แมวปรากฏในหน้า quiz.html, login.html และ admin.html
   if (path.includes('quiz.html') || path.includes('login.html') || path.endsWith('admin.html')) return;
 
   if (document.getElementById('aiCatMascotContainer')) return;
@@ -172,26 +221,33 @@ function initAiMascot() {
     document.head.appendChild(mvScript);
   }
 
+  const savedX = parseFloat(sessionStorage.getItem('cat_pos_x'));
+  const savedY = parseFloat(sessionStorage.getItem('cat_pos_y'));
+  const savedFacing = sessionStorage.getItem('cat_facing') || 'scaleX(1)';
+
+  const minX = 15;
+  const maxX = window.innerWidth - 110;
+  const minY = 80;
+  const maxY = window.innerHeight - 180;
+
+  let currentPosX = (!isNaN(savedX)) ? Math.max(minX, Math.min(maxX, savedX)) : (window.innerWidth - 110);
+  let currentPosY = (!isNaN(savedY)) ? Math.max(minY, Math.min(maxY, savedY)) : (window.innerHeight - 185);
+
   const mascotHTML = `
-    <!-- กล่องพิกัดน้องแมว -->
     <div id="aiCatMascotContainer" 
          class="fixed z-40 select-none pointer-events-none"
-         style="left: calc(100vw - 110px); top: calc(100vh - 185px); width: 95px; height: 95px;">
+         style="left: ${currentPosX}px; top: ${currentPosY}px; width: 95px; height: 95px;">
       
-      <!-- บอลลูนคำพูดลอยเหนือหัว -->
       <div id="catSpeechBubble" 
            class="hidden absolute -top-10 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-xl border border-amber-200 text-[11px] font-extrabold text-slate-700 whitespace-nowrap z-50">
         "สู้ๆ นะคะคุณครู! 🐾"
       </div>
 
-      <!-- เงาใต้ฝ่าเท้า -->
       <div id="catGroundShadow" 
            class="absolute bottom-1 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-amber-950/20 blur-[1px]"></div>
 
-      <!-- กล่องฟิสิกส์กระโดด -->
       <div id="catJumpPhysicsWrapper" class="relative w-full h-full pointer-events-auto">
-        <!-- กล่องกลับด้านซ้าย-ขวา (Flipper) -->
-        <div id="catFlipper" onclick="onCatClicked(event)" class="relative w-full h-full cursor-pointer transition-transform duration-300">
+        <div id="catFlipper" onclick="onCatClicked(event)" style="transform: ${savedFacing};" class="relative w-full h-full cursor-pointer transition-transform duration-300">
           <model-viewer 
             id="catModelViewer"
             src="./cat.glb" 
@@ -208,7 +264,6 @@ function initAiMascot() {
       </div>
     </div>
 
-    <!-- หน้าต่างแชต AI ติวเตอร์ -->
     <div id="catChatModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border-t-2 border-white space-y-3 animate-sheet-up flex flex-col max-h-[80vh]">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -251,25 +306,31 @@ function initAiMascot() {
   wrapper.innerHTML = mascotHTML;
   document.body.appendChild(wrapper);
 
-  // ระบบจัดการพิกัดและการเคลื่อนที่
   const catEl = document.getElementById('aiCatMascotContainer');
   const catJumpWrapper = document.getElementById('catJumpPhysicsWrapper');
   const catShadow = document.getElementById('catGroundShadow');
   const catFlipper = document.getElementById('catFlipper');
-  const catViewer = document.getElementById('catModelViewer');
 
-  let currentPosX = window.innerWidth - 110;
-  let currentPosY = window.innerHeight - 185;
   let isMoving = false;
 
-  // 1. ฟังก์ชันก้าวเดินจริงข้ามจอ (หันหน้าตามทิศทางที่ถูกต้อง ไม่เดินถอยหลัง)
+  function saveCatState(x, y, facing) {
+    try {
+      sessionStorage.setItem('cat_pos_x', x);
+      sessionStorage.setItem('cat_pos_y', y);
+      if (facing) sessionStorage.setItem('cat_facing', facing);
+    } catch (e) {}
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (catEl) {
+      const rect = catEl.getBoundingClientRect();
+      const facing = catFlipper ? catFlipper.style.transform : 'scaleX(1)';
+      saveCatState(rect.left, rect.top, facing);
+    }
+  });
+
   window.walkCatTo = function(targetX, targetY, callback) {
     if (!catEl || isMoving) return;
-
-    const minX = 15;
-    const maxX = window.innerWidth - 110;
-    const minY = 80;
-    const maxY = window.innerHeight - 180;
 
     const clampedX = Math.max(minX, Math.min(maxX, targetX));
     const clampedY = Math.max(minY, Math.min(maxY, targetY));
@@ -284,16 +345,10 @@ function initAiMascot() {
     }
 
     const walkDuration = Math.max(1.2, distance / 70);
-
-    // แก้ไขบั๊กทิศทาง: โมเดลหน้าเดิมหันไปทางซ้าย
-    // ถ้าเดินไปทางซ้าย (clampedX < currentPosX) ให้ใช้ scaleX(1)
-    // ถ้าเดินไปทางขวา (clampedX > currentPosX) ให้กลับด้าน scaleX(-1) เพื่อหันไปทางขวา
-    if (catFlipper) {
-      catFlipper.style.transform = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
-    }
+    const facing = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
+    if (catFlipper) catFlipper.style.transform = facing;
 
     isMoving = true;
-
     catEl.style.transition = `left ${walkDuration}s linear, top ${walkDuration}s linear`;
     catEl.style.left = `${clampedX}px`;
     catEl.style.top = `${clampedY}px`;
@@ -301,21 +356,15 @@ function initAiMascot() {
     currentPosX = clampedX;
     currentPosY = clampedY;
 
-    // รีเซ็ตสถานะเมื่อเดินถึงที่หมาย (และมี Watchdog ป้องกันค้าง)
     setTimeout(() => {
       isMoving = false;
+      saveCatState(currentPosX, currentPosY, facing);
       if (callback) callback();
     }, walkDuration * 1000);
   };
 
-  // 2. ฟังก์ชันกระโดดโค้งข้ามจอ
   window.jumpCatTo = function(targetX, targetY) {
     if (!catEl || isMoving) return;
-
-    const minX = 15;
-    const maxX = window.innerWidth - 110;
-    const minY = 80;
-    const maxY = window.innerHeight - 180;
 
     const clampedX = Math.max(minX, Math.min(maxX, targetX));
     const clampedY = Math.max(minY, Math.min(maxY, targetY));
@@ -327,13 +376,11 @@ function initAiMascot() {
     if (distance < 25) return;
 
     const jumpDur = Math.min(1.4, Math.max(0.9, distance / 220));
+    const facing = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
 
-    if (catFlipper) {
-      catFlipper.style.transform = (clampedX < currentPosX) ? 'scaleX(1)' : 'scaleX(-1)';
-    }
+    if (catFlipper) catFlipper.style.transform = facing;
 
     isMoving = true;
-
     catJumpWrapper.style.setProperty('--jump-dur', `${jumpDur}s`);
     catShadow.style.setProperty('--jump-dur', `${jumpDur}s`);
 
@@ -352,12 +399,12 @@ function initAiMascot() {
 
     setTimeout(() => {
       isMoving = false;
+      saveCatState(currentPosX, currentPosY, facing);
       catJumpWrapper.classList.remove('cat-leaping');
       catShadow.classList.remove('shadow-leaping');
     }, jumpDur * 1000);
   };
 
-  // แตะที่ว่างบนหน้าจอ -> เดินมาหาทันที
   document.addEventListener('click', (e) => {
     const ignoreTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'NAV'];
     if (ignoreTags.includes(e.target.tagName)) return;
@@ -367,7 +414,6 @@ function initAiMascot() {
     walkCatTo(e.clientX - 45, e.clientY - 45);
   });
 
-  // สุ่มเดิน / กระโดดทุกๆ 30–60 วินาที
   function scheduleNextCatAction() {
     const randomDelay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
 
@@ -375,14 +421,11 @@ function initAiMascot() {
       const modal = document.getElementById('catChatModal');
       if (!modal || modal.classList.contains('hidden')) {
         const actionType = Math.random();
-
         if (actionType < 0.6) {
-          // เดินลาดตระเวนแนวนอน
           const targetX = (currentPosX > window.innerWidth / 2) ? 25 : (window.innerWidth - 110);
           const targetY = window.innerHeight - 185;
           walkCatTo(targetX, targetY);
         } else {
-          // กระโดดเปลี่ยนมุม
           const randomX = Math.random() * (window.innerWidth - 130) + 15;
           const randomY = Math.random() * (window.innerHeight - 270) + 90;
           showCatBubble('ฮึบ! กระโดดแล้วน้า 💨', 2000);
@@ -462,7 +505,6 @@ function sendCatMessage() {
   }, 600);
 }
 
-// สุ่มคำพูดทักทายทุก 35 วินาที
 setInterval(() => {
   const bubble = document.getElementById('catSpeechBubble');
   const modal = document.getElementById('catChatModal');
