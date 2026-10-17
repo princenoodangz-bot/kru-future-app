@@ -799,7 +799,7 @@
         { name: 'วิชาเอก', check: a => hasTerm(a, ['คอมพิวเตอร์', 'วิชาเอก', 'เฉพาะทาง']) }
       ];
 
-      labels = dimensions.map(d => d.name);
+      fullLabels = dimensions.map(d => d.name);
       radarValues = dimensions.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
     } else {
       const isPartA = (currentMode === 'part_a');

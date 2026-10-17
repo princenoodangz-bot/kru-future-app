@@ -28,11 +28,18 @@ function applyThemeColor() {
 
   // ดักทับคลาสสีของ Tailwind เพื่อให้ทุกหน้าเปลี่ยนสีตามทันทีโดยไม่ต้องแก้ HTML
   dynamicStyle.innerHTML = `
-    .bg-\\[\\#755634\\], .bg-\\[\\#755634\\]\\/95, .bg-\\[\\#755634\\]\\/90 { background-color: ${palette.primary} !important; }
-    .text-\\[\\#755634\\] { color: ${palette.primary} !important; }
-    .border-\\[\\#755634\\] { border-color: ${palette.primary} !important; }
-    .theme-accent-bg { background: ${palette.accent} !important; }
+    /* สีพื้นหลังและข้อความมาตรฐาน */
+    .bg-\\[\\#755634\\], .bg-\\[\\#755634\\]\\/95, .bg-\\[\\#755634\\]\\/90, .bg-primary { background-color: ${palette.primary} !important; }
+    .text-\\[\\#755634\\], .text-primary { color: ${palette.primary} !important; }
+    .border-\\[\\#755634\\], .border-primary { border-color: ${palette.primary} !important; }
     .hover\\:bg-\\[\\#583f2b\\]:hover, .hover\\:bg-\\[\\#5e4325\\]:hover { background-color: ${palette.dark} !important; }
+
+    /* ปลดล็อกปุ่มที่เป็น Gradient ให้เปลี่ยนเป็นเฉดสีของธีมใหม่ทันที */
+    .theme-accent-bg,
+    [class*="from-\\[\\#755634\\]"],
+    [class*="to-\\[\\#755634\\]"] {
+      background-image: ${palette.accent} !important;
+    }
   `;
 }
 

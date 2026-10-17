@@ -642,7 +642,8 @@
       }
     });
 
-    const baseCount = (isForcedTimeout && doneCount > 0) ? doneCount : questions.length;
+    // โค้ดใหม่:
+    const baseCount = questions.length; // ล็อกตัวหารเป็นจำนวนข้อสอบเต็มของชุดนั้นเสมอ (เช่น 20 ข้อ)
     const percentage = baseCount > 0 ? parseFloat(((correct / baseCount) * 100).toFixed(1)) : 0;
 
     const elapsedSec = typeof totalSecondsElapsed !== 'undefined' ? totalSecondsElapsed : 0;
@@ -773,6 +774,13 @@
 
   function startPerQuestionTimer() {
     clearInterval(perQuestionInterval);
+
+    // เช็กว่าผู้ใช้ปิดการจับเวลาไว้หรือไม่ หรือกำลังอยู่ในโหมดตรวจเฉลย
+    const isTimerEnabled = localStorage.getItem('kru_pref_timer') !== 'false';
+    if (!isTimerEnabled || (typeof isReviewMode !== 'undefined' && isReviewMode)) {
+      return; // ไม่ต้องเริ่มนับเวลาถอยหลัง
+    }
+
     perQuestionLeft = perQuestionLimit;
     updatePerQuestionUI();
 
@@ -782,8 +790,13 @@
 
       if (perQuestionLeft <= 0) {
         clearInterval(perQuestionInterval);
-        alert(`⏰ หมดเวลาในข้อนี้! ระบบจะนำข้อที่ทำไปแล้วทั้งหมดมาคำนวณคะแนนและส่งข้อสอบทันที`);
-        submitExam(true);
+        // บังคับส่งข้อสอบเฉพาะในโหมดแข่งขัน (Competition) เท่านั้น โหมดอื่นให้เตือนเฉยๆ
+        if (examMode === 'competition') {
+          alert(`⏰ หมดเวลาในข้อนี้ (จำกัด 1 นาที/ข้อ)! ระบบจะส่งข้อสอบและสรุปผลคะแนนทันที`);
+          submitExam(true);
+        } else {
+          perQuestionLeft = perQuestionLimit; // รีเซ็ตรอบใหม่สำหรับโหมดฝึกซ้อม
+        }
       }
     }, 1000);
   }
@@ -805,10 +818,15 @@
     }
   }
 
+  let lastTimerQuestionIndex = -1;
   const originalRender = renderQuestion;
   renderQuestion = function() {
     originalRender();
-    startPerQuestionTimer();
+    // รีเซ็ตเวลาเฉพาะเมื่อมีการเปลี่ยนข้อจริง ๆ เท่านั้น ไม่รีเซ็ตตอนแตะเลือกช้อยส์ข้อเดิม
+    if (lastTimerQuestionIndex !== currentIndex) {
+      lastTimerQuestionIndex = currentIndex;
+      startPerQuestionTimer();
+    }
   };
 
   let isReviewMode = false;
@@ -1036,7 +1054,11 @@
   }
 
   function getSeenStorageKey() {
-    const uid = (typeof userInfo !== 'undefined' && userInfo && userInfo.id) ? userInfo.id : 'guest';
+    let uid = 'guest';
+    try {
+      const u = JSON.parse(localStorage.getItem('kru_user_info') || '{}');
+      if (u.id || u.user_id) uid = u.id || u.user_id;
+    } catch (e) {}
     return `exam_seen_q_ids_${uid}`;
   }
 
@@ -1075,6 +1097,9 @@
 
   function retryWrongQuestions() {
     const wrongQuestions = questions.filter((q, idx) => {
+      // ถ้าข้อนี้ผู้สอบไม่ได้กดตอบ ให้ดึงมาเป็นข้อที่ต้องแก้ตัวทันที
+      if (userAnswers[idx] === undefined) return true;
+
       const uAns = normalizeAnswerToThai(userAnswers[idx]);
       const cAns = normalizeAnswerToThai(q.correct_answer);
       return uAns !== cAns;
@@ -1112,9 +1137,12 @@
     
     let correct = 0;
     questions.forEach((q, idx) => {
-      const uAns = normalizeAnswerToThai(userAnswers[idx]);
-      const cAns = normalizeAnswerToThai(q.correct_answer);
-      if (uAns === cAns) correct++;
+      // ต้องมีการกดเลือกคำตอบจริงเท่านั้น ถึงจะนำมาตรวจว่าถูกหรือไม่
+      if (userAnswers[idx] !== undefined) {
+        const uAns = normalizeAnswerToThai(userAnswers[idx]);
+        const cAns = normalizeAnswerToThai(q.correct_answer);
+        if (uAns === cAns) correct++;
+      }
     });
     const percentage = Math.round((correct / questions.length) * 100);
     const isPassed = percentage >= 60;
@@ -1233,7 +1261,7 @@
   }
 
   function showCustomResultModal(percentage, correct, doneCount, mode, min, sec) {
-    const isPassed = percentage >= 70;
+    const isPassed = percentage >= 60; // ปรับเกณฑ์มาตรฐานครูผู้ช่วยเป็น 60% สอดคล้องกับทุกหน้า
 
     const modal = document.getElementById('resultSummaryModal');
     const iconBox = document.getElementById('modalMoodIconBox');
@@ -1251,12 +1279,12 @@
       iconBox.className = 'w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-inner bg-emerald-100 border border-emerald-200';
       emojiEl.innerText = '🥳';
       titleEl.innerHTML = 'ยอดเยี่ยมมาก! ผ่านเกณฑ์ฉลุย 🎉';
-      descEl.innerText = `ทำได้เกินเกณฑ์ 70% ความรู้แน่น พร้อมสอบแน่นอนครับ!`;
+      descEl.innerText = `ทำได้เกินเกณฑ์ 60% ความรู้แน่น พร้อมสอบแน่นอนครับ!`;
     } else {
       iconBox.className = 'w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-inner bg-rose-50 border border-rose-200';
       emojiEl.innerText = '🥺';
       titleEl.innerHTML = 'เกือบแล้ว สู้ต่ออีกนิดนะ! 🥺';
-      descEl.innerText = `เกณฑ์ผ่านคือ 70% ทบทวนข้อที่ผิดอีกนิด รับรองทำได้แน่นอนครับ ✌️`;
+      descEl.innerText = `เกณฑ์ผ่านคือ 60% ทบทวนข้อที่ผิดอีกนิด รับรองทำได้แน่นอนครับ ✌️`;
     }
 
     document.getElementById('modalScorePercent').innerText = percentage.toFixed(1);

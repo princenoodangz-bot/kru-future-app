@@ -190,7 +190,7 @@
   
 
   <script>
-    // 1. โหลดข้อมูลผู้ใช้ที่ล็อกอินอยู่
+    // 1. โหลดข้อมูลผู้ใช้ที่ล็อกอินอยู่ และซิงค์สถานะสวิตช์ตั้งค่า
     document.addEventListener('DOMContentLoaded', () => {
       const userInfoStr = localStorage.getItem('kru_user_info');
       if (userInfoStr) {
@@ -199,6 +199,17 @@
         document.getElementById('userIdText').innerText = `รหัส: ${user.studentId || '-'}`;
         document.getElementById('avatarLetter').innerText = (user.name || 'ผ').charAt(0);
         document.getElementById('userRoleBadge').innerText = user.role === 'admin' ? 'Admin' : 'Student';
+      }
+
+      // โหลดสถานะสวิตช์การสอบทั้ง 2 ตัว
+      const realModePref = localStorage.getItem('kru_pref_real_mode');
+      if (realModePref !== null) {
+        document.getElementById('toggleRealMode').checked = (realModePref === 'true');
+      }
+
+      const timerPref = localStorage.getItem('kru_pref_timer');
+      if (timerPref !== null) {
+        document.getElementById('toggleTimer').checked = (timerPref !== 'false');
       }
 
       // โหลดการตั้งค่าขนาดฟอนต์

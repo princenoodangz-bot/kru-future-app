@@ -641,6 +641,7 @@ async function loadUsersList() {
               ${u.role}
             </span>
           </td>
+          <td class="p-3 text-xs text-gray-500">${loginTime}</td>
           <td class="p-3 text-center">
             <div class="flex items-center justify-center gap-1.5 mx-auto">
               <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-2.5 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1">
