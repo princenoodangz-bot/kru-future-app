@@ -475,7 +475,56 @@ function toggleCatChat() {
   }
 }
 
-function sendCatMessage() {
+// ประกาศตัวแปรเก็บ API Key ไว้ด้านนอกฟังก์ชัน
+const GEMINI_API_KEY = "AQ.Ab8RN6IXLy62d3TsYm-anh2hJZTzFENCUYpbGpM8yr4hzaUf5A";
+// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ
+async function askCatAiTutor(promptText) {
+  // แก้ไข: เช็กแค่ว่ามีค่าหรือไม่ หรือเป็นค่าว่าง (ไม่ต้องเอา Key จริงมาใส่เทียบตรงนี้)
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE" || GEMINI_API_KEY.trim() === "") {
+    return "เมี๊ยว! อย่าลืมใส่ Gemini API Key ใน theme-manager.js ก่อนน้า เหมียวถึงจะช่วยติวได้เต็มที่ค่ะ 🐾";
+  }
+
+  // ปรับโมเดลเป็น gemini-1.5-flash-8b (รุ่นเล็กและเบาที่สุด)
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${GEMINI_API_KEY}`;
+  
+  const payload = {
+    contents: [
+      {
+        parts: [{ text: promptText }]
+      }
+    ],
+    systemInstruction: {
+      parts: [{
+        text: "คุณคือน้องเหมียว ติวเตอร์ AI ผู้ช่วยเตรียมสอบบรรจุครูผู้ช่วย สพฐ. (ภาค ก และ ภาค ข) มีนิสัยใจดี น่ารัก ฉลาด หน้าที่ของคุณคือให้คำแนะนำ เทคนิคทำข้อสอบ หรืออธิบายเนื้อหาวิชาการสั้นๆ กฎเหล็ก: ตอบสั้นกระชับมาก ไม่เกิน 2-3 ประโยค ตรงประเด็น ใช้คำเข้าใจง่าย และลงท้ายอย่างสดใส เช่น เมี๊ยว, น้า, สู้ๆ นะคะคุณครู"
+      }]
+    },
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 150 // จำกัดความยาวคำตอบให้สั้นพอดี ไม่ร่ายยาว
+    }
+  };
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+      return data.candidates[0].content.parts[0].text.trim();
+    } else {
+      return "เมี๊ยว... สัญญาณคลื่นสมองแมวติดขัดนิดหน่อย ลองถามใหม่อีกทีนะคะ 🐱";
+    }
+  } catch (err) {
+    console.error("Gemini Cat AI Error:", err);
+    return "เมี๊ยว! เชื่อมต่อ AI ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ API Key อีกทีน้า 😿";
+  }
+}
+
+// ส่งข้อความคุยกับน้องแมว AI พร้อมแอนิเมชันตอนกำลังคิด
+async function sendCatMessage() {
   const input = document.getElementById('catChatInput');
   const msgContainer = document.getElementById('catChatMessages');
   if (!input || !input.value.trim()) return;
@@ -483,33 +532,41 @@ function sendCatMessage() {
   const userText = input.value.trim();
   input.value = '';
 
+  // 1. แสดงกล่องข้อความของผู้ใช้
   msgContainer.innerHTML += `
     <div class="flex items-end justify-end gap-2">
-      <div class="bg-[#755634] text-white p-3 rounded-2xl rounded-tr-xs shadow-2xs font-medium max-w-[80%] leading-relaxed">
+      <div class="bg-[var(--color-primary,#755634)] text-white p-3 rounded-2xl rounded-tr-xs shadow-2xs font-medium max-w-[80%] leading-relaxed text-xs">
         ${userText}
       </div>
     </div>
   `;
   msgContainer.scrollTop = msgContainer.scrollHeight;
 
-  setTimeout(() => {
-    let reply = "เมี๊ยว! เป็นคำถามที่ดีมากค่ะคุณครู สู้ๆ นะคะ เดี๋ยวเราไปลองลุยทำข้อสอบในคลังกันต่อเลย! 💪";
-    if (userText.includes('อนุกรม') || userText.includes('เลข')) {
-      reply = "เทคนิคข้อสอบอนุกรม ให้ลองหาผลต่างทีละชั้นก่อนนะคะ ถ้าชั้นแรกไม่เท่ากัน ให้ลองหาผลต่างชั้นที่สองต่อค่ะ! 🧮";
-    } else if (userText.includes('กฎหมาย') || userText.includes('พ.ร.บ.')) {
-      reply = "สู้ๆ ค่ะคุณครู หมวด พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน ออกสอบบ่อยมาก อย่าลืมจำโครงสร้าง ส่วนกลาง ส่วนภูมิภาค และท้องถิ่นให้แม่นนะคะ ⚖️";
-    }
+  // 2. แสดงสถานะ "น้องเหมียวกำลังคิด... 🐾"
+  const loadingId = 'cat-loading-' + Date.now();
+  msgContainer.innerHTML += `
+    <div id="${loadingId}" class="flex items-start gap-2">
+      <span class="text-base">🐱</span>
+      <div class="bg-white p-3 rounded-2xl rounded-tl-xs shadow-2xs text-slate-400 font-medium leading-relaxed max-w-[80%] text-xs flex items-center gap-1.5 border border-slate-100">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+        <span>เหมียวกำลังคิดคำตอบให้คุณครูน้า...</span>
+      </div>
+    </div>
+  `;
+  msgContainer.scrollTop = msgContainer.scrollHeight;
 
-    msgContainer.innerHTML += `
-      <div class="flex items-start gap-2">
-        <span class="text-base">🐱</span>
-        <div class="bg-white p-3 rounded-2xl rounded-tl-xs shadow-2xs text-slate-700 font-medium leading-relaxed max-w-[80%]">
-          ${reply}
-        </div>
+  // 3. ยิงไปถาม AI แล้วนำคำตอบมาแทนที่กล่องสถานะ
+  const reply = await askCatAiTutor(userText);
+  const loadingEl = document.getElementById(loadingId);
+  if (loadingEl) {
+    loadingEl.innerHTML = `
+      <span class="text-base">🐱</span>
+      <div class="bg-white p-3 rounded-2xl rounded-tl-xs shadow-2xs text-slate-700 font-medium leading-relaxed max-w-[80%] text-xs border border-slate-100">
+        ${reply}
       </div>
     `;
     msgContainer.scrollTop = msgContainer.scrollHeight;
-  }, 600);
+  }
 }
 
 setInterval(() => {
