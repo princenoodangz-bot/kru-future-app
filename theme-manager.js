@@ -475,17 +475,37 @@ function toggleCatChat() {
   }
 }
 
-// บันทึก API Key
-const GEMINI_API_KEY = "AQ.Ab8RN6KDvxEzfdA5fKovEqtVnuUzWqbg7vbFkKEchSGY9c_73w";
+// ฟังก์ชันดึง Gemini API Key จากตาราง system_configs บน Supabase
+async function getGeminiApiKey() {
+  try {
+    if (window.supabase) {
+      const { data, error } = await supabase
+        .from('system_configs')
+        .select('value')
+        .eq('key', 'gemini_api_key')
+        .maybeSingle();
 
-// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ (ใช้รุ่น 2.5 Flash-Lite ความเร็วสูงสุด ไม่ต้องรอคิด)
+      if (!error && data && data.value) {
+        return data.value.trim();
+      }
+    }
+  } catch (e) {
+    console.warn("ไม่สามารถดึง API Key จาก Supabase ได้:", e);
+  }
+  return null;
+}
+
+// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ
 async function askCatAiTutor(promptText) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
-    return "เมี๊ยว! ยังไม่ได้ตั้งค่า Gemini API Key ใน theme-manager.js เลยน้า 🐾";
+  // ดึงคีย์จากระบบฐานข้อมูล Supabase อัตโนมัติ
+  const apiKey = await getGeminiApiKey();
+
+  if (!apiKey) {
+    return "เมี๊ยว! ยังไม่พบการตั้งค่า Gemini API Key ในตาราง system_configs บน Supabase เลยน้า 🐾";
   }
 
-  // ⚡ ใช้โมเดล gemini-2.5-flash-lite เน้นความเร็วตอบกลับทันที
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+  // ใช้โมเดล gemini-2.5-flash-lite เพื่อความเร็วสูงสุด
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
   
   const payload = {
     contents: [
@@ -500,7 +520,7 @@ async function askCatAiTutor(promptText) {
     },
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 300 // คำตอบสั้นกระชับ เพื่อความเร็วสูงสุด
+      maxOutputTokens: 300
     }
   };
 
