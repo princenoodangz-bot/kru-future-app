@@ -64,6 +64,11 @@
       <span class="material-symbols-outlined text-[18px]">menu_book</span>
       <span>3. คลังข้อสอบ & นำเข้า Excel</span>
     </button>
+    <!-- 👈 วางต่อท้ายปุ่มแท็บ 3 (tabBtnQuestions) -->
+    <button type="button" onclick="switchAdminTab('ai')" id="tabBtnAi" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200">
+      <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+      <span>4. จัดการ Gemini AI (10 คีย์)</span>
+    </button>
   </div>
 
 <!-- แท็บ 1: ผู้ใช้งาน (ครอบคลุมทั้งฟอร์มเพิ่ม ตารางบัญชี และสถิติการสอบ) -->
@@ -197,6 +202,170 @@
           บันทึกการตั้งค่าหน้าแรก
         </button>
       </div>
+    </div>
+  </div>
+  
+<!-- ================= แท็บ 4: จัดการ Gemini AI (10 คีย์) ================= -->
+  <div id="tabContentAi" style="display: none;" class="space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5 max-w-4xl">
+      
+      <!-- ส่วนหัวกล่อง -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 text-[#755634] flex items-center justify-center font-bold shrink-0">
+            <span class="material-symbols-outlined text-[24px]">smart_toy</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-gray-800">จัดการ Gemini API Keys (น้องเหมียว AI)</h3>
+            <p class="text-xs text-gray-500">ระบบสำรองอัตโนมัติสูงสุด 10 คีย์ (รองรับสูงสุด ~15,000 ครั้ง/วัน)</p>
+          </div>
+        </div>
+
+        <!-- ปุ่มเปิดดูกราฟตัวจริงที่ Google AI Studio -->
+        <a href="https://aistudio.google.com/app/plan_information" target="_blank" class="self-start sm:self-auto text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-2xs">
+          <span class="material-symbols-outlined text-[16px]">monitoring</span>
+          <span>เปิดกราฟ Google AI Studio</span>
+          <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+        </a>
+      </div>
+
+      <!-- ช่องกรอก API Key 1 ถึง 10 (จัดแบบ 2 คอลัมน์ กะทัดรัด สวยงาม) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="apiKeyInputsContainer">
+        
+        <!-- Slot 1 (คีย์หลัก) -->
+        <div class="bg-amber-50/40 p-3 rounded-xl border border-amber-200/80 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-800 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-200 shrink-0"></span>
+              <span class="truncate">ช่องที่ 1 (คีย์หลักที่เรียกก่อน) *</span>
+            </label>
+            <span id="statusKey1" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey1" placeholder="วาง API Key 1..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 2 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 2 (สำรอง)</span>
+            </label>
+            <span id="statusKey2" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey2" placeholder="วาง API Key 2..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 3 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 3 (สำรอง)</span>
+            </label>
+            <span id="statusKey3" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey3" placeholder="วาง API Key 3..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 4 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 4 (สำรอง)</span>
+            </label>
+            <span id="statusKey4" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey4" placeholder="วาง API Key 4..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 5 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 5 (สำรอง)</span>
+            </label>
+            <span id="statusKey5" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey5" placeholder="วาง API Key 5..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 6 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 6 (สำรอง)</span>
+            </label>
+            <span id="statusKey6" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey6" placeholder="วาง API Key 6..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 7 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 7 (สำรอง)</span>
+            </label>
+            <span id="statusKey7" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey7" placeholder="วาง API Key 7..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 8 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 8 (สำรอง)</span>
+            </label>
+            <span id="statusKey8" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey8" placeholder="วาง API Key 8..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 9 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 9 (สำรอง)</span>
+            </label>
+            <span id="statusKey9" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey9" placeholder="วาง API Key 9..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+        <!-- Slot 10 -->
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-gray-700 flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+              <span class="truncate">ช่องที่ 10 (สำรอง)</span>
+            </label>
+            <span id="statusKey10" class="text-[10px] font-bold text-gray-400 shrink-0">⚪ ยังไม่ตรวจ</span>
+          </div>
+          <input type="password" id="geminiKey10" placeholder="วาง API Key 10..." class="w-full bg-white px-2.5 py-2 rounded-lg border border-gray-200 text-xs font-mono outline-none focus:border-[#755634]" />
+        </div>
+
+      </div>
+
+      <!-- ปุ่มสั่งการ: ตรวจสอบสถานะ และ บันทึกลง Supabase -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+        <button type="button" onclick="testAllKeysHealth()" class="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95">
+          <span class="material-symbols-outlined text-[18px] text-amber-600">health_and_safety</span>
+          <span>⚡ ทดสอบสถานะทั้ง 10 คีย์สด (เช็กโควตา)</span>
+        </button>
+        <button type="button" onclick="saveApiKeysToSupabase()" class="w-full sm:flex-1 py-3 px-4 rounded-xl bg-[#755634] hover:bg-[#896443] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
+          <span class="material-symbols-outlined text-[18px]">save</span>
+          <span>บันทึก API Keys ทั้งหมดลง Supabase</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1158,17 +1327,16 @@ async function uploadExcelQuestions() {
   reader.readAsArrayBuffer(file);
 }
 
-// ==========================================
-// 5. สลับแท็บและจัดการคลังข้อสอบ (Questions Table)
-// ==========================================
 function switchAdminTab(tabKey) {
   const tabUsers = document.getElementById('tabContentUsers');
   const tabDday = document.getElementById('tabContentDday');
   const tabQuestions = document.getElementById('tabContentQuestions');
+  const tabAi = document.getElementById('tabContentAi'); // 👈 เพิ่มจุดนี้
 
   if (tabUsers) tabUsers.style.display = 'none';
   if (tabDday) tabDday.style.display = 'none';
   if (tabQuestions) tabQuestions.style.display = 'none';
+  if (tabAi) tabAi.style.display = 'none'; // 👈 เพิ่มจุดนี้
 
   document.querySelectorAll('.admin-tab-btn').forEach(btn => {
     btn.className = 'admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200';
@@ -1184,11 +1352,15 @@ function switchAdminTab(tabKey) {
   } else if (tabKey === 'dday') {
     activeContent = tabDday;
     activeBtnId = 'tabBtnDday';
-    loadAdminConfigs(); // ดึงข้อมูลวันสอบและคำคมล่าสุดเสมอ
+    loadAdminConfigs();
   } else if (tabKey === 'questions') {
     activeContent = tabQuestions;
     activeBtnId = 'tabBtnQuestions';
     loadQuestionsList();
+  } else if (tabKey === 'ai') { // 👈 เพิ่มเงื่อนไขแท็บ AI
+    activeContent = tabAi;
+    activeBtnId = 'tabBtnAi';
+    loadApiKeysForAdmin();
   }
 
   if (activeContent) activeContent.style.display = 'block';
@@ -1552,6 +1724,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAdminConfigs();
   onPartChange();
   loadAdminUsersList();
+  loadApiKeysForAdmin();
 });
 
 
@@ -1679,6 +1852,109 @@ function resetAllFilters() {
   document.getElementById('searchQuestionInput').value = '';
   document.getElementById('filterPartSelect').value = 'all';
   onTableFilterPartChange();
+}
+// 1. ดึงคีย์จาก Supabase มาใส่ในช่อง 1 ถึง 10 อัตโนมัติ
+async function loadApiKeysForAdmin() {
+  try {
+    if (!window.supabase) return;
+    const { data, error } = await supabase
+      .from('system_configs')
+      .select('value')
+      .eq('key', 'gemini_api_key')
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data && data.value) {
+      const keys = data.value.split(',').map(k => k.trim());
+      for (let i = 1; i <= 10; i++) {
+        const inputEl = document.getElementById(`geminiKey${i}`);
+        if (inputEl) inputEl.value = keys[i - 1] || '';
+      }
+    }
+  } catch (err) {
+    console.warn("โหลด API Keys ไม่สำเร็จ:", err);
+  }
+}
+
+// 2. รวมคีย์จากช่อง 1 ถึง 10 แล้วบันทึกลง Supabase
+async function saveApiKeysToSupabase() {
+  const keys = [];
+  for (let i = 1; i <= 10; i++) {
+    const val = (document.getElementById(`geminiKey${i}`)?.value || '').trim();
+    if (val) keys.push(val);
+  }
+
+  const combinedKeys = keys.join(', ');
+
+  try {
+    const { error } = await supabase
+      .from('system_configs')
+      .upsert({
+        key: 'gemini_api_key',
+        value: combinedKeys,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+    if (error) throw error;
+    alert('✅ บันทึก API Keys ลงระบบเรียบร้อยแล้ว!');
+    testAllKeysHealth(); // ตรวจสอบสถานะทันทีหลังกดบันทึก
+  } catch (err) {
+    alert('❌ บันทึกไม่สำเร็จ: ' + err.message);
+  }
+}
+
+// ==========================================
+// ฟังก์ชันทดสอบสถานะคีย์สด (ตรวจคู่ขนานพร้อมกัน 10 ช่อง เร็วใน 1-2 วินาที)
+// ==========================================
+async function testAllKeysHealth() {
+  // ฟังก์ชันย่อยสำหรับตรวจสอบคีย์ทีละช่อง
+  async function checkSingleKey(i) {
+    const key = (document.getElementById(`geminiKey${i}`)?.value || '').trim();
+    const statusEl = document.getElementById(`statusKey${i}`);
+    if (!statusEl) return;
+
+    if (!key) {
+      statusEl.innerHTML = '<span class="text-gray-400 font-medium">⚪ ว่าง</span>';
+      return;
+    }
+
+    statusEl.innerHTML = '<span class="text-amber-600 font-bold animate-pulse">⏳ ตรวจสอบ...</span>';
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "hi" }] }],
+          generationConfig: { maxOutputTokens: 1 } // ดึงเพียง 1 โทเค็นเพื่อความเร็วสูงสุด
+        })
+      });
+
+      const resJson = await res.json();
+
+      if (res.status === 429 || resJson.error?.code === 429 || resJson.error?.status === "RESOURCE_EXHAUSTED") {
+        statusEl.innerHTML = '<span class="text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded text-[10px]">🟡 โควตาเต็ม (429)</span>';
+      } else if (res.status === 503 || resJson.error?.code === 503 || resJson.error?.status === "UNAVAILABLE") {
+        statusEl.innerHTML = '<span class="text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded text-[10px]" title="Google คิวแน่นชั่วคราว แต่คีย์ยังใช้งานได้ปกติ">🟡 Google คิวแน่น (503)</span>';
+      } else if (resJson.error) {
+        console.error(`❌ คีย์ช่องที่ ${i} มีปัญหา:`, resJson.error);
+        statusEl.innerHTML = `<span class="text-rose-700 font-extrabold bg-rose-100 px-2 py-0.5 rounded text-[10px]" title="${resJson.error.message}">🔴 คีย์มีปัญหา</span>`;
+      } else {
+        statusEl.innerHTML = '<span class="text-emerald-700 font-extrabold bg-emerald-100 px-2.5 py-0.5 rounded text-[10px]">🟢 พร้อมใช้</span>';
+      }
+    } catch (err) {
+      console.error(`❌ ช่องที่ ${i} เชื่อมต่อไม่ได้:`, err);
+      statusEl.innerHTML = '<span class="text-rose-600 font-bold text-[10px]">🔴 เชื่อมต่อไม่ได้</span>';
+    }
+  }
+
+  // ส่งคำขอตรวจพร้อมกันทั้ง 10 ช่องทันที ไม่ต้องรอคิว
+  const checkTasks = [];
+  for (let i = 1; i <= 10; i++) {
+    checkTasks.push(checkSingleKey(i));
+  }
+  await Promise.all(checkTasks);
 }
 </script>
 </body>

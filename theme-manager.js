@@ -504,8 +504,8 @@ async function askCatAiTutor(promptText) {
     return "เมี๊ยว! ยังไม่พบการตั้งค่า Gemini API Key ในตาราง system_configs บน Supabase เลยน้า 🐾";
   }
 
-  // ใช้โมเดล gemini-2.5-flash-lite เพื่อความเร็วสูงสุด
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+  // ⚡ ใช้โมเดล gemini-flash-lite-latest อัปเดตรุ่นเร็วที่สุดอัตโนมัติ ไม่ติด Error 404
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${currentKey}`;
   
   const payload = {
     contents: [
