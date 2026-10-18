@@ -1878,11 +1878,10 @@ async function loadQuestionsList() {
     const step = 1000;
     let hasMore = true;
 
-    // ✅ เพิ่ม image_url, explanation_image_url ครบถ้วน
     while (hasMore) {
       const { data, error } = await supabase
         .from('questions')
-        .select('id, question_text, image_url, choice_a, choice_b, choice_c, choice_d, exam_part, exam_category, exam_sub_category, exam_topic, correct_answer, explanation, explanation_image_url')
+        .select('*')
         .order('id', { ascending: false })
         .range(from, from + step - 1);
 
