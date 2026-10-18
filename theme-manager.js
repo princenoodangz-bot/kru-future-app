@@ -475,17 +475,17 @@ function toggleCatChat() {
   }
 }
 
-// ประกาศตัวแปรเก็บ API Key ไว้ด้านนอกฟังก์ชัน
-const GEMINI_API_KEY = "AQ.Ab8RN6IXLy62d3TsYm-anh2hJZTzFENCUYpbGpM8yr4hzaUf5A";
-// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ
+// บันทึก API Key
+const GEMINI_API_KEY = "AQ.Ab8RN6KDvxEzfdA5fKovEqtVnuUzWqbg7vbFkKEchSGY9c_73w";
+
+// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ (ใช้รุ่น 2.5 Flash-Lite ความเร็วสูงสุด ไม่ต้องรอคิด)
 async function askCatAiTutor(promptText) {
-  // แก้ไข: เช็กแค่ว่ามีค่าหรือไม่ หรือเป็นค่าว่าง (ไม่ต้องเอา Key จริงมาใส่เทียบตรงนี้)
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE" || GEMINI_API_KEY.trim() === "") {
-    return "เมี๊ยว! อย่าลืมใส่ Gemini API Key ใน theme-manager.js ก่อนน้า เหมียวถึงจะช่วยติวได้เต็มที่ค่ะ 🐾";
+  if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
+    return "เมี๊ยว! ยังไม่ได้ตั้งค่า Gemini API Key ใน theme-manager.js เลยน้า 🐾";
   }
 
-  // ปรับโมเดลเป็น gemini-1.5-flash-8b (รุ่นเล็กและเบาที่สุด)
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${GEMINI_API_KEY}`;
+  // ⚡ ใช้โมเดล gemini-2.5-flash-lite เน้นความเร็วตอบกลับทันที
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
   
   const payload = {
     contents: [
@@ -495,12 +495,12 @@ async function askCatAiTutor(promptText) {
     ],
     systemInstruction: {
       parts: [{
-        text: "คุณคือน้องเหมียว ติวเตอร์ AI ผู้ช่วยเตรียมสอบบรรจุครูผู้ช่วย สพฐ. (ภาค ก และ ภาค ข) มีนิสัยใจดี น่ารัก ฉลาด หน้าที่ของคุณคือให้คำแนะนำ เทคนิคทำข้อสอบ หรืออธิบายเนื้อหาวิชาการสั้นๆ กฎเหล็ก: ตอบสั้นกระชับมาก ไม่เกิน 2-3 ประโยค ตรงประเด็น ใช้คำเข้าใจง่าย และลงท้ายอย่างสดใส เช่น เมี๊ยว, น้า, สู้ๆ นะคะคุณครู"
+        text: "คุณคือน้องเหมียว ติวเตอร์ AI ผู้ช่วยเตรียมสอบบรรจุครูผู้ช่วย สพฐ. (ภาค ก และ ภาค ข) มีนิสัยใจดี น่ารัก ฉลาด หน้าที่ของคุณคือให้คำแนะนำ เทคนิคทำข้อสอบ หรืออธิบายเนื้อหาวิชาการสั้นๆ กฎเหล็ก: ตอบสั้นกระชับ 2-3 ประโยค ตรงประเด็น ใช้คำเข้าใจง่าย และลงท้ายอย่างสดใส เช่น เมี๊ยว, น้า, สู้ๆ นะคะคุณครู"
       }]
     },
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 150 // จำกัดความยาวคำตอบให้สั้นพอดี ไม่ร่ายยาว
+      maxOutputTokens: 300 // คำตอบสั้นกระชับ เพื่อความเร็วสูงสุด
     }
   };
 
@@ -512,14 +512,20 @@ async function askCatAiTutor(promptText) {
     });
 
     const data = await res.json();
-    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-      return data.candidates[0].content.parts[0].text.trim();
-    } else {
-      return "เมี๊ยว... สัญญาณคลื่นสมองแมวติดขัดนิดหน่อย ลองถามใหม่อีกทีนะคะ 🐱";
+
+    if (data.error) {
+      console.error("❌ Google Gemini API Error:", data.error);
+      return `เมี๊ยว... API แจ้งเตือน: ${data.error.message || 'เกิดข้อผิดพลาด'} 😿`;
     }
+
+    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      return data.candidates[0].content.parts[0].text.trim();
+    }
+
+    return "เมี๊ยว... สัญญาณคลื่นสมองแมวติดขัดนิดหน่อย ลองถามใหม่อีกทีนะคะ 🐱";
   } catch (err) {
-    console.error("Gemini Cat AI Error:", err);
-    return "เมี๊ยว! เชื่อมต่อ AI ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ API Key อีกทีน้า 😿";
+    console.error("❌ Fetch Error:", err);
+    return "เมี๊ยว! เชื่อมต่ออินเทอร์เน็ตไม่สำเร็จ ลองใหม่อีกทีน้า 😿";
   }
 }
 
