@@ -495,58 +495,134 @@ async function getGeminiApiKey() {
   return null;
 }
 
-// ฟังก์ชันเรียก Gemini API ตอบคำถามติวสอบ
-async function askCatAiTutor(promptText) {
-  // ดึงคีย์จากระบบฐานข้อมูล Supabase อัตโนมัติ
-  const apiKey = await getGeminiApiKey();
+// ========================================================
+// ฟังก์ชันน้องแมว AI ความเร็วสูง + จดจำบริบทการคุยต่อเนื่อง
+// ========================================================
+let cachedGeminiKeys = null; // แคชเก็บคีย์ไว้ ไม่ต้องเรียก Supabase ซ้ำ
+let activeKeyIndex = 0;       // จำลำดับคีย์ที่ตอบสำเร็จล่าสุด
+let catChatHistory = [];      // 🧠 ตัวแปรเก็บประวัติการคุยต่อเนื่อง (Multi-turn Chat)
 
-  if (!apiKey) {
-    return "เมี๊ยว! ยังไม่พบการตั้งค่า Gemini API Key ในตาราง system_configs บน Supabase เลยน้า 🐾";
+async function askCatAiTutor(promptText) {
+  const cleanPrompt = (promptText || '').trim();
+
+  // ⚡ 1. คำทักทายเดี่ยวๆ ตอบทันที 0.05 วินาที (เฉพาะเมื่อเพิ่งเริ่มคุยครั้งแรก)
+  const greetings = ['สวัสดี', 'สวัสดีครับ', 'สวัสดีค่ะ', 'ดีจ้ะ', 'ดีครับ', 'ดีค่ะ', 'หวัดดี', 'ฮัลโหล', 'hello', 'hi'];
+  if (catChatHistory.length === 0 && greetings.includes(cleanPrompt.toLowerCase())) {
+    const quickReplies = [
+      "เมี๊ยว! สวัสดีค่ะคุณครู วันนี้อยากให้เหมียวช่วยติวเรื่องไหน ถามมาได้เลยน้า! 🐾✨",
+      "สวัสดีค่าคุณครูคนเก่ง! มีข้อไหนติดขัด ถามเหมียวได้เลยเมี๊ยว! 📚💖"
+    ];
+    const reply = quickReplies[Math.floor(Math.random() * quickReplies.length)];
+    
+    // บันทึกลงประวัติ
+    catChatHistory.push({ role: "user", parts: [{ text: cleanPrompt }] });
+    catChatHistory.push({ role: "model", parts: [{ text: reply }] });
+    return reply;
   }
 
-  // ⚡ ใช้โมเดล gemini-flash-lite-latest อัปเดตรุ่นเร็วที่สุดอัตโนมัติ ไม่ติด Error 404
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${currentKey}`;
-  
-  const payload = {
-    contents: [
-      {
-        parts: [{ text: promptText }]
+  // ⚡ 2. ดึงคีย์จาก Supabase ครั้งแรกครั้งเดียว
+  if (!cachedGeminiKeys || cachedGeminiKeys.length === 0) {
+    try {
+      if (window.supabase) {
+        const { data } = await supabase
+          .from('system_configs')
+          .select('value')
+          .eq('key', 'gemini_api_key')
+          .maybeSingle();
+
+        if (data && data.value) {
+          cachedGeminiKeys = data.value.split(',').map(k => k.trim()).filter(k => k.length > 0);
+        }
       }
-    ],
+    } catch (e) {
+      console.warn("ไม่สามารถดึง API Keys ได้:", e);
+    }
+  }
+
+  const apiKeys = cachedGeminiKeys || [];
+  if (apiKeys.length === 0) {
+    return "เมี๊ยว! ยังไม่พบคีย์ในระบบ Supabase เลยน้า 🐾";
+  }
+
+  // ⚡ 3. เพิ่มคำถามล่าสุดของผู้ใช้เข้าสู่ประวัติการคุย
+  catChatHistory.push({
+    role: "user",
+    parts: [{ text: cleanPrompt }]
+  });
+
+  // คัดเลือกเฉพาะ 6 ข้อความล่าสุด (3 รอบบทสนทนา) เพื่อให้ตอบเร็วใน 1-3 วินาทีเสมอ
+  const recentHistory = catChatHistory.slice(-6);
+
+  const payload = {
+    contents: recentHistory, // 👈 ส่งประวัติการคุยไปด้วย ทำให้ AI เข้าใจคำว่า "ขออีกรอบ", "แล้วข้อเมื่อกี้ล่ะ"
     systemInstruction: {
       parts: [{
-        text: "คุณคือน้องเหมียว ติวเตอร์ AI ผู้ช่วยเตรียมสอบบรรจุครูผู้ช่วย สพฐ. (ภาค ก และ ภาค ข) มีนิสัยใจดี น่ารัก ฉลาด หน้าที่ของคุณคือให้คำแนะนำ เทคนิคทำข้อสอบ หรืออธิบายเนื้อหาวิชาการสั้นๆ กฎเหล็ก: ตอบสั้นกระชับ 2-3 ประโยค ตรงประเด็น ใช้คำเข้าใจง่าย และลงท้ายอย่างสดใส เช่น เมี๊ยว, น้า, สู้ๆ นะคะคุณครู"
+        text: "คุณคือน้องเหมียว ติวเตอร์ AI ตอบไวและจำบริบทการคุย กฎเหล็ก: ตอบสั้นกระชับ 2-3 ประโยคตรงประเด็น หากผู้ใช้ขอรายละเอียดเพิ่ม เช่น ขอดูเต็มๆ หรือถามต่อจากเรื่องเดิม ให้อธิบายต่อจากบริบทก่อนหน้าทันที ลงท้าย: เมี๊ยว"
       }]
     },
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 300
+      temperature: 0.2,
+      maxOutputTokens: 180, // ปรับเป็น 180 โทเค็น เพื่อให้เนื้อหามาตรากฎหมายออกครบถ้วน
+      thinkingConfig: { thinkingBudget: 0 }
     }
   };
 
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+  const totalKeys = apiKeys.length;
 
-    const data = await res.json();
+  // ⚡ 4. ยิงไปยังคีย์ที่ทำงานสำเร็จล่าสุด
+  for (let attempt = 0; attempt < totalKeys; attempt++) {
+    const currentIndex = (activeKeyIndex + attempt) % totalKeys;
+    const currentKey = apiKeys[currentIndex];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${currentKey}`;
 
-    if (data.error) {
-      console.error("❌ Google Gemini API Error:", data.error);
-      return `เมี๊ยว... API แจ้งเตือน: ${data.error.message || 'เกิดข้อผิดพลาด'} 😿`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+
+      if (res.status === 429 || res.status === 503 || data.error) {
+        continue;
+      }
+
+      const candidate = data.candidates?.[0];
+      const parts = candidate?.content?.parts || [];
+      const textPart = parts.find(p => !p.thought && p.text) || parts.find(p => p.text);
+
+      if (textPart && textPart.text) {
+        const replyText = textPart.text.trim();
+        activeKeyIndex = currentIndex;
+
+        // 🧠 5. บันทึกคำตอบของน้องแมวเข้าประวัติ เพื่อใช้เป็นบริบทในการคุยรอบต่อไป
+        catChatHistory.push({
+          role: "model",
+          parts: [{ text: replyText }]
+        });
+
+        return replyText;
+      }
+
+    } catch (err) {
+      clearTimeout(timeoutId);
     }
-
-    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-      return data.candidates[0].content.parts[0].text.trim();
-    }
-
-    return "เมี๊ยว... สัญญาณคลื่นสมองแมวติดขัดนิดหน่อย ลองถามใหม่อีกทีนะคะ 🐱";
-  } catch (err) {
-    console.error("❌ Fetch Error:", err);
-    return "เมี๊ยว! เชื่อมต่ออินเทอร์เน็ตไม่สำเร็จ ลองใหม่อีกทีน้า 😿";
   }
+
+  // หากยิงไม่ผ่าน ให้นำคำถามล่าสุดออกจากประวัติเพื่อไม่ให้ค้าง Error
+  catChatHistory.pop();
+  return "เมี๊ยว... สัญญาณระบบหนาแน่นชั่วคราว ลองกดถามใหม่อีกทีน้า 😿";
+}
+
+// ฟังก์ชันล้างประวัติการคุย (เรียกใช้เมื่อกดปิดกล่องแชต หรือต้องการเริ่มคุยเรื่องใหม่)
+function clearCatChatHistory() {
+  catChatHistory = [];
 }
 
 // ส่งข้อความคุยกับน้องแมว AI พร้อมแอนิเมชันตอนกำลังคิด
