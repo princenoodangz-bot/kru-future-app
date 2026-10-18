@@ -418,10 +418,8 @@
     <!-- =========================================================================
          POPUP 2: หน้าต่างเลือกโหมดการสอบเมื่อกด "ลงแข่ง" (Bottom Sheet Modal)
          ========================================================================= -->
-    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-      <div class="animate-sheet-up bg-white/95 backdrop-blur-2xl w-full max-w-[430px] max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 pb-8 sm:pb-5 shadow-2xl border-t-2 border-white space-y-3 sm:space-y-4">
-        
-        <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto -mt-1 mb-1 sm:hidden"></div>
+    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-3xl p-5 shadow-2xl border-2 border-white space-y-3.5 max-h-[85vh] overflow-y-auto">
 
         <!-- ส่วนหัว Modal -->
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">

@@ -223,24 +223,24 @@
     </main>
 
     <!-- =========================================================
-         หน้าต่างเลือกโหมดการสอบ (iOS-Style Bottom Sheet Modal)
+         หน้าต่างเลือกโหมดการสอบ (Centered 3D Tactile Popup Modal ลอยกลางจอ)
          ========================================================= -->
-    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-      <div class="animate-sheet-up bg-white/95 backdrop-blur-2xl w-full max-w-[430px] max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 pb-8 sm:pb-5 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t-2 border-white space-y-3 sm:space-y-4">
-        
-        <!-- แถบจับด้านบนสำหรับ Bottom Sheet -->
-        <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto -mt-1 mb-1 sm:hidden"></div>
+    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.25)] border-2 border-white space-y-4 max-h-[88dvh] overflow-y-auto relative">
+
+        <!-- แสงออร่าสีทองตกแต่งมุมบนป๊อปอัป -->
+        <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-24 rounded-full bg-amber-400/20 blur-xl pointer-events-none"></div>
 
         <!-- ส่วนหัว Modal -->
-        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3 relative z-10">
           <div class="pr-2">
             <div class="flex items-center gap-1.5">
               <span id="modalPartTag" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">ภาค ก</span>
               <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมสอบ
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> พร้อมสอบ
               </span>
             </div>
-            <h3 id="modalSubjectTitle" class="text-base font-extrabold text-slate-800 mt-1.5 leading-snug">ชื่อหัวข้อย่อย</h3>
+            <h3 id="modalSubjectTitle" class="text-base font-extrabold text-slate-800 mt-1 leading-snug">ชื่อหัวข้อย่อย</h3>
             <p id="modalCategorySubtitle" class="text-[11px] text-slate-400 font-medium mt-0.5">หมวดวิชา</p>
           </div>
           <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center active:scale-90 transition-all shrink-0">
@@ -248,73 +248,72 @@
           </button>
         </div>
 
-        <!-- 1. เลือกโหมดการสอบ -->
-        <div class="space-y-2">
+        <!-- 1. เลือกโหมดการฝึกซ้อม (ครบ 3 โหมด พร้อมไอคอนและแอนิเมชันเด้งดึ๋ง) -->
+        <div class="space-y-2 relative z-10">
           <label class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-[#755634]">tune</span>
+            <span class="material-symbols-outlined text-[17px] text-[#755634]">tune</span>
             <span>1. เลือกโหมดการฝึกซ้อม</span>
           </label>
           <div class="grid grid-cols-3 gap-2">
             <!-- โหมดฝึกซ้อม -->
-            <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95">
+            <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs">
               <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-[#755634] group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">edit_note</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">ฝึกซ้อม</span>
               <span class="text-[10px] text-slate-500 font-medium block">เฉลยทีละข้อ</span>
             </button>
+
             <!-- โหมดแข่งขัน -->
             <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
-              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-amber-500 group-hover:scale-110 transition-transform">
+              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-amber-500 group-hover:scale-110 group-hover:rotate-12 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">bolt</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">แข่งขัน</span>
               <span class="text-[10px] text-amber-600 font-bold block">1 นาที/ข้อ</span>
             </button>
+
             <!-- โหมดจำลองจริง -->
             <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
               <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-purple-600 group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">จำลองจริง</span>
-              <span class="text-[10px] text-purple-600 font-bold block">จับเวลาสนามจริง</span>
+              <span class="text-[10px] text-purple-600 font-bold block">ตรงเวลาจริง</span>
             </button>
           </div>
         </div>
 
-        <!-- 2. เลือกจำนวนข้อ -->
-        <div class="space-y-2" id="questionCountGroup">
+        <!-- 2. เลือกจำนวนข้อ (คืนคำบรรยายย่อย ไวๆ 10 นาที / แนะนำ / จัดเต็มชุดใหญ่) -->
+        <div class="space-y-2 relative z-10" id="questionCountGroup">
           <label class="text-xs font-extrabold text-slate-700 flex justify-between items-center">
             <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[16px] text-[#755634]">format_list_numbered</span>
+              <span class="material-symbols-outlined text-[17px] text-[#755634]">format_list_numbered</span>
               <span>2. จำนวนข้อสอบ</span>
             </span>
             <span id="mockNotice" class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full hidden font-bold">* โหมดจำลองล็อก 20 ข้อ</span>
           </label>
           <div class="grid grid-cols-3 gap-2">
             <button type="button" onclick="selectModalCount(10)" id="optCount10" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
-              10 ข้อ <span class="block text-[9px] font-normal text-slate-400">ไวๆ 10 นาที</span>
+              10 ข้อ <span class="block text-[9px] font-normal text-slate-400 mt-0.5">ไวๆ 10 นาที</span>
             </button>
             <button type="button" onclick="selectModalCount(20)" id="optCount20" class="count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95">
-              20 ข้อ <span class="block text-[9px] font-bold text-amber-700/80">แนะนำ 🔥</span>
+              20 ข้อ <span class="block text-[9px] font-bold text-amber-700/80 mt-0.5">แนะนำ 🔥</span>
             </button>
             <button type="button" onclick="selectModalCount(50)" id="optCount50" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
-              50 ข้อ <span class="block text-[9px] font-normal text-slate-400">จัดเต็มชุดใหญ่</span>
+              50 ข้อ <span class="block text-[9px] font-normal text-slate-400 mt-0.5">จัดเต็มชุดใหญ่</span>
             </button>
           </div>
         </div>
 
-        <!-- ปุ่มเข้าสู่ห้องสอบ 3D Tactile -->
-        <button type="button" onclick="startSelectedQuiz()" class="shimmer-effect relative overflow-hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] text-white font-extrabold text-xs shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 group">
+        <!-- ปุ่มเข้าสู่ห้องสอบแบบ 3D Tactile + แสงวิ่ง Shimmer Sweep -->
+        <button type="button" onclick="startSelectedQuiz()" class="shimmer-effect relative overflow-hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] text-white font-extrabold text-xs shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 group relative z-10">
           <span>เข้าสู่ห้องสอบทันที</span>
-          <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+          <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
         </button>
 
       </div>
     </div>
-
-
-  </div>
 
 <script>
   // TOPIC PRESETS สำหรับจับคู่ไอคอนและคำอธิบาย
