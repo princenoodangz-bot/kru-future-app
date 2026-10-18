@@ -153,11 +153,12 @@
               <th class="p-3 font-semibold text-center">สิทธิ์ผู้ใช้</th>
               <th class="p-3 font-semibold text-center">ทำข้อสอบไป</th>
               <th class="p-3 font-semibold text-center">คะแนนเฉลี่ย</th>
+              <th class="p-3 font-semibold text-center">โหมดแข่งขัน</th>
               <th class="p-3 font-semibold text-right rounded-r-lg">วันที่สมัคร</th>
             </tr>
           </thead>
           <tbody id="adminUsersTableBody" class="divide-y divide-gray-100 text-gray-700">
-            <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดสถิติผู้ใช้...</td></tr>
+            <tr><td colspan="7" class="p-6 text-center text-gray-400">กำลังโหลดสถิติผู้ใช้...</td></tr>
           </tbody>
         </table>
       </div>
@@ -699,7 +700,8 @@ async function loadAdminUsersList() {
 
   try {
     const { data: users, error: uErr } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-    const { data: attempts, error: aErr } = await supabase.from('exam_attempts').select('user_id, score_percentage');
+    // ดึง exam_mode มาตรวจสอบว่าเคยลงแข่งหรือไม่
+    const { data: attempts, error: aErr } = await supabase.from('exam_attempts').select('user_id, score_percentage, exam_mode');
 
     if (uErr) throw uErr;
     if (countBadge) countBadge.innerText = users.length;
@@ -712,6 +714,9 @@ async function loadAdminUsersList() {
         const totalScore = userAttempts.reduce((acc, curr) => acc + Number(curr.score_percentage || 0), 0);
         avgScore = (totalScore / attemptCount).toFixed(1);
       }
+
+      // ตรวจสอบว่าเคยสอบโหมดแข่งขันไปแล้วหรือไม่
+      const hasCompeted = userAttempts.some(a => a.exam_mode === 'competition');
       const joinDate = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-';
 
       return `
@@ -730,13 +735,41 @@ async function loadAdminUsersList() {
           </td>
           <td class="p-3 text-center font-bold text-[#755634]">${attemptCount} ชุด</td>
           <td class="p-3 text-center font-bold ${avgScore >= 60 ? 'text-emerald-600' : 'text-gray-500'}">${avgScore}%</td>
+          <td class="p-3 text-center">
+            ${hasCompeted 
+              ? `<button type="button" onclick="resetCompetitionAttempt('${u.id}', '${u.name}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[10px] font-bold active:scale-95 transition-all shadow-2xs" title="คลิกเพื่อลบประวัติเดิมและอนุญาตให้สอบใหม่">
+                   รีเซ็ตสิทธิ์ (ให้แข่งใหม่)
+                 </button>`
+              : `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-[10px] font-bold">ยังไม่เคยแข่ง</span>`
+            }
+          </td>
           <td class="p-3 text-right text-gray-400 font-mono">${joinDate}</td>
         </tr>
       `;
     }).join('');
   } catch (err) {
     console.error('Error fetching users:', err);
-    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">ไม่สามารถโหลดรายชื่อผู้ใช้ได้</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">ไม่สามารถโหลดรายชื่อผู้ใช้ได้</td></tr>';
+  }
+}
+
+// ฟังก์ชันสำหรับแอดมิน: ล้างประวัติการแข่งเดิมเพื่อให้ผู้ใช้เข้าสอบใหม่ได้
+async function resetCompetitionAttempt(userId, userName) {
+  if (!confirm(`คุณต้องการล้างสิทธิ์และประวัติการสอบโหมดแข่งขันของ "${userName}" เพื่อเปิดให้สามารถเข้าสอบโหมดแข่งขันใหม่ได้ใช่หรือไม่?`)) return;
+
+  try {
+    const { error } = await supabase
+      .from('exam_attempts')
+      .delete()
+      .eq('user_id', userId)
+      .eq('exam_mode', 'competition');
+
+    if (error) throw error;
+
+    alert(`เปิดสิทธิ์ให้ "${userName}" สามารถลงแข่งใหม่เรียบร้อยแล้ว`);
+    loadAdminUsersList();
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการรีเซ็ตสิทธิ์: ' + err.message);
   }
 }
 

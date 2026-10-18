@@ -92,7 +92,7 @@
   <div class="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
 
   <!-- กรอบห้องสอบหลัก -->
-  <main class="w-full max-w-[430px] h-[100dvh] sm:h-[92dvh] max-h-[920px] bg-white/60 backdrop-blur-2xl flex flex-col justify-between overflow-hidden shadow-[0_20px_60px_rgba(117,86,52,0.16)] relative z-10 sm:rounded-[38px] sm:border-[6px] sm:border-white">
+  <main class="w-full max-w-[430px] h-[100dvh] sm:h-[92dvh] max-h-[920px] bg-white/60 backdrop-blur-2xl flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(117,86,52,0.16)] relative z-10 sm:rounded-[38px] sm:border-[6px] sm:border-white">
     
     <!-- ================= แถบด้านบน (Top Header + Progress Bar) ================= -->
     <header class="pt-3 px-3.5 pb-2.5 bg-white/85 backdrop-blur-xl border-b border-white z-30 shrink-0 shadow-[0_4px_20px_rgba(117,86,52,0.04)]">
@@ -141,7 +141,7 @@
     </header>
 
     <!-- ================= พื้นที่เนื้อหาโจทย์และตัวเลือกคำตอบ ================= -->
-    <section id="questionScrollArea" class="flex-1 overflow-y-auto px-4 py-3.5 space-y-3.5">
+    <section id="questionScrollArea" class="flex-1 min-h-0 overflow-y-auto px-4 py-3.5 space-y-3.5 overscroll-contain">
 
       <!-- กล่องโจทย์คำถาม (Question Card) -->
       <div id="questionCardBox" class="animate-q-in bg-white/95 backdrop-blur-md border-2 border-white rounded-3xl p-4 sm:p-5 shadow-[0_8px_25px_rgba(117,86,52,0.06)] relative">
@@ -173,7 +173,7 @@
     </section>
 
     <!-- ================= แถบปุ่มควบคุมด้านล่าง 4 ปุ่ม ================= -->
-    <div class="shrink-0 bg-white/90 backdrop-blur-xl border-t border-white px-3.5 py-3 pb-5 z-40 sticky bottom-0 shadow-[0_-8px_25px_rgba(117,86,52,0.06)]">
+    <div class="shrink-0 bg-white/95 backdrop-blur-xl border-t border-white px-3.5 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] z-40 shadow-[0_-8px_25px_rgba(117,86,52,0.06)]">
       <div class="grid grid-cols-4 gap-2">
         <button onclick="prevQuestion()" type="button" class="py-3 rounded-2xl border-2 border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-2xs">
           <i class="fa-solid fa-arrow-left text-[10px]"></i>
@@ -347,7 +347,9 @@
   let timeLeft = 900;
   let timerInterval;
 
-  // โหลดข้อสอบตามหมวดหมู่ / โหมดสอบ / ข้อสอบแก้ตัว
+  // ตัวแปรจำ ID ของรอบสอบแข่งนี้
+  let activeCompetitionAttemptId = null;
+
   async function loadExamQuestions() {
     const urlParams = new URLSearchParams(window.location.search);
     const paramPart = urlParams.get('part');
@@ -357,8 +359,47 @@
     const paramQid = urlParams.get('qid');
 
     if (examMode === 'competition') {
-      if (![10, 20, 50].includes(targetQuestionCount)) {
-        targetQuestionCount = 20;
+      targetQuestionCount = 20; // ล็อก 20 ข้อตายตัวสำหรับโหมดแข่งขัน
+
+      const rawUser = localStorage.getItem('kru_user_info') || '{}';
+      const currentUser = JSON.parse(rawUser);
+      const currentUid = currentUser.id || currentUser.user_id;
+
+      // 1. ตรวจสอบว่าเป็น Guest หรือไม่
+      if (!currentUid || String(currentUid).startsWith('guest_') || currentUser.studentId === 'GUEST') {
+        alert('โหมดแข่งขันอนุญาตเฉพาะผู้ที่เข้าสู่ระบบด้วยรหัสสมาชิกเท่านั้น');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // 2. ตรวจสอบในฐานข้อมูลว่าเคยทำข้อสอบโหมดนี้แล้วหรือยัง
+      if (window.supabase) {
+        const { data: compHistory } = await supabase
+          .from('exam_attempts')
+          .select('id')
+          .eq('user_id', currentUid)
+          .eq('exam_mode', 'competition');
+
+        if (compHistory && compHistory.length > 0) {
+          alert('คุณได้ใช้สิทธิ์สอบโหมดแข่งขันไปแล้ว (อนุญาตให้สอบได้เพียง 1 ครั้งเท่านั้น)\nหากต้องการสอบใหม่ กรุณาติดต่อแอดมิน');
+          window.location.href = 'index.html';
+          return;
+        }
+
+        // 🌟 3. ล็อกสิทธิ์ทันที! จองแถวในฐานข้อมูลไว้ล่วงหน้าเพื่อกันกด F5 หรือปิดแท็บหนี
+        activeCompetitionAttemptId = 'att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+        await supabase.from('exam_attempts').insert([{
+          id: activeCompetitionAttemptId,
+          user_id: currentUid,
+          exam_id: 'โหมดแข่งขัน 20 ข้อ (ยังทำไม่เสร็จ)',
+          exam_mode: 'competition',
+          target_questions: 20,
+          total_attempted: 0,
+          total_correct: 0,
+          score_percentage: 0,
+          time_spent_seconds: 0,
+          completed_at: new Date().toISOString()
+        }]);
       }
     } else if (examMode === 'mock') {
       targetQuestionCount = 20;
@@ -658,7 +699,8 @@
                    || '{}';
       const userInfo = JSON.parse(rawUser);
 
-      const attemptId = 'att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      // ถ้าเป็นโหมดแข่งขันให้ใช้ ID ที่จองไว้ตั้งแต่เริ่มสอบ แต่ถ้าเป็นโหมดซ้อมทั่วไปให้สุ่ม ID ใหม่
+      const attemptId = activeCompetitionAttemptId || ('att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6));
       const currentUserId = userInfo.id || userInfo.user_id || 'anonymous_user';
 
       if (window.supabase) {
@@ -667,9 +709,10 @@
           ? `[${firstQ.exam_part}] ${firstQ.exam_category || ''} - ${firstQ.exam_topic || 'ทั่วไป'}`
           : (firstQ.exam_topic || firstQ.exam_category || 'ชุดข้อสอบทั่วไป');
 
+        // ใช้คำสั่ง upsert เพื่ออัปเดตทับแถวที่จองสิทธิ์ไว้ด้วยคะแนนและเวลาจริง
         const { error: attemptError } = await supabase
           .from('exam_attempts')
-          .insert([{
+          .upsert([{
             id: attemptId,
             user_id: currentUserId,
             exam_id: fullExamTitle,
@@ -680,8 +723,7 @@
             score_percentage: percentage,
             time_spent_seconds: elapsedSec,
             completed_at: new Date().toISOString()
-          }])
-          .select();
+          }], { onConflict: 'id' });
 
         if (attemptError) {
           console.error("❌ บันทึก exam_attempts ไม่ผ่าน:", attemptError.message);
@@ -1289,8 +1331,19 @@
 
     document.getElementById('modalScorePercent').innerText = percentage.toFixed(1);
     document.getElementById('modalModeText').innerText = modeNames[mode] || mode;
-    document.getElementById('modalCorrectText').innerText = `${correct}/${doneCount} ข้อ`;
+    document.getElementById('modalCorrectText').innerText = `${correct}/${questions.length} ข้อ`;
     document.getElementById('modalTimeText').innerText = `${min}:${String(sec).padStart(2, '0')} น.`;
+
+    // ถ้าเป็นโหมดแข่งขัน ห้ามแสดงปุ่มแก้ตัวและปุ่มทำชุดใหม่ (เพราะสอบได้ครั้งเดียว แก้ไขไม่ได้)
+    const btnRetry = document.getElementById('btnRetryWrong');
+    const btnReload = modal.querySelector('button[onclick="location.reload()"]');
+    if (mode === 'competition') {
+      if (btnRetry) btnRetry.parentElement.classList.add('hidden'); // ซ่อนแถวปุ่มแก้ตัว
+      if (btnReload) btnReload.classList.add('hidden'); // ซ่อนปุ่มทำชุดใหม่อีกครั้ง
+    } else {
+      if (btnRetry) btnRetry.parentElement.classList.remove('hidden');
+      if (btnReload) btnReload.classList.remove('hidden');
+    }
 
     modal.classList.remove('hidden');
   }
@@ -1298,6 +1351,14 @@
   function closeResultModal() {
     document.getElementById('resultSummaryModal').classList.add('hidden');
   }
+  // ป้องกันการเผลอกดออกจากห้องสอบระหว่างอยู่ในโหมดแข่งขัน
+  window.addEventListener('beforeunload', (e) => {
+    if (examMode === 'competition' && !isSubmittingExam && currentIndex > 0) {
+      e.preventDefault();
+      e.returnValue = 'คุณกำลังอยู่ในโหมดแข่งขัน หากออกจากหน้านี้ตอนนี้ การสอบจะไม่สมบูรณ์ ยืนยันออกจากระบบหรือไม่?';
+    }
+  });
+  
 </script>
 </body>
 </html>

@@ -263,28 +263,23 @@
                 <span class="material-symbols-outlined text-[20px]">emoji_events</span>
               </div>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ทำเนียบยอดฝีมือ (โหมดแข่งขัน)</h3>
-                <p class="text-[10px] text-slate-400 font-medium">เกณฑ์ตัดสิน: คะแนนสูงสุด + เวลาน้อยที่สุด</p>
+                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ทำเนียบยอดฝีมือ (โหมดแข่งขัน 20 ข้อ)</h3>
+                <p class="text-[10px] text-slate-400 font-medium">เกณฑ์ตัดสิน: คะแนนสูงสุด + เวลาน้อยที่สุด (สอบได้คนละ 1 ครั้ง)</p>
               </div>
             </div>
-            <button type="button" onclick="openCompetitionSetup()" class="px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#8F683E] text-white rounded-full text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center gap-1">
+            <button id="btnCompeteAction" type="button" onclick="openCompetitionSetup()" class="px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#8F683E] text-white rounded-full text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px]">swords</span>
-              <span>ลงแข่ง</span>
+              <span id="btnCompeteText">ลงแข่ง</span>
             </button>
           </div>
 
-          <!-- ปุ่มสลับดูอันดับ 10 / 20 / 50 ข้อ (Sliding Pill) -->
-          <div class="relative grid grid-cols-3 p-1 bg-slate-100/90 rounded-2xl text-xs font-extrabold">
-            <div id="compSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.6px)] bg-white rounded-xl shadow-2xs transition-transform duration-300 ease-out"></div>
-            <button type="button" onclick="switchLeaderboardCount(10)" id="compBtn10" class="comp-filter-btn relative z-10 py-1.5 rounded-xl text-[#755634] text-center transition-colors">
-              รุ่น 10 ข้อ
-            </button>
-            <button type="button" onclick="switchLeaderboardCount(20)" id="compBtn20" class="comp-filter-btn relative z-10 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 text-center transition-colors">
-              รุ่น 20 ข้อ
-            </button>
-            <button type="button" onclick="switchLeaderboardCount(50)" id="compBtn50" class="comp-filter-btn relative z-10 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 text-center transition-colors">
-              รุ่น 50 ข้อ
-            </button>
+          <!-- ป้ายแสดงการแข่งขันรุ่นมาตรฐาน 20 ข้อ (ล็อกจำนวนข้อเฉพาะรุ่นนี้) -->
+          <div class="flex items-center justify-between p-2 rounded-2xl bg-amber-50/90 border border-amber-200/70 text-xs font-extrabold text-[#755634]">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[17px] text-amber-600">verified</span>
+              <span>รุ่นมาตรฐานแข่งขัน: 20 ข้อ (จับเวลา 1 นาที/ข้อ)</span>
+            </span>
+            <span class="text-[10px] bg-white px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs">จำกัด 1 สิทธิ์</span>
           </div>
 
           <!-- พื้นที่เรนเดอร์แท่นรางวัล Podium Top 3 + อันดับ 4-5 -->
@@ -424,7 +419,7 @@
          POPUP 2: หน้าต่างเลือกโหมดการสอบเมื่อกด "ลงแข่ง" (Bottom Sheet Modal)
          ========================================================================= -->
     <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-      <div class="animate-sheet-up bg-white/95 backdrop-blur-2xl w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-5 pb-7 sm:pb-5 shadow-2xl border-t-2 border-white space-y-4">
+      <div class="animate-sheet-up bg-white/95 backdrop-blur-2xl w-full max-w-[430px] max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 pb-8 sm:pb-5 shadow-2xl border-t-2 border-white space-y-3 sm:space-y-4">
         
         <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto -mt-1 mb-1 sm:hidden"></div>
 
@@ -640,154 +635,217 @@
     }
 
     // =========================================================
-    // 3. ระบบทำเนียบยอดฝีมือ (Podium Top 3 + Leaderboard)
+    // 3. ระบบทำเนียบยอดฝีมือ (โหมดแข่งขัน 20 ข้อ ล็อก 1 สิทธิ์)
     // =========================================================
-    let currentLeaderboardCount = 10;
+    let currentLeaderboardCount = 20;
 
-    function switchLeaderboardCount(count) {
-      currentLeaderboardCount = count;
-      const pill = document.getElementById('compSlidingPill');
-      if (pill) {
-        const pos = count === 10 ? 0 : count === 20 ? 100 : 200;
-        pill.style.transform = `translateX(${pos}%)`;
+    // ตรวจสอบสถานะสิทธิ์ของผู้ใช้เพื่อเปิด/ปิดปุ่ม "ลงแข่ง"
+    async function checkUserCompetitionStatus() {
+      const btn = document.getElementById('btnCompeteAction');
+      const btnText = document.getElementById('btnCompeteText');
+      if (!btn) return;
+
+      const rawUser = localStorage.getItem('kru_user_info') || '{}';
+      let user = {};
+      try { user = JSON.parse(rawUser); } catch (e) {}
+      const userId = user.id || user.user_id;
+
+      // ถ้าเป็น Guest ปล่อยให้ปุ่มกดได้ เพื่อให้คลิกแล้วเจอแจ้งเตือน
+      if (!userId || String(userId).startsWith('guest_') || user.studentId === 'GUEST') {
+        return;
       }
 
-      ['compBtn10', 'compBtn20', 'compBtn50'].forEach(id => {
-        document.getElementById(id).className = 'comp-filter-btn relative z-10 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 text-center transition-colors';
-      });
-      const activeBtn = document.getElementById(`compBtn${count}`);
-      if (activeBtn) {
-        activeBtn.className = 'comp-filter-btn relative z-10 py-1.5 rounded-xl text-[#755634] text-center transition-colors font-extrabold';
+      if (window.supabase) {
+        try {
+          const { data: existingAttempts } = await supabase
+            .from('exam_attempts')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('exam_mode', 'competition');
+
+          if (existingAttempts && existingAttempts.length > 0) {
+            btn.disabled = true;
+            btn.className = 'px-3.5 py-1.5 bg-slate-200 text-slate-500 rounded-full text-xs font-extrabold cursor-not-allowed flex items-center gap-1 shadow-none';
+            if (btnText) btnText.innerText = 'ใช้สิทธิ์แล้ว';
+          } else {
+            btn.disabled = false;
+            btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#8F683E] text-white rounded-full text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center gap-1';
+            if (btnText) btnText.innerText = 'ลงแข่ง';
+          }
+        } catch (e) {
+          console.warn('Check compete status error:', e);
+        }
       }
-      loadLeaderboardData();
     }
 
+    // โหลดอันดับคะแนนโหมดแข่งขันรุ่น 20 ข้อ (กรองเฉพาะคนที่มีบัญชี ไม่ซ้ำคน)
     async function loadLeaderboardData() {
       const container = document.getElementById('leaderboardList');
       if (!container) return;
 
       try {
-        if (window.supabase) {
-          const { data, error } = await supabase
-            .from('exam_attempts')
-            .select('id, user_id, score_percentage, time_spent_seconds, total_correct, users(name, student_id)')
-            .eq('exam_mode', 'competition')
-            .eq('target_questions', currentLeaderboardCount)
-            .order('score_percentage', { ascending: false })
-            .order('time_spent_seconds', { ascending: true })
-            .limit(5);
+        if (!window.supabase) {
+          container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">ไม่พบการเชื่อมต่อฐานข้อมูล</div>';
+          return;
+        }
 
-          if (!error && data && data.length > 0) {
-            const formatTime = (secTotal) => {
-              const m = Math.floor((secTotal || 0) / 60);
-              const s = (secTotal || 0) % 60;
-              return `${m}:${String(s).padStart(2, '0')} น.`;
-            };
+        const { data, error } = await supabase
+          .from('exam_attempts')
+          .select('id, user_id, score_percentage, time_spent_seconds, total_correct, users(name, student_id)')
+          .eq('exam_mode', 'competition')
+          .eq('target_questions', 20)
+          .order('score_percentage', { ascending: false })
+          .order('time_spent_seconds', { ascending: true })
+          .limit(50);
 
-            const getName = (item) => item.users?.name || `ผู้สอบ ${item.users?.student_id || ''}`;
+        if (error) throw error;
 
-            // สร้างแท่นรางวัล Podium สำหรับ Top 3 (เรียงซ้ายไปขวา: อันดับ 2 - อันดับ 1 - อันดับ 3)
-            const top1 = data[0];
-            const top2 = data[1] || null;
-            const top3 = data[2] || null;
-            const restList = data.slice(3);
+        const uniqueUsersList = [];
+        const seenUserIds = new Set();
 
-            const podiumHTML = `
-              <div class="grid grid-cols-3 gap-2 items-end pt-3 pb-1 px-1">
-                <!-- อันดับ 2 (ซ้าย) -->
-                ${top2 ? `
-                  <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 80ms;">
-                    <div class="w-10 h-10 rounded-2xl bg-slate-100 border-2 border-slate-300 text-slate-700 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
-                      ${getName(top2).charAt(0)}
-                      <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-slate-400 text-white text-[9px] font-extrabold">2</span>
-                    </div>
-                    <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top2)}</span>
-                    <span class="text-xs font-extrabold text-slate-600">${top2.score_percentage}%</span>
-                    <span class="text-[9px] text-slate-400">${formatTime(top2.time_spent_seconds)}</span>
-                    <div class="w-full h-12 rounded-t-2xl bg-gradient-to-t from-slate-200/80 to-slate-100 border-t-2 border-x border-slate-300/60 mt-1.5 flex items-center justify-center text-lg">🥈</div>
-                  </div>
-                ` : '<div></div>'}
+        if (data && data.length > 0) {
+          for (const item of data) {
+            const uId = item.user_id;
+            if (!uId || String(uId).startsWith('guest_')) continue;
 
-                <!-- อันดับ 1 (ตรงกลาง สูงที่สุด) -->
-                <div class="animate-podium flex flex-col items-center text-center">
-                  <span class="text-base -mb-1 animate-bounce">👑</span>
-                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 border-2 border-white text-amber-950 font-extrabold text-sm flex items-center justify-center shadow-md relative mb-1.5">
-                    ${getName(top1).charAt(0)}
-                    <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[9px] font-extrabold">1</span>
-                  </div>
-                  <span class="text-xs font-extrabold text-slate-900 truncate w-full">${getName(top1)}</span>
-                  <span class="text-sm font-extrabold text-emerald-600">${top1.score_percentage}%</span>
-                  <span class="text-[9px] text-amber-700 font-semibold">${formatTime(top1.time_spent_seconds)}</span>
-                  <div class="w-full h-16 rounded-t-2xl bg-gradient-to-t from-amber-200/90 to-amber-100/80 border-t-2 border-x border-amber-300 mt-1.5 flex items-center justify-center text-xl shadow-inner">🥇</div>
-                </div>
-
-                <!-- อันดับ 3 (ขวา) -->
-                ${top3 ? `
-                  <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 150ms;">
-                    <div class="w-10 h-10 rounded-2xl bg-orange-50 border-2 border-orange-300 text-orange-800 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
-                      ${getName(top3).charAt(0)}
-                      <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-orange-500 text-white text-[9px] font-extrabold">3</span>
-                    </div>
-                    <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top3)}</span>
-                    <span class="text-xs font-extrabold text-orange-700">${top3.score_percentage}%</span>
-                    <span class="text-[9px] text-slate-400">${formatTime(top3.time_spent_seconds)}</span>
-                    <div class="w-full h-10 rounded-t-2xl bg-gradient-to-t from-orange-100/90 to-orange-50 border-t-2 border-x border-orange-200 mt-1.5 flex items-center justify-center text-base">🥉</div>
-                  </div>
-                ` : '<div></div>'}
-              </div>
-            `;
-
-            // รายการอันดับ 4-5 ด้านล่าง
-            const restHTML = restList.map((item, idx) => {
-              const rank = idx + 4;
-              return `
-                <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/90 border border-slate-100 text-xs">
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <span class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-center font-extrabold text-slate-500 flex items-center justify-center text-[11px]">${rank}</span>
-                    <div class="min-w-0">
-                      <h4 class="font-extrabold text-slate-700 truncate">${getName(item)}</h4>
-                      <span class="text-[10px] text-slate-400">เวลา ${formatTime(item.time_spent_seconds)}</span>
-                    </div>
-                  </div>
-                  <div class="text-right shrink-0">
-                    <span class="font-extrabold text-xs text-[#755634]">${item.score_percentage}%</span>
-                    <span class="text-[10px] text-slate-400 block">${item.total_correct}/${currentLeaderboardCount} ข้อ</span>
-                  </div>
-                </div>
-              `;
-            }).join('');
-
-            container.innerHTML = podiumHTML + (restHTML ? `<div class="space-y-1.5 pt-1">${restHTML}</div>` : '');
-            return;
+            if (!seenUserIds.has(uId)) {
+              seenUserIds.add(uId);
+              uniqueUsersList.push(item);
+            }
+            if (uniqueUsersList.length === 5) break;
           }
         }
-        container.innerHTML = `
-          <div class="p-6 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 space-y-1">
-            <span class="text-2xl block">🏆</span>
-            <p class="text-xs font-extrabold text-slate-600">ยังไม่มีผู้ครองแชมป์ในรุ่น ${currentLeaderboardCount} ข้อ</p>
-            <p class="text-[10px] text-slate-400">กดปุ่ม "ลงแข่ง" เพื่อจารึกชื่อเป็นที่ 1 คนแรก!</p>
-          </div>`;
+
+        if (uniqueUsersList.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 space-y-1">
+              <span class="text-2xl block">🏆</span>
+              <p class="text-xs font-extrabold text-slate-600">ยังไม่มีผู้สอบในโหมดแข่งขันรุ่น 20 ข้อ</p>
+              <p class="text-[10px] text-slate-400">กดปุ่ม "ลงแข่ง" ด้านบนเพื่อเริ่มทำข้อสอบเป็นคนแรก!</p>
+            </div>`;
+          return;
+        }
+
+        const formatTime = (secTotal) => {
+          const m = Math.floor((secTotal || 0) / 60);
+          const s = (secTotal || 0) % 60;
+          return `${m}:${String(s).padStart(2, '0')} น.`;
+        };
+
+        const getName = (item) => item.users?.name || `ผู้สอบ ${item.users?.student_id || ''}`;
+
+        const top1 = uniqueUsersList[0];
+        const top2 = uniqueUsersList[1] || null;
+        const top3 = uniqueUsersList[2] || null;
+        const restList = uniqueUsersList.slice(3);
+
+        const podiumHTML = `
+          <div class="grid grid-cols-3 gap-2 items-end pt-3 pb-1 px-1">
+            <!-- อันดับ 2 (ซ้าย) -->
+            ${top2 ? `
+              <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 80ms;">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 border-2 border-slate-300 text-slate-700 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
+                  ${getName(top2).charAt(0)}
+                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-slate-400 text-white text-[9px] font-extrabold">2</span>
+                </div>
+                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top2)}</span>
+                <span class="text-xs font-extrabold text-slate-600">${top2.score_percentage}%</span>
+                <span class="text-[9px] text-slate-400">${formatTime(top2.time_spent_seconds)}</span>
+                <div class="w-full h-12 rounded-t-2xl bg-gradient-to-t from-slate-200/80 to-slate-100 border-t-2 border-x border-slate-300/60 mt-1.5 flex items-center justify-center text-lg">🥈</div>
+              </div>
+            ` : '<div></div>'}
+
+            <!-- อันดับ 1 (ตรงกลาง) -->
+            <div class="animate-podium flex flex-col items-center text-center">
+              <span class="text-base -mb-1 animate-bounce">👑</span>
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 border-2 border-white text-amber-950 font-extrabold text-sm flex items-center justify-center shadow-md relative mb-1.5">
+                ${getName(top1).charAt(0)}
+                <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[9px] font-extrabold">1</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-900 truncate w-full">${getName(top1)}</span>
+              <span class="text-sm font-extrabold text-emerald-600">${top1.score_percentage}%</span>
+              <span class="text-[9px] text-amber-700 font-semibold">${formatTime(top1.time_spent_seconds)}</span>
+              <div class="w-full h-16 rounded-t-2xl bg-gradient-to-t from-amber-200/90 to-amber-100/80 border-t-2 border-x border-amber-300 mt-1.5 flex items-center justify-center text-xl shadow-inner">🥇</div>
+            </div>
+
+            <!-- อันดับ 3 (ขวา) -->
+            ${top3 ? `
+              <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 150ms;">
+                <div class="w-10 h-10 rounded-2xl bg-orange-50 border-2 border-orange-300 text-orange-800 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
+                  ${getName(top3).charAt(0)}
+                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-orange-500 text-white text-[9px] font-extrabold">3</span>
+                </div>
+                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top3)}</span>
+                <span class="text-xs font-extrabold text-orange-700">${top3.score_percentage}%</span>
+                <span class="text-[9px] text-slate-400">${formatTime(top3.time_spent_seconds)}</span>
+                <div class="w-full h-10 rounded-t-2xl bg-gradient-to-t from-orange-100/90 to-orange-50 border-t-2 border-x border-orange-200 mt-1.5 flex items-center justify-center text-base">🥉</div>
+              </div>
+            ` : '<div></div>'}
+          </div>
+        `;
+
+        const restHTML = restList.map((item, idx) => {
+          const rank = idx + 4;
+          return `
+            <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/90 border border-slate-100 text-xs">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-center font-extrabold text-slate-500 flex items-center justify-center text-[11px]">${rank}</span>
+                <div class="min-w-0">
+                  <h4 class="font-extrabold text-slate-700 truncate">${getName(item)}</h4>
+                  <span class="text-[10px] text-slate-400">เวลา ${formatTime(item.time_spent_seconds)}</span>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-extrabold text-xs text-[#755634]">${item.score_percentage}%</span>
+                <span class="text-[10px] text-slate-400 block">${item.total_correct}/20 ข้อ</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = podiumHTML + (restHTML ? `<div class="space-y-1.5 pt-1">${restHTML}</div>` : '');
+
       } catch (err) {
-        container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">ยังไม่มีสถิติในโหมดนี้</div>';
+        console.error('Leaderboard error:', err);
+        container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">ไม่สามารถโหลดข้อมูลอันดับได้</div>';
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadHomeDashboard();
-      loadLeaderboardData();
-    });
-
     // =========================================================
-    // 4. ตั้งค่า Modal ลงแข่ง
+    // 4. จัดการ Modal ลงแข่ง
     // =========================================================
     let activeExamConfig = {
       mode: 'competition',
       count: 20
     };
 
-    function openCompetitionSetup() {
+    async function openCompetitionSetup() {
+      const rawUser = localStorage.getItem('kru_user_info') || '{}';
+      let user = {};
+      try { user = JSON.parse(rawUser); } catch (e) {}
+      const userId = user.id || user.user_id;
+
+      if (!userId || String(userId).startsWith('guest_') || user.studentId === 'GUEST') {
+        alert('ต้องเข้าสู่ระบบด้วยรหัสสมาชิกเท่านั้น');
+        return;
+      }
+
+      if (window.supabase) {
+        const { data: existingAttempts } = await supabase
+          .from('exam_attempts')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('exam_mode', 'competition');
+
+        if (existingAttempts && existingAttempts.length > 0) {
+          alert('คุณได้ใช้สิทธิ์เข้าสอบโหมดแข่งขันไปแล้ว (อนุญาตให้สอบได้ 1 ครั้ง)\nหากต้องการสอบใหม่ กรุณาติดต่อแอดมินเพื่อขอเปิดสิทธิ์');
+          checkUserCompetitionStatus();
+          return;
+        }
+      }
+
       selectModalMode('competition');
-      selectModalCount(currentLeaderboardCount || 20);
+      selectModalCount(20);
       document.getElementById('examModeModal').classList.remove('hidden');
     }
 
@@ -807,12 +865,22 @@
       });
 
       const mockNotice = document.getElementById('mockNotice');
-      if (mode === 'mock') {
+      if (mode === 'competition' || mode === 'mock') {
         selectModalCount(20);
-        document.querySelectorAll('.count-opt-btn').forEach(b => b.disabled = true);
-        if (mockNotice) mockNotice.classList.remove('hidden');
+        document.querySelectorAll('.count-opt-btn').forEach(b => {
+          b.disabled = true;
+          b.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+        document.getElementById('optCount20')?.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (mockNotice) {
+          mockNotice.innerText = mode === 'competition' ? '* โหมดแข่งขันล็อก 20 ข้อเท่านั้น' : '* โหมดจำลองล็อก 20 ข้อ';
+          mockNotice.classList.remove('hidden');
+        }
       } else {
-        document.querySelectorAll('.count-opt-btn').forEach(b => b.disabled = false);
+        document.querySelectorAll('.count-opt-btn').forEach(b => {
+          b.disabled = false;
+          b.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
         if (mockNotice) mockNotice.classList.add('hidden');
       }
     }
@@ -835,6 +903,13 @@
       params.set('count', activeExamConfig.count);
       window.location.href = `quiz.html?${params.toString()}`;
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHomeDashboard();
+      loadLeaderboardData();
+      checkUserCompetitionStatus();
+    });
+
   </script>
 </body>
 </html>
