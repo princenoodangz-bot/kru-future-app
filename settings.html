@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
-  <title>ครูในอนาคต - ตั้งค่า</title>
+  <title>ครูในอนาคต - ตั้งค่าระบบ</title>
 
   <!-- เชื่อมต่อ Supabase & ตรวจสอบสิทธิ์ล็อกอิน -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,194 +11,336 @@
   <script src="check-auth.js"></script>
   <script src="theme-manager.js"></script>
 
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <!-- Fonts & Icons: Plus Jakarta Sans + Anuphan + FontAwesome + Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            "primary": "#755634",
-            "primary-container": "#906e4a",
-            "surface": "#fff8f6",
-            "surface-container": "#f5ecea",
-            "surface-container-low": "#fbf2f0",
-            "surface-container-lowest": "#ffffff",
-            "surface-container-high": "#efe6e4",
-            "surface-container-highest": "#e9e1df",
-            "on-surface": "#1e1b1a",
-            "on-surface-variant": "#4f453c",
-            "outline": "#81756a",
-            "outline-variant": "#d3c4b8",
-            "secondary-container": "#f2e1bf",
-            "on-secondary-container": "#6f6348",
-            "tertiary": "#964320"
-          },
-          fontFamily: {
-            body: ["Manrope", "sans-serif"],
-            display: ["Newsreader", "serif"]
-          }
-        }
-      }
-    }
-  </script>
+
   <style>
-    @layer base {
-      html, body { min-height: 100%; margin: 0; padding: 0; }
-      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
-      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    body {
+      font-family: 'Plus Jakarta Sans', 'Anuphan', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
     ::-webkit-scrollbar { display: none; }
+
+    /* =========================================
+       1. ANIMATED AURORA & GRID BACKGROUND
+       ========================================= */
+    @keyframes auroraBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-aurora {
+      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+      background-size: 400% 400%;
+      animation: auroraBG 18s ease infinite;
+    }
+
+    .bg-grid-pattern {
+      background-size: 28px 28px;
+      background-image: 
+        linear-gradient(to right, rgba(117, 86, 52, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.04) 1px, transparent 1px);
+    }
+
+    @keyframes orbitBlob {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(20px, -25px) scale(1.12); }
+    }
+    .animate-blob { animation: orbitBlob 10s ease-in-out infinite; }
+
+    /* =========================================
+       2. UI MICRO-ANIMATIONS
+       ========================================= */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stagger-1 { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+    .stagger-2 { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
+    .stagger-3 { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+    .stagger-4 { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both; }
   </style>
 </head>
-<body class="bg-surface font-body text-on-surface flex flex-col min-h-screen antialiased">
 
-  <!-- Header -->
-  <header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-sm pt-safe">
-    <div class="h-16 px-4 flex items-center justify-between max-w-md mx-auto">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary">
-          <span class="material-symbols-outlined text-[22px]">school</span>
-        </div>
-        <h1 class="font-display text-xl font-bold text-on-surface">ตั้งค่า</h1>
-      </div>
-      <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">person</span>
-      </div>
-    </div>
-  </header>
+<body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- Main Content -->
-  <main class="flex-1 flex flex-col w-full pt-20 pb-28 px-4 max-w-md mx-auto space-y-4">
-    
-    <!-- Profile Card ดึงข้อมูลคนล็อกอินจริง -->
-    <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/30 relative overflow-hidden">
-      <div class="flex items-center gap-3 relative z-10">
-        <div class="w-14 h-14 rounded-full bg-[#f2e1bf] flex items-center justify-center text-primary font-bold text-xl shadow-inner shrink-0">
-          <span id="avatarLetter">ค</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap mb-0.5">
-            <h2 id="userNameText" class="font-bold text-base text-on-surface truncate">ผู้ใช้งาน</h2>
-            <span id="userRoleBadge" class="px-2 py-0.5 rounded-full bg-[#f2e1bf] text-primary text-[10px] font-bold">Student</span>
-          </div>
-          <div class="flex items-center gap-1.5 text-on-surface-variant text-xs">
-            <span class="material-symbols-outlined text-[15px] text-outline">badge</span>
-            <span id="userIdText">รหัส: -</span>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่า) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute inset-0 bg-grid-pattern"></div>
+    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-purple-200/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+  </div>
 
-    <!-- Exam Preferences -->
-    <section class="space-y-2">
-      <div class="flex items-center gap-1.5 px-1">
-        <span class="material-symbols-outlined text-primary text-[18px]">assignment</span>
-        <h3 class="font-bold text-sm text-on-surface">การตั้งค่าการสอบ (Exam Preferences)</h3>
-      </div>
-      <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-4 border border-outline-variant/30">
-        <!-- Font Size Selector -->
+  <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
+  <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
+
+    <!-- ================= แถบด้านบน (Sticky Glass Header) ================= -->
+    <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
+          <span class="material-symbols-outlined text-[20px]">tune</span>
+        </div>
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-on-surface">ขนาดตัวอักษรข้อสอบ</span>
-            <span class="text-xs font-bold text-primary" id="fontSizeLabel">ปานกลาง (Medium)</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-extrabold text-[#755634] uppercase tracking-widest">PREFERENCES</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           </div>
-          <div class="grid grid-cols-3 gap-2 bg-surface-container-low p-1 rounded-lg">
-            <button id="fontSm" onclick="changeFontSize('sm')" class="py-1.5 rounded text-center text-xs font-semibold text-on-surface-variant transition-all">ปกติ</button>
-            <button id="fontMd" onclick="changeFontSize('md')" class="py-1.5 rounded text-center text-xs font-semibold bg-white text-primary shadow-xs transition-all">ปานกลาง</button>
-            <button id="fontLg" onclick="changeFontSize('lg')" class="py-1.5 rounded text-center text-xs font-semibold text-on-surface-variant transition-all">ใหญ่</button>
-          </div>
-        </div>
-
-        <!-- Mode Toggles -->
-        <div class="flex items-center justify-between pt-1">
-          <div class="pr-2">
-            <p class="text-xs font-semibold text-on-surface">โหมดจำลองสอบจริง</p>
-            <p class="text-[11px] text-on-surface-variant">ไม่แสดงเฉลยจนกว่าจะส่งชุดข้อสอบ</p>
-          </div>
-          <input type="checkbox" id="toggleRealMode" onchange="localStorage.setItem('kru_pref_real_mode', this.checked)" checked class="w-4 h-4 accent-primary">
-        </div>
-
-        <div class="flex items-center justify-between pt-1 border-t border-outline-variant/30">
-          <div class="pr-2">
-            <p class="text-xs font-semibold text-on-surface">แสดงเวลานับถอยหลัง</p>
-            <p class="text-[11px] text-on-surface-variant">แสดงนาฬิกาจับเวลาถอยหลังตลอดการสอบ</p>
-          </div>
-          <input type="checkbox" id="toggleTimer" onchange="localStorage.setItem('kru_pref_timer', this.checked)" checked class="w-4 h-4 accent-primary">
+          <h1 class="text-base font-extrabold text-slate-800 leading-tight tracking-tight">ตั้งค่าระบบและบัญชี</h1>
         </div>
       </div>
-    </section>
-    <!-- การ์ดตั้งค่าโทนสีของแอปพลิเคชัน -->
-<div class="bg-white rounded-3xl p-5 shadow-sm border border-[#E8DFD3] space-y-4">
-  <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-2xl bg-amber-100 flex items-center justify-center text-[#755634]">
-      <i class="fa-solid fa-palette text-sm"></i>
-    </div>
-    <div>
-      <h3 class="font-bold text-slate-800 text-sm">ธีมสีของแอปพลิเคชัน</h3>
-      <p class="text-xs text-slate-400">เลือกโทนสีที่คุณชอบเพื่อความสบายตาในการอ่าน</p>
-    </div>
+      <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white text-[#755634] flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[19px]">manage_accounts</span>
+      </div>
+    </header>
+
+    <!-- ================= เนื้อหาหลัก (Main Content) ================= -->
+    <main class="flex-1 flex flex-col w-full pt-3.5 px-4 space-y-4">
+      
+      <!-- 1. การ์ดบัตรประจำตัวผู้สอบ (Digital Teacher ID Card - Stagger 1) -->
+      <section class="stagger-1 bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_rgba(117,86,52,0.08)] border-2 border-white overflow-hidden relative">
+        <!-- แถบคาดสีทองด้านบนบัตร -->
+        <div class="h-14 bg-gradient-to-r from-[#2A1E14] via-[#5E4325] to-[#8B653B] relative overflow-hidden flex items-center justify-end px-4">
+          <div class="absolute -left-6 -top-6 w-24 h-24 rounded-full bg-amber-400/20 blur-xl"></div>
+          <span class="text-[10px] font-extrabold tracking-widest text-amber-200/80 uppercase flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">verified</span> KRU FUTURE PASS
+          </span>
+        </div>
+
+        <div class="px-4 pb-4 pt-0 relative flex items-end justify-between gap-3">
+          <div class="flex items-end gap-3.5 min-w-0">
+            <!-- อวตารวงกลมมีกรอบซ้อน -->
+            <div class="-mt-7 relative shrink-0">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 border-4 border-white flex items-center justify-center text-[#755634] font-extrabold text-2xl shadow-md">
+                <span id="avatarLetter">ค</span>
+              </div>
+              <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" title="ออนไลน์"></span>
+            </div>
+
+            <div class="min-w-0 pb-0.5">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h2 id="userNameText" class="font-extrabold text-base text-slate-800 truncate">ผู้ใช้งาน</h2>
+                <span id="userRoleBadge" class="px-2 py-0.5 rounded-lg bg-amber-100 text-[#755634] text-[10px] font-extrabold uppercase tracking-wide">Student</span>
+              </div>
+              <div class="flex items-center gap-1 text-slate-400 text-xs font-semibold mt-0.5">
+                <span class="material-symbols-outlined text-[15px] text-[#755634]">badge</span>
+                <span id="userIdText" class="font-mono text-[11px]">รหัส: -</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ปุ่มสำหรับ Admin (ซ่อนไว้ถ้าเป็นนักเรียนทั่วไป) -->
+          <a id="adminConsoleBtn" href="admin.html" class="hidden shrink-0 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-amber-300 text-[11px] font-extrabold shadow-xs items-center gap-1 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+            <span>หลังบ้าน</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- 2. การตั้งค่าการทำข้อสอบ (Exam Preferences - Stagger 2) -->
+      <section class="stagger-2 bg-white/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-[0_10px_30px_rgba(117,86,52,0.06)] border-2 border-white space-y-4">
+        <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+          <div class="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[20px]">quiz</span>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-800 leading-tight">ตั้งค่าห้องสอบ (Exam Room)</h3>
+            <p class="text-[10px] text-slate-400 font-medium">ปรับขนาดตัวอักษรและรูปแบบการจับเวลา</p>
+          </div>
+        </div>
+
+        <!-- เลือกขนาดตัวอักษร (Sliding Pill Selector) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-0.5">
+            <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-[#755634]">format_size</span>
+              <span>ขนาดตัวอักษรในห้องสอบ</span>
+            </span>
+            <span class="text-[11px] font-extrabold text-[#755634] bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60" id="fontSizeLabel">ปานกลาง (Medium)</span>
+          </div>
+
+          <div class="relative grid grid-cols-3 p-1 bg-slate-100/90 rounded-2xl text-xs font-extrabold">
+            <!-- แถบสีขาวสไลด์ตามขนาดฟอนต์ -->
+            <div id="fontSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.6px)] bg-white rounded-xl shadow-xs transition-transform duration-300 ease-out" style="transform: translateX(100%);"></div>
+
+            <button id="fontSm" type="button" onclick="changeFontSize('sm')" class="relative z-10 py-2 rounded-xl text-center text-slate-500 transition-colors">
+              ก ปกติ
+            </button>
+            <button id="fontMd" type="button" onclick="changeFontSize('md')" class="relative z-10 py-2 rounded-xl text-center text-[#755634] transition-colors">
+              ก ปานกลาง
+            </button>
+            <button id="fontLg" type="button" onclick="changeFontSize('lg')" class="relative z-10 py-2 rounded-xl text-center text-slate-500 transition-colors">
+              ก ใหญ่พิเศษ
+            </button>
+          </div>
+        </div>
+
+        <!-- สวิตช์ที่ 1: โหมดจำลองสอบจริง (iOS Toggle Switch) -->
+        <label for="toggleRealMode" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50/80 hover:bg-slate-50 border border-slate-100 cursor-pointer transition-colors">
+          <div class="flex items-center gap-3 pr-2">
+            <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </div>
+            <div>
+              <p class="text-xs font-extrabold text-slate-800">โหมดจำลองสอบจริง (ซ่อนเฉลย)</p>
+              <p class="text-[10px] text-slate-400 font-medium">ไม่แสดงปุ่มดูเฉลยรายข้อจนกว่าจะกดส่งข้อสอบ</p>
+            </div>
+          </div>
+          <div class="relative inline-flex items-center shrink-0">
+            <input type="checkbox" id="toggleRealMode" onchange="localStorage.setItem('kru_pref_real_mode', this.checked)" checked class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#755634] shadow-inner"></div>
+          </div>
+        </label>
+
+        <!-- สวิตช์ที่ 2: แสดงเวลานับถอยหลัง (iOS Toggle Switch) -->
+        <label for="toggleTimer" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50/80 hover:bg-slate-50 border border-slate-100 cursor-pointer transition-colors">
+          <div class="flex items-center gap-3 pr-2">
+            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">timer</span>
+            </div>
+            <div>
+              <p class="text-xs font-extrabold text-slate-800">แสดงนาฬิกานับถอยหลัง</p>
+              <p class="text-[10px] text-slate-400 font-medium">แสดงเวลาที่ใช้และเวลานับถอยหลังมุมขวาบน</p>
+            </div>
+          </div>
+          <div class="relative inline-flex items-center shrink-0">
+            <input type="checkbox" id="toggleTimer" onchange="localStorage.setItem('kru_pref_timer', this.checked)" checked class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#755634] shadow-inner"></div>
+          </div>
+        </label>
+      </section>
+
+      <!-- 3. การ์ดตั้งค่าโทนสีของแอปพลิเคชัน (Theme Color Picker - Stagger 3) -->
+      <section class="stagger-3 bg-white/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-[0_10px_30px_rgba(117,86,52,0.06)] border-2 border-white space-y-3.5">
+        <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+          <div class="w-9 h-9 rounded-2xl bg-amber-100/80 flex items-center justify-center text-[#755634] shrink-0">
+            <i class="fa-solid fa-palette text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-slate-800 text-sm leading-tight">ธีมสีของแอปพลิเคชัน</h3>
+            <p class="text-[10px] text-slate-400 font-medium">เลือกโทนสีประจำตัวเพื่อความสบายตาในการอ่าน</p>
+          </div>
+        </div>
+
+        <!-- ปุ่มวงกลมเลือกสี 5 สไตล์ -->
+        <div class="grid grid-cols-5 gap-2 pt-1" id="colorPickerContainer">
+          <!-- น้ำตาล -->
+          <button type="button" onclick="setAppTheme('brown')" class="theme-color-btn group flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all active:scale-90" data-color="brown">
+            <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-check text-xs opacity-0 check-icon transition-opacity"></i>
+            </span>
+            <span class="text-[10px] font-extrabold text-slate-600">น้ำตาลครู</span>
+          </button>
+
+          <!-- น้ำเงิน -->
+          <button type="button" onclick="setAppTheme('blue')" class="theme-color-btn group flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all active:scale-90" data-color="blue">
+            <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-800 shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-check text-xs opacity-0 check-icon transition-opacity"></i>
+            </span>
+            <span class="text-[10px] font-extrabold text-slate-600">น้ำเงินวิทย์</span>
+          </button>
+
+          <!-- เขียว -->
+          <button type="button" onclick="setAppTheme('green')" class="theme-color-btn group flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all active:scale-90" data-color="green">
+            <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-800 shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-check text-xs opacity-0 check-icon transition-opacity"></i>
+            </span>
+            <span class="text-[10px] font-extrabold text-slate-600">เขียวมรกต</span>
+          </button>
+
+          <!-- ม่วง -->
+          <button type="button" onclick="setAppTheme('purple')" class="theme-color-btn group flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all active:scale-90" data-color="purple">
+            <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-900 shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-check text-xs opacity-0 check-icon transition-opacity"></i>
+            </span>
+            <span class="text-[10px] font-extrabold text-slate-600">ม่วงโมเดิร์น</span>
+          </button>
+
+          <!-- ส้มอิฐ -->
+          <button type="button" onclick="setAppTheme('orange')" class="theme-color-btn group flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all active:scale-90" data-color="orange">
+            <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-orange-500 to-red-700 shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-check text-xs opacity-0 check-icon transition-opacity"></i>
+            </span>
+            <span class="text-[10px] font-extrabold text-slate-600">ส้มอิฐ</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 4. ปุ่มออกจากระบบ (Sign Out - Stagger 4) -->
+      <section class="stagger-4 pt-1 space-y-3">
+        <button type="button" onclick="handleSignOut()" class="w-full py-3.5 rounded-2xl bg-white/90 hover:bg-rose-50 text-rose-600 font-extrabold text-xs transition-all flex items-center justify-center gap-2 border-2 border-rose-200/80 shadow-sm active:scale-95">
+          <span class="material-symbols-outlined text-[19px]">logout</span>
+          <span>ออกจากระบบ (Sign Out)</span>
+        </button>
+
+        <div class="text-center space-y-0.5">
+          <p class="text-[11px] font-extrabold text-slate-400">
+            ครูในอนาคต (KRU FUTURE) • GEN 4 EDITION
+          </p>
+          <p class="text-[10px] text-slate-400/80">
+            ระบบฝึกทำข้อสอบและประเมินสมรรถนะด้วย AI
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ================= แถบเมนูด้านล่างแบบลอยตัว (Floating Glass Bottom Nav) ================= -->
+    <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[406px] bg-white/85 backdrop-blur-xl border-2 border-white rounded-3xl px-3 py-2 z-40 shadow-[0_10px_30px_rgba(117,86,52,0.12)]">
+      <div class="flex items-center justify-around">
+        <a href="index.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-house text-sm"></i><span class="text-[10px] font-semibold">หน้าแรก</span>
+        </a>
+        <a href="all-exams.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-book-open text-sm"></i><span class="text-[10px] font-semibold">รวมข้อสอบ</span>
+        </a>
+        <a href="quiz.html" class="flex flex-col items-center -mt-6 group active:scale-90 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-lg shadow-amber-900/25 border-2 border-white group-hover:rotate-6 transition-transform">
+            <i class="fa-solid fa-pen-nib text-base"></i>
+          </div>
+          <span class="text-[10px] font-extrabold text-slate-700 mt-1">ทำข้อสอบ</span>
+        </a>
+        <a href="history.html" class="flex flex-col items-center gap-1 py-1 px-2 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px] font-semibold">ประวัติ</span>
+        </a>
+        <a href="settings.html" class="flex flex-col items-center gap-1 py-1 px-2 text-[#755634] font-extrabold relative">
+          <i class="fa-solid fa-gear text-sm"></i><span class="text-[10px]">ตั้งค่า</span>
+          <span class="w-1 h-1 rounded-full bg-[#755634] absolute -bottom-0.5"></span>
+        </a>
+      </div>
+    </nav>
+
   </div>
-
-  <!-- ปุ่มวงกลมเลือกสี -->
-  <div class="flex items-center justify-between gap-2 pt-2" id="colorPickerContainer">
-    <!-- น้ำตาล -->
-    <button onclick="setAppTheme('brown')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="brown">
-      <span class="w-8 h-8 rounded-full bg-[#755634] shadow-sm"></span>
-      <span class="text-[10px] font-bold text-slate-600">น้ำตาลครู</span>
-    </button>
-    <!-- น้ำเงิน -->
-    <button onclick="setAppTheme('blue')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="blue">
-      <span class="w-8 h-8 rounded-full bg-[#1e40af] shadow-sm"></span>
-      <span class="text-[10px] font-bold text-slate-600">น้ำเงินวิทย์</span>
-    </button>
-    <!-- เขียว -->
-    <button onclick="setAppTheme('green')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="green">
-      <span class="w-8 h-8 rounded-full bg-[#166534] shadow-sm"></span>
-      <span class="text-[10px] font-bold text-slate-600">เขียวสบายตา</span>
-    </button>
-    <!-- ม่วง -->
-    <button onclick="setAppTheme('purple')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="purple">
-      <span class="w-8 h-8 rounded-full bg-[#6b21a8] shadow-sm"></span>
-      <span class="text-[10px] font-bold text-slate-600">ม่วงเข้ม</span>
-    </button>
-    <!-- ส้มอิฐ -->
-    <button onclick="setAppTheme('orange')" class="theme-color-btn flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition-all" data-color="orange">
-      <span class="w-8 h-8 rounded-full bg-[#c2410c] shadow-sm"></span>
-      <span class="text-[10px] font-bold text-slate-600">ส้มอิฐ</span>
-    </button>
-  </div>
-</div>
-
-    <!-- Sign Out Button -->
-    <div class="pt-4">
-      <button onclick="handleSignOut()" class="w-full py-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm transition-all flex items-center justify-center gap-2 border border-red-200">
-        <span class="material-symbols-outlined text-[20px]">logout</span>
-        ออกจากระบบ (Sign Out)
-      </button>
-      <p class="text-center text-[11px] text-on-surface-variant mt-3 opacity-75">
-        ครูในอนาคต • ระบบทดสอบความรู้เพื่อการเป็นครู
-      </p>
-    </div>
-    
-
-  </main>
-
-  
 
   <script>
     // 1. โหลดข้อมูลผู้ใช้ที่ล็อกอินอยู่ และซิงค์สถานะสวิตช์ตั้งค่า
     document.addEventListener('DOMContentLoaded', () => {
       const userInfoStr = localStorage.getItem('kru_user_info');
       if (userInfoStr) {
-        const user = JSON.parse(userInfoStr);
-        document.getElementById('userNameText').innerText = user.name || 'ผู้ใช้งาน';
-        document.getElementById('userIdText').innerText = `รหัส: ${user.studentId || '-'}`;
-        document.getElementById('avatarLetter').innerText = (user.name || 'ผ').charAt(0);
-        document.getElementById('userRoleBadge').innerText = user.role === 'admin' ? 'Admin' : 'Student';
+        try {
+          const user = JSON.parse(userInfoStr);
+          document.getElementById('userNameText').innerText = user.name || 'ผู้ใช้งาน';
+          document.getElementById('userIdText').innerText = `รหัสผู้สอบ: ${user.studentId || 'GUEST'}`;
+          document.getElementById('avatarLetter').innerText = (user.name || 'ค').charAt(0);
+          
+          const isAdmin = user.role === 'admin';
+          const roleBadge = document.getElementById('userRoleBadge');
+          roleBadge.innerText = isAdmin ? 'ADMIN' : 'STUDENT';
+          if (isAdmin) {
+            roleBadge.className = 'px-2 py-0.5 rounded-lg bg-purple-100 text-purple-700 text-[10px] font-extrabold uppercase tracking-wide';
+            const adminBtn = document.getElementById('adminConsoleBtn');
+            if (adminBtn) {
+              adminBtn.classList.remove('hidden');
+              adminBtn.classList.add('inline-flex');
+            }
+          }
+        } catch (e) {}
       }
 
       // โหลดสถานะสวิตช์การสอบทั้ง 2 ตัว
@@ -215,74 +357,83 @@
       // โหลดการตั้งค่าขนาดฟอนต์
       const currentSize = localStorage.getItem('kru_font_size') || 'md';
       changeFontSize(currentSize, false);
+
+      // ไฮไลต์ธีมสีปัจจุบัน
+      highlightActiveTheme();
     });
 
-    // 2. ฟังก์ชันเปลี่ยนขนาดฟอนต์ (ฉบับสมบูรณ์)
+    // 2. ฟังก์ชันเปลี่ยนขนาดฟอนต์ (พร้อม Sliding Pill Animation)
     function changeFontSize(size, save = true) {
+      const pill = document.getElementById('fontSlidingPill');
+      if (pill) {
+        const pos = size === 'sm' ? 0 : size === 'lg' ? 200 : 100;
+        pill.style.transform = `translateX(${pos}%)`;
+      }
+
       ['fontSm', 'fontMd', 'fontLg'].forEach(id => {
         const btn = document.getElementById(id);
-        if (btn) btn.className = 'py-1.5 rounded text-center text-xs font-semibold text-slate-500 transition-all';
+        if (btn) btn.className = 'relative z-10 py-2 rounded-xl text-center text-slate-500 transition-colors';
       });
+
       const activeBtn = document.getElementById(size === 'sm' ? 'fontSm' : size === 'lg' ? 'fontLg' : 'fontMd');
-      if (activeBtn) activeBtn.className = 'py-1.5 rounded text-center text-xs font-semibold bg-white text-[#755634] shadow-xs transition-all';
+      if (activeBtn) activeBtn.className = 'relative z-10 py-2 rounded-xl text-center text-[#755634] font-extrabold transition-colors';
 
       const label = document.getElementById('fontSizeLabel');
       if (label) {
         if (size === 'sm') label.innerText = 'ปกติ (Regular)';
-        else if (size === 'lg') label.innerText = 'ใหญ่ (Large)';
+        else if (size === 'lg') label.innerText = 'ใหญ่พิเศษ (Large)';
         else label.innerText = 'ปานกลาง (Medium)';
       }
 
-      let rootSize = size === 'sm' ? '14px' : size === 'lg' ? '18.5px' : '16px';
+      const rootSize = size === 'sm' ? '14px' : size === 'lg' ? '18.5px' : '16px';
       document.documentElement.style.fontSize = rootSize;
 
       if (save) localStorage.setItem('kru_font_size', size);
     }
 
+    // 3. ฟังก์ชันบันทึกสีลง localStorage และอัปเดต UI ทันที
+    function setAppTheme(colorName) {
+      localStorage.setItem('kru_theme_color', colorName);
+      if (typeof applyThemeColor === 'function') {
+        applyThemeColor();
+      }
+      highlightActiveTheme();
+    }
+
+    // ไฮไลต์ขอบปุ่มสีและแสดงเครื่องหมายถูกบนสีที่กำลังเลือกอยู่
+    function highlightActiveTheme() {
+      const activeColor = localStorage.getItem('kru_theme_color') || 'brown';
+      document.querySelectorAll('.theme-color-btn').forEach(btn => {
+        const checkIcon = btn.querySelector('.check-icon');
+        if (btn.getAttribute('data-color') === activeColor) {
+          btn.classList.add('border-[#755634]', 'bg-amber-50/70', 'scale-105', 'shadow-2xs');
+          btn.classList.remove('border-transparent');
+          if (checkIcon) checkIcon.classList.remove('opacity-0');
+        } else {
+          btn.classList.remove('border-[#755634]', 'bg-amber-50/70', 'scale-105', 'shadow-2xs');
+          btn.classList.add('border-transparent');
+          if (checkIcon) checkIcon.classList.add('opacity-0');
+        }
+      });
+    }
+
+    // 4. ออกจากระบบ
     async function handleSignOut() {
-      if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+      if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
         try {
           const userInfo = JSON.parse(localStorage.getItem('kru_user_info') || '{}');
-          if (userInfo.id && window.supabase) {
-            // ล้าง session token บนฐานข้อมูล
+          if (userInfo.id && !String(userInfo.id).startsWith('guest_') && window.supabase) {
             await supabase.from('users').update({ active_session_token: null }).eq('id', userInfo.id);
           }
         } catch (e) {
           console.warn("Sign out sync error:", e);
         } finally {
           localStorage.clear();
+          sessionStorage.clear();
           location.href = 'login.html';
         }
       }
     }
-    
-// ฟังก์ชันบันทึกสีลง localStorage และอัปเดต UI ทันที
-  function setAppTheme(colorName) {
-    localStorage.setItem('kru_theme_color', colorName);
-    
-    // เรียกฟังก์ชันใน theme-manager.js เพื่อให้สีเปลี่ยนทันที
-    if (typeof applyThemeColor === 'function') {
-      applyThemeColor();
-    }
-    highlightActiveTheme();
-  }
-
-  // ไฮไลต์ขอบปุ่มสีที่กำลังเลือกอยู่
-  function highlightActiveTheme() {
-    const activeColor = localStorage.getItem('kru_theme_color') || 'brown';
-    document.querySelectorAll('.theme-color-btn').forEach(btn => {
-      if (btn.getAttribute('data-color') === activeColor) {
-        btn.classList.add('border-slate-800', 'bg-slate-50', 'scale-105');
-        btn.classList.remove('border-transparent');
-      } else {
-        btn.classList.remove('border-slate-800', 'bg-slate-50', 'scale-105');
-        btn.classList.add('border-transparent');
-      }
-    });
-  }
-
-  // ตรวจสอบสถานะสีปัจจุบันตอนเปิดหน้า settings
-  document.addEventListener('DOMContentLoaded', highlightActiveTheme);
   </script>
 </body>
 </html>

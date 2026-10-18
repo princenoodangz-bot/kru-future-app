@@ -45,10 +45,19 @@
       </h1>
       <p class="text-sm text-gray-500">จัดการข้อมูลผู้ใช้แบบเรียลไทม์</p>
     </div>
-    <button onclick="localStorage.clear(); location.href='login.html'" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center gap-1">
-      <span class="material-symbols-outlined text-[18px]">logout</span> ออกจากระบบ
-    </button>
-  </div>
+    <div class="flex items-center gap-2">
+      <!-- 💾 ปุ่มสำรองข้อมูลระบบทั้งหมด -->
+      <button onclick="backupAllSystemData()" type="button" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-[#755634] border border-amber-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-2xs">
+        <span class="material-symbols-outlined text-[16px]">cloud_download</span>
+        <span>สำรองข้อมูลฉุกเฉิน (.json)</span>
+      </button>
+      <button onclick="localStorage.clear(); location.href='login.html'" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center gap-1">
+        <span class="material-symbols-outlined text-[18px]">logout</span> ออกจากระบบ
+      </button>
+    </div>
+  </div> <!-- 👈 เติม </div> ปิดกล่องหัวเว็บตัวนี้กลับเข้ามา -->
+
+<!-- แถบเลือกแท็บการทำงาน -->
 
 <!-- แถบเลือกแท็บการทำงาน -->
   <div class="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
@@ -102,18 +111,31 @@
             </select>
           </div>
         </div>
-        <button onclick="createNewUser()" class="w-full mt-2 bg-[#755634] hover:bg-[#906e4a] text-white py-3 rounded-lg font-bold shadow-sm transition-all flex justify-center items-center gap-2">
-          <span class="material-symbols-outlined text-[20px]">save</span> บันทึกบัญชีผู้ใช้
-        </button>
+        <div class="space-y-2 pt-2">
+          <button onclick="createNewUser()" id="btnSaveUser" class="w-full bg-[#755634] hover:bg-[#906e4a] text-white py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex justify-center items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span id="btnSaveUserText">เพิ่มบัญชีผู้ใช้ใหม่</span>
+          </button>
+          <button type="button" onclick="cancelEditUser()" id="btnCancelEditUser" class="hidden w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">close</span> ยกเลิกการแก้ไข
+          </button>
+        </div>
       </div>
 
       <!-- ตารางแสดงรายชื่อบัญชี -->
       <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b pb-2">
           <h3 class="font-bold text-lg text-gray-800">รายชื่อผู้ใช้งานทั้งหมด</h3>
-          <button onclick="loadUsersList()" class="text-sm text-[#755634] hover:bg-[#fbf2f0] px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
-            <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรชข้อมูล
-          </button>
+          <div class="flex items-center gap-2">
+            <!-- 🔍 ช่องค้นหาบัญชีผู้ใช้ -->
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-2.5 top-1.5 text-gray-400 text-[15px]">search</span>
+              <input id="searchUserInput" oninput="filterUsersListTable()" type="text" placeholder="ค้นหา ID หรือ ชื่อ..." class="bg-gray-50 pl-7 pr-2.5 py-1 rounded-lg border border-gray-200 text-xs outline-none focus:border-[#755634] w-36 sm:w-44" />
+            </div>
+            <button onclick="loadUsersList()" class="text-xs text-[#755634] hover:bg-[#fbf2f0] px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors border border-gray-200 font-bold">
+              <span class="material-symbols-outlined text-[15px]">refresh</span>
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left border-collapse">
@@ -137,7 +159,7 @@
 
     <!-- ตารางรายชื่อนักเรียนและสถิติการสอบ -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-      <div class="flex items-center justify-between border-b pb-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
         <div>
           <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
             <span class="material-symbols-outlined text-[#755634]">analytics</span>
@@ -145,9 +167,25 @@
           </h3>
           <p class="text-xs text-gray-500">ตรวจสอบความคืบหน้าการฝึกซ้อมและคะแนนเฉลี่ย</p>
         </div>
-        <button onclick="loadAdminUsersList()" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">refresh</span> รีเฟรช
-        </button>
+        <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <!-- 🔍 เพิ่มช่องค้นหานักเรียนตรงนี้ -->
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-2.5 top-2 text-gray-400 text-[16px]">search</span>
+            <input id="searchUserStatInput" oninput="filterAdminUsersTable()" type="text" placeholder="ค้นหาชื่อ หรือ Student ID..." class="bg-gray-50 pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:border-[#755634] w-48 sm:w-56" />
+          </div>
+          <!-- 🏆 ปุ่มรีเซ็ตโหมดแข่งขันทุกคน -->
+          <button onclick="resetAllCompetitionAttempts()" type="button" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-2xs active:scale-95" title="ล้างสิทธิ์การสอบแข่งขันของนักเรียนทุกคนเพื่อเริ่มรอบใหม่">
+            <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+            <span>รีเซ็ตแข่งขันทุกคน</span>
+          </button>
+          <button onclick="downloadUsersScoreReportExcel()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-2xs">
+            <span class="material-symbols-outlined text-[16px]">download</span>
+            <span>ส่งออก (.xlsx)</span>
+          </button>
+          <button onclick="loadAdminUsersList()" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">refresh</span>
+          </button>
+        </div>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-xs text-left">
@@ -373,13 +411,22 @@
   <div id="tabContentQuestions" style="display: none;" class="space-y-6">
     <!-- กล่องเพิ่มข้อสอบด่วน -->
     <div class="bg-white p-6 rounded-xl shadow-sm space-y-3">
-      <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 border-b pb-2">
-        <span class="material-symbols-outlined text-[#755634]">add_circle</span>
-        เพิ่มข้อสอบใหม่เข้าคลัง (ตาราง questions)
-      </h3>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2">
+        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#755634]">add_circle</span>
+          เพิ่มข้อสอบใหม่เข้าคลัง (ตาราง questions)
+        </h3>
+        <span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg">
+          📌 บันทึกเข้าหมวด: <b id="quickTargetCategoryLabel" class="text-[#755634]">-</b>
+        </span>
+      </div>
       <div>
         <label class="block text-xs font-semibold mb-1 text-gray-600">โจทย์คำถาม *</label>
-        <textarea id="qText" rows="2" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-sm" placeholder="พิมพ์โจทย์ข้อสอบ..."></textarea>
+        <textarea id="qText" rows="2" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-xs" placeholder="พิมพ์โจทย์ข้อสอบที่ต้องการเพิ่ม..."></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold mb-1 text-gray-600">ลิงก์รูปภาพประกอบโจทย์ (Image URL - ถ้ามี)</label>
+        <input id="qImage" type="url" placeholder="https://... (วางลิงก์รูปภาพ เช่น จาก Supabase Storage หรือเว็บฝากรูป)" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs outline-none focus:border-[#755634]" />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <div>
@@ -410,9 +457,14 @@
           </select>
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-xs font-semibold mb-1 text-gray-600">คำอธิบายเฉลย (ไม่บังคับ)</label>
+          <label class="block text-xs font-semibold mb-1 text-gray-600">คำอธิบายเฉลย (ข้อความ)</label>
           <input id="qExp" type="text" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-xs" placeholder="คำอธิบายเหตุผลของคำตอบ..." />
         </div>
+      </div>
+      <!-- เพิ่มช่องลิงก์รูปภาพเฉลย -->
+      <div>
+        <label class="block text-xs font-semibold mb-1 text-gray-600">🖼️ ลิงก์รูปภาพประกอบเฉลย / วิธีทำ (ถ้ามี)</label>
+        <input id="qExpImage" type="url" placeholder="https://... (วางลิงก์รูปภาพวิธีทำเฉลย เช่น จาก Supabase Storage)" class="w-full bg-gray-50 p-2.5 rounded-lg border border-gray-200 outline-none focus:border-[#755634] text-xs" />
       </div>
       <button onclick="addQuickQuestion()" class="w-full mt-2 bg-[#755634] hover:bg-[#906e4a] text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
         <span class="material-symbols-outlined text-[18px]">post_add</span> บันทึกข้อสอบลง Supabase
@@ -420,6 +472,27 @@
     </div>
       
       <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 border border-gray-100">
+      
+      <!-- 📊 แผงการ์ดสรุปสถานะความพร้อมคลังข้อสอบ -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-2 border-b border-gray-100 text-xs">
+        <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200/60">
+          <span class="text-gray-500 block text-[11px]">ภาค ก (ความรู้ทั่วไป)</span>
+          <span id="statPartACount" class="text-lg font-black text-[#755634]">0</span> <span class="text-[10px] text-gray-400">ข้อ</span>
+        </div>
+        <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200/60">
+          <span class="text-gray-500 block text-[11px]">ภาค ข (มาตรฐานวิชาชีพ)</span>
+          <span id="statPartBCount" class="text-lg font-black text-emerald-800">0</span> <span class="text-[10px] text-gray-400">ข้อ</span>
+        </div>
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200/60">
+          <span class="text-gray-500 block text-[11px]">มีรูปภาพ (โจทย์/เฉลย)</span>
+          <span id="statHasImageCount" class="text-lg font-black text-blue-700">0</span> <span class="text-[10px] text-gray-400">ข้อ</span>
+        </div>
+        <div class="bg-rose-50/60 p-3 rounded-xl border border-rose-200/60">
+          <span class="text-gray-500 block text-[11px]">ยังไม่มีคำอธิบายเฉลย</span>
+          <span id="statNoExpCount" class="text-lg font-black text-rose-600">0</span> <span class="text-[10px] text-gray-400">ข้อ</span>
+        </div>
+      </div>
+
       <!-- แถบค้นหาและตัวกรองแยกตาม 4 ระดับตรงกับด้านล่าง -->
       <div class="space-y-2">
         <!-- ช่องพิมพ์ค้นหาคำ -->
@@ -483,6 +556,12 @@
             <span class="material-symbols-outlined text-[16px]">download</span>
             <span>ดาวน์โหลด (.xlsx)</span>
           </button>
+
+          <!-- 🗑️ ปุ่มลบข้อสอบทั้งหมดที่กำลังแสดงตามตัวกรอง -->
+          <button onclick="purgeFilteredQuestions()" type="button" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-2xs" title="ลบข้อสอบทั้งหมดที่กำลังแสดงอยู่ตามตัวกรองนี้">
+            <span class="material-symbols-outlined text-[16px] text-rose-600">delete_forever</span>
+            <span>ลบทั้งหมวดที่กรอง</span>
+          </button>
           
           <!-- ปุ่มรีเฟรช -->
           <button onclick="loadQuestionsList()" type="button" class="bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
@@ -492,16 +571,24 @@
         </div>
       </div>
 
-      <!-- แถบแจ้งเตือนเมื่อมีการติ๊กเลือกข้อสอบ เพื่อสั่งลบหลายรายการ (Bulk Actions) -->
-      <div id="bulkActionsToolbar" class="hidden items-center justify-between bg-rose-50 border border-rose-200 px-4 py-2.5 rounded-xl text-xs transition-all">
-        <div class="flex items-center gap-2 text-rose-800 font-bold">
-          <span class="material-symbols-outlined text-[20px]">checklist</span>
-          <span>เลือกอยู่ <span id="selectedCountText" class="font-black text-rose-600 text-sm">0</span> ข้อ</span>
+      <!-- แถบแจ้งเตือนเมื่อมีการติ๊กเลือกข้อสอบ (Bulk Actions) -->
+      <div id="bulkActionsToolbar" class="hidden flex-wrap items-center justify-between gap-3 bg-amber-50/80 border border-amber-200 px-4 py-2.5 rounded-xl text-xs transition-all">
+        <div class="flex items-center gap-2 text-amber-900 font-bold">
+          <span class="material-symbols-outlined text-[20px] text-[#755634]">checklist</span>
+          <span>เลือกอยู่ <span id="selectedCountText" class="font-black text-[#755634] text-sm">0</span> ข้อ</span>
         </div>
-        <button type="button" onclick="deleteSelectedQuestions()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
-          <span class="material-symbols-outlined text-[16px]">delete_sweep</span>
-          <span>ลบข้อสอบที่เลือก</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- ปุ่มย้ายหมวดหมู่ตาม Dropdown ปัจจุบัน -->
+          <button type="button" onclick="bulkMoveSelectedQuestions()" class="bg-[#755634] hover:bg-[#8d6942] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs" title="ย้ายข้อสอบที่เลือกไปยังหมวดหมู่ที่เลือกไว้ด้านล่าง">
+            <span class="material-symbols-outlined text-[16px]">drive_file_move</span>
+            <span>ย้ายเข้าหมวดหมู่เป้าหมาย</span>
+          </button>
+          <!-- ปุ่มลบหลายรายการ -->
+          <button type="button" onclick="deleteSelectedQuestions()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs">
+            <span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+            <span>ลบที่เลือก</span>
+          </button>
+        </div>
       </div>
 
       <!-- ตารางแสดงข้อสอบ -->
@@ -523,6 +610,24 @@
             <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดรายการข้อสอบ...</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- แถบควบคุมเปลี่ยนหน้า (Pagination) -->
+      <div id="questionsPaginationToolbar" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
+        <div>
+          แสดงข้อที่ <span id="pageRangeText" class="font-bold text-gray-800">0 - 0</span> จากทั้งหมด <span id="pageTotalText" class="font-bold text-[#755634]">0</span> ข้อ
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="changeQuestionsPage(-1)" id="btnPrevPage" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-all disabled:opacity-40 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">chevron_left</span> ย้อนกลับ
+          </button>
+          <span class="px-3 py-1 bg-amber-50 font-mono font-bold text-[#755634] rounded-lg border border-amber-200">
+            หน้า <span id="currentPageNum">1</span> / <span id="totalPageNum">1</span>
+          </span>
+          <button type="button" onclick="changeQuestionsPage(1)" id="btnNextPage" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-all disabled:opacity-40 flex items-center gap-1">
+            ถัดไป <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -590,7 +695,7 @@
                 <button type="button" onclick="addNewTopic()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
               </div>
             </div>
-            <select id="selTopic" class="w-full bg-white p-2 rounded-lg border-2 border-[#755634]/40 outline-none focus:border-[#755634] font-bold"></select>
+            <select id="selTopic" onchange="updateQuickQuestionTargetLabel()" class="w-full bg-white p-2 rounded-lg border-2 border-[#755634]/40 outline-none focus:border-[#755634] font-bold"></select>
           </div>
 
         </div>
@@ -691,8 +796,29 @@
           </select>
         </div>
         <div class="col-span-2">
-          <label class="block font-bold text-gray-700 mb-1">คำอธิบายเฉลย</label>
+          <label class="block font-bold text-gray-700 mb-1">คำอธิบายเฉลย (ข้อความ)</label>
           <input id="editQExp" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+        </div>
+      </div>
+
+      <!-- เพิ่มช่องใส่ลิงก์รูปภาพใน Modal พร้อมกล่อง Preview สด -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="space-y-1.5">
+          <label class="block font-bold text-gray-700">🖼️ ลิงก์รูปภาพโจทย์</label>
+          <input id="editQImage" oninput="updateLiveImagePreview('editQImage', 'previewQImage')" type="url" placeholder="https://... รูปภาพโจทย์" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+          <!-- ตัวอย่างรูปภาพโจทย์ -->
+          <div id="previewQImageContainer" class="hidden p-1.5 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+            <img id="previewQImage" src="" alt="ตัวอย่างภาพโจทย์" class="max-h-24 mx-auto rounded object-contain" onerror="this.parentElement.classList.add('hidden')" />
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block font-bold text-gray-700">🖼️ ลิงก์รูปภาพเฉลยวิธีทำ</label>
+          <input id="editQExpImage" oninput="updateLiveImagePreview('editQExpImage', 'previewQExpImage')" type="url" placeholder="https://... รูปภาพวิธีทำเฉลย" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-[#755634]" />
+          <!-- ตัวอย่างรูปภาพเฉลย -->
+          <div id="previewQExpImageContainer" class="hidden p-1.5 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+            <img id="previewQExpImage" src="" alt="ตัวอย่างภาพเฉลย" class="max-h-24 mx-auto rounded object-contain" onerror="this.parentElement.classList.add('hidden')" />
+          </div>
         </div>
       </div>
 
@@ -705,6 +831,56 @@
           <span class="material-symbols-outlined text-[16px]">save</span>
           <span>บันทึกการแก้ไข</span>
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 12.2 Modal แสดงประวัติการทำข้อสอบรายบุคคล (กล่องป๊อปอัป) -->
+  <!-- ======================================================== -->
+  <div id="userAttemptsModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl border border-[#e8ded4] space-y-4 max-h-[85vh] flex flex-col">
+      
+      <!-- ส่วนหัว Modal -->
+      <div class="flex items-center justify-between border-b pb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-[20px]">history_edu</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-800">ประวัติการทำข้อสอบ</h3>
+            <p class="text-xs text-gray-500">ผู้สอบ: <span id="attemptModalUserName" class="font-bold text-[#755634]">-</span></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- 🗑️ ปุ่มล้างประวัติทั้งหมดของนักเรียนคนนี้ -->
+          <button id="btnPurgeUserAttempts" type="button" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="ลบประวัติการสอบทุกชุดของผู้ใช้นี้">
+            <span class="material-symbols-outlined text-[15px]">delete_history</span>
+            <span>ล้างประวัติทั้งหมด</span>
+          </button>
+          <button type="button" onclick="closeUserAttemptsModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ตารางแสดงรายการชุดที่เคยสอบ -->
+      <div class="overflow-y-auto flex-1">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 text-gray-600 border-b border-gray-200 sticky top-0">
+              <th class="p-2.5 font-semibold">วัน-เวลาที่สอบ</th>
+              <th class="p-2.5 font-semibold">โหมดการสอบ</th>
+              <th class="p-2.5 font-semibold text-center">คะแนนดิบ</th>
+              <th class="p-2.5 font-semibold text-center">คะแนนร้อยละ</th>
+              <th class="p-2.5 font-semibold text-center">ผลการประเมิน</th>
+            </tr>
+          </thead>
+          <tbody id="userAttemptsListTbody" class="divide-y divide-gray-100 text-gray-700">
+            <tr><td colspan="5" class="p-4 text-center text-gray-400">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
       </div>
 
     </div>
@@ -781,6 +957,7 @@ async function createNewUser() {
     btn.disabled = false;
   }
 }
+let cachedRawUsers = []; // แคชเก็บข้อมูลบัญชีผู้ใช้
 
 async function loadUsersList() {
   const tbody = document.getElementById('userTableBody');
@@ -792,44 +969,98 @@ async function loadUsersList() {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-
-    if (users && users.length > 0) {
-      tbody.innerHTML = users.map(u => {
-        const loginTime = u.updated_at 
-          ? new Date(u.updated_at).toLocaleDateString('th-TH', { 
-              day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' 
-            }) + ' น.'
-          : '<span class="text-gray-400 text-xs">ยังไม่เคยล็อกอิน</span>';
-
-        return `
-        <tr class="hover:bg-[#fbf2f0]/50 transition-colors border-b border-gray-50">
-          <td class="p-3 font-mono font-bold text-[#755634]">${u.student_id}</td>
-          <td class="p-3 text-gray-800">${u.name}</td>
-          <td class="p-3 font-mono font-bold text-red-600 bg-red-50/60 px-2.5 py-1 rounded w-fit">${u.password_hash}</td>
-          <td class="p-3">
-            <span class="px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
-              ${u.role}
-            </span>
-          </td>
-          <td class="p-3 text-xs text-gray-500">${loginTime}</td>
-          <td class="p-3 text-center">
-            <div class="flex items-center justify-center gap-1.5 mx-auto">
-              <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-2.5 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1">
-                <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
-              </button>
-              <button onclick="deleteUser('${u.id}', '${u.student_id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1" title="ลบบัญชีนี้">
-                <span class="material-symbols-outlined text-[15px]">delete</span> ลบ
-              </button>
-            </div>
-          </td>
-        </tr>
-      `}).join('');
-    } else {
-      tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลผู้ใช้ในระบบ</td></tr>';
-    }
+    cachedRawUsers = users || [];
+    filterUsersListTable(); // 👈 เรนเดอร์ผ่านฟังก์ชันกรอง
   } catch (err) {
     console.error(err);
     tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+  }
+}
+// ฟังก์ชันค้นหากรองตารางบัญชีผู้ใช้ (แสดงเริ่มต้น 10 คนแรก)
+function filterUsersListTable() {
+  const tbody = document.getElementById('userTableBody');
+  const term = (document.getElementById('searchUserInput')?.value || '').trim().toLowerCase();
+  if (!tbody) return;
+
+  const filtered = cachedRawUsers.filter(u => {
+    if (!term) return true;
+    return (u.student_id || '').toLowerCase().includes(term) || (u.name || '').toLowerCase().includes(term);
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">ไม่พบบัญชีผู้ใช้ที่ตรงกับคำค้นหา</td></tr>';
+    return;
+  }
+
+  // 👈 ถ้าไม่ได้ค้นหา ให้ตัดแสดงแค่ 10 รายชื่อล่าสุด เพื่อไม่ให้หน้าเว็บยาวเกินไป
+  const displayList = term ? filtered : filtered.slice(0, 10);
+
+  let rowsHtml = displayList.map(u => {
+    const loginTime = u.updated_at 
+      ? new Date(u.updated_at).toLocaleDateString('th-TH', { 
+          day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' 
+        }) + ' น.'
+      : '<span class="text-gray-400 text-xs">ยังไม่เคยล็อกอิน</span>';
+
+    return `
+      <tr class="hover:bg-[#fbf2f0]/50 transition-colors border-b border-gray-50">
+        <td class="p-3 font-mono font-bold text-[#755634]">${u.student_id}</td>
+        <td class="p-3 text-gray-800">${u.name}</td>
+        <td class="p-3">
+          <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2 py-1 rounded-lg w-fit">
+            <span id="passMask_${u.id}" class="font-mono text-xs font-bold text-gray-700">••••••••</span>
+            <button type="button" onclick="togglePasswordVisibility('${u.id}', '${u.password_hash}')" class="text-gray-400 hover:text-gray-600 flex items-center" title="ดูรหัสผ่าน">
+              <span id="passIcon_${u.id}" class="material-symbols-outlined text-[16px]">visibility</span>
+            </button>
+          </div>
+        </td>
+        <td class="p-3">
+          <span class="px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
+            ${u.role}
+          </span>
+        </td>
+        <td class="p-3 text-xs text-gray-500">${loginTime}</td>
+        <td class="p-3 text-center">
+          <div class="flex items-center justify-center gap-1.5 mx-auto">
+            <button onclick="editUser('${u.id}', '${u.student_id}', '${u.name}', '${u.password_hash}', '${u.role}')" class="px-2.5 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px]">edit</span> แก้ไข
+            </button>
+            <button onclick="deleteUser('${u.id}', '${u.student_id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-lg transition-all active:scale-95 shadow-xs flex items-center gap-1" title="ลบบัญชีนี้">
+              <span class="material-symbols-outlined text-[15px]">delete</span> ลบ
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // แสดงแถบแจ้งเตือนท้ายตาราง เมื่อมีผู้ใช้มากกว่า 10 คน
+  if (!term && cachedRawUsers.length > 10) {
+    rowsHtml += `
+      <tr>
+        <td colspan="6" class="p-2.5 text-center text-xs text-gray-400 bg-gray-50/60 font-medium">
+          แสดง 10 รายชื่อล่าสุดจากทั้งหมด ${cachedRawUsers.length} คน (พิมพ์ค้นหาในช่องด้านบนเพื่อดูรายชื่ออื่น)
+        </td>
+      </tr>
+    `;
+  }
+
+  tbody.innerHTML = rowsHtml;
+}
+
+function togglePasswordVisibility(id, realPass) {
+  const span = document.getElementById(`passMask_${id}`);
+  const icon = document.getElementById(`passIcon_${id}`);
+  if (!span || !icon) return;
+
+  if (span.innerText === '••••••••') {
+    span.innerText = realPass;
+    span.classList.add('text-red-600', 'font-black');
+    icon.innerText = 'visibility_off';
+  } else {
+    span.innerText = '••••••••';
+    span.classList.remove('text-red-600', 'font-black');
+    icon.innerText = 'visibility';
   }
 }
 
@@ -842,9 +1073,29 @@ function editUser(id, studentId, name, password, role) {
   document.getElementById('newStdPass').value = password;
   document.getElementById('newStdRole').value = role;
 
+  // เปลี่ยนข้อความปุ่ม และเปิดปุ่มยกเลิก
+  const btnText = document.getElementById('btnSaveUserText');
+  const btnCancel = document.getElementById('btnCancelEditUser');
+  if (btnText) btnText.innerText = `บันทึกการแก้ไข (${studentId})`;
+  if (btnCancel) btnCancel.classList.remove('hidden');
+
   switchAdminTab('users');
   document.getElementById('newStdName').focus();
   document.getElementById('newStdId').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ฟังก์ชันล้างฟอร์มเมื่อกดยกเลิก หรือหลังบันทึกเสร็จ
+function cancelEditUser() {
+  document.getElementById('editUserOriginalId').value = '';
+  document.getElementById('newStdId').value = '';
+  document.getElementById('newStdName').value = '';
+  document.getElementById('newStdPass').value = '';
+  document.getElementById('newStdRole').value = 'student';
+
+  const btnText = document.getElementById('btnSaveUserText');
+  const btnCancel = document.getElementById('btnCancelEditUser');
+  if (btnText) btnText.innerText = 'เพิ่มบัญชีผู้ใช้ใหม่';
+  if (btnCancel) btnCancel.classList.add('hidden');
 }
 
 // ✅ เพิ่มฟังก์ชันลบผู้ใช้งาน
@@ -862,64 +1113,119 @@ async function deleteUser(id, studentId) {
 }
 
 
+let cachedAdminUsers = [];
+let cachedUserAttempts = [];
+
 async function loadAdminUsersList() {
   const tbody = document.getElementById('adminUsersTableBody');
   const countBadge = document.getElementById('totalUsersCount');
   if (!tbody || !window.supabase) return;
 
+  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">กำลังโหลดสถิติผู้ใช้...</td></tr>';
+
   try {
     const { data: users, error: uErr } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-    // ดึง exam_mode มาตรวจสอบว่าเคยลงแข่งหรือไม่
-    const { data: attempts, error: aErr } = await supabase.from('exam_attempts').select('user_id, score_percentage, exam_mode');
+    // ✅ ดึงแบบ select('*') เพื่อป้องกัน Error 400 เมื่อคอลัมน์ในฐานข้อมูลไม่ตรง
+    const { data: attempts, error: aErr } = await supabase
+      .from('exam_attempts')
+      .select('*');
 
     if (uErr) throw uErr;
-    if (countBadge) countBadge.innerText = users.length;
 
-    tbody.innerHTML = users.map(u => {
-      const userAttempts = (attempts || []).filter(a => a.user_id === u.id);
-      const attemptCount = userAttempts.length;
-      let avgScore = 0;
-      if (attemptCount > 0) {
-        const totalScore = userAttempts.reduce((acc, curr) => acc + Number(curr.score_percentage || 0), 0);
-        avgScore = (totalScore / attemptCount).toFixed(1);
-      }
+    cachedAdminUsers = users || [];
+    // เรียงลำดับในฝั่งโค้ดแทน
+    cachedUserAttempts = (attempts || []).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
-      // ตรวจสอบว่าเคยสอบโหมดแข่งขันไปแล้วหรือไม่
-      const hasCompeted = userAttempts.some(a => a.exam_mode === 'competition');
-      const joinDate = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-';
+    if (countBadge) countBadge.innerText = cachedAdminUsers.length;
+    filterAdminUsersTable(); // 👈 สั่งเรนเดอร์ผ่านฟังก์ชันกรอง
 
-      return `
-        <tr class="hover:bg-gray-50 transition-colors">
-          <td class="p-3 font-bold text-gray-800 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-full bg-[#f2e1bf] text-[#755634] flex items-center justify-center text-xs font-bold shrink-0">
-              ${(u.name || 'U').charAt(0)}
-            </span>
-            <span>${u.name || 'ไม่ระบุชื่อ'}</span>
-          </td>
-          <td class="p-3 font-mono text-gray-600">${u.student_id || u.phone || '-'}</td>
-          <td class="p-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}">
-              ${u.role || 'student'}
-            </span>
-          </td>
-          <td class="p-3 text-center font-bold text-[#755634]">${attemptCount} ชุด</td>
-          <td class="p-3 text-center font-bold ${avgScore >= 60 ? 'text-emerald-600' : 'text-gray-500'}">${avgScore}%</td>
-          <td class="p-3 text-center">
-            ${hasCompeted 
-              ? `<button type="button" onclick="resetCompetitionAttempt('${u.id}', '${u.name}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[10px] font-bold active:scale-95 transition-all shadow-2xs" title="คลิกเพื่อลบประวัติเดิมและอนุญาตให้สอบใหม่">
-                   รีเซ็ตสิทธิ์ (ให้แข่งใหม่)
-                 </button>`
-              : `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-[10px] font-bold">ยังไม่เคยแข่ง</span>`
-            }
-          </td>
-          <td class="p-3 text-right text-gray-400 font-mono">${joinDate}</td>
-        </tr>
-      `;
-    }).join('');
   } catch (err) {
     console.error('Error fetching users:', err);
     tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">ไม่สามารถโหลดรายชื่อผู้ใช้ได้</td></tr>';
   }
+}
+
+// ฟังก์ชันค้นหากรองตารางสถิตินักเรียน (จำกัดแสดงเริ่มต้น 10 คน)
+function filterAdminUsersTable() {
+  const tbody = document.getElementById('adminUsersTableBody');
+  const term = (document.getElementById('searchUserStatInput')?.value || '').trim().toLowerCase();
+  if (!tbody) return;
+
+  const filteredUsers = cachedAdminUsers.filter(u => {
+    if (!term) return true;
+    const nameMatch = (u.name || '').toLowerCase().includes(term);
+    const idMatch = (u.student_id || '').toLowerCase().includes(term);
+    return nameMatch || idMatch;
+  });
+
+  if (filteredUsers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">ไม่พบรายชื่อผู้ใช้งานที่ตรงกับคำค้นหา</td></tr>';
+    return;
+  }
+
+  // 👈 ถ้าไม่ได้พิมพ์ค้นหา ให้ตัดแสดงเพียง 10 คนแรก
+  const displayUsers = term ? filteredUsers : filteredUsers.slice(0, 10);
+
+  let rowsHtml = displayUsers.map(u => {
+    const userAttempts = cachedUserAttempts.filter(a => a.user_id === u.id);
+    const attemptCount = userAttempts.length;
+    let avgScore = 0;
+    if (attemptCount > 0) {
+      const totalScore = userAttempts.reduce((acc, curr) => acc + Number(curr.score_percentage || 0), 0);
+      avgScore = (totalScore / attemptCount).toFixed(1);
+    }
+
+    const hasCompeted = userAttempts.some(a => a.exam_mode === 'competition');
+    const joinDate = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-';
+
+    return `
+      <tr class="hover:bg-gray-50 transition-colors">
+        <td class="p-3 font-bold text-gray-800 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-[#f2e1bf] text-[#755634] flex items-center justify-center text-xs font-bold shrink-0">
+            ${(u.name || 'U').charAt(0)}
+          </span>
+          <span>${u.name || 'ไม่ระบุชื่อ'}</span>
+        </td>
+        <td class="p-3 font-mono text-gray-600">${u.student_id || u.phone || '-'}</td>
+        <td class="p-3 text-center">
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}">
+            ${u.role || 'student'}
+          </span>
+        </td>
+        <td class="p-3 text-center">
+          ${attemptCount > 0 
+            ? `<button type="button" onclick="openUserAttemptsModal('${u.id}', '${u.name || u.student_id}')" class="px-2.5 py-1 bg-[#f2e1bf] hover:bg-[#e8d5af] text-[#755634] rounded-lg font-bold text-xs transition-all active:scale-95 shadow-2xs inline-flex items-center gap-1">
+                 <span class="material-symbols-outlined text-[14px]">visibility</span> ${attemptCount} ชุด
+               </button>`
+            : `<span class="text-gray-400">0 ชุด</span>`
+          }
+        </td>
+        <td class="p-3 text-center font-bold ${avgScore >= 60 ? 'text-emerald-600' : 'text-gray-500'}">${avgScore}%</td>
+        <td class="p-3 text-center">
+          ${hasCompeted 
+            ? `<button type="button" onclick="resetCompetitionAttempt('${u.id}', '${u.name}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[10px] font-bold active:scale-95 transition-all shadow-2xs" title="คลิกเพื่อลบประวัติเดิมและอนุญาตให้สอบใหม่">
+                 รีเซ็ตสิทธิ์ (ให้แข่งใหม่)
+               </button>`
+            : `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-[10px] font-bold">ยังไม่เคยแข่ง</span>`
+          }
+        </td>
+        <td class="p-3 text-right text-gray-400 font-mono">${joinDate}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // แสดงข้อความแจ้งเตือนเมื่อมีข้อมูลมากกว่า 10 แถว
+  if (!term && cachedAdminUsers.length > 10) {
+    rowsHtml += `
+      <tr>
+        <td colspan="7" class="p-3 text-center text-xs text-gray-400 bg-gray-50/60 font-medium">
+          แสดง 10 รายชื่อแรกจากทั้งหมด ${cachedAdminUsers.length} คน (พิมพ์ค้นหาชื่อ หรือ Student ID ในช่องด้านบนเพื่อดูรายชื่ออื่น)
+        </td>
+      </tr>
+    `;
+  }
+
+  tbody.innerHTML = rowsHtml;
 }
 
 // ฟังก์ชันสำหรับแอดมิน: ล้างประวัติการแข่งเดิมเพื่อให้ผู้ใช้เข้าสอบใหม่ได้
@@ -939,6 +1245,99 @@ async function resetCompetitionAttempt(userId, userName) {
     loadAdminUsersList();
   } catch (err) {
     alert('เกิดข้อผิดพลาดในการรีเซ็ตสิทธิ์: ' + err.message);
+  }
+}
+// ฟังก์ชันสำหรับแอดมิน: รีเซ็ตสิทธิ์โหมดแข่งขันของนักเรียนทุกคนพร้อมกัน (เริ่มซีซั่นใหม่)
+async function resetAllCompetitionAttempts() {
+  const confirmMsg = "⚠️ คำเตือนสำคัญ!\n\nคุณกำลังจะ 'ล้างสิทธิ์และประวัติการสอบโหมดแข่งขันของนักเรียนทุกคน' เพื่อเริ่มซีซั่นใหม่\n(ประวัติในโหมดฝึกซ้อมทั่วไปจะไม่ถูกลบ)\n\nยืนยันหรือไม่?";
+  if (!confirm(confirmMsg)) return;
+
+  if (!confirm("ย้ำอีกครั้ง! ยืนยันรีเซ็ตการแข่งขันของทุกคนใช่หรือไม่?")) return;
+
+  try {
+    const { error } = await supabase
+      .from('exam_attempts')
+      .delete()
+      .eq('exam_mode', 'competition');
+
+    if (error) throw error;
+
+    alert("✅ รีเซ็ตโหมดแข่งขันของนักเรียนทุกคนเรียบร้อยแล้ว! ทุกคนสามารถเข้าสอบโหมดแข่งขันรอบใหม่ได้ทันที");
+    loadAdminUsersList(); // รีโหลดสถิติใหม่ทันที
+  } catch (err) {
+    alert("เกิดข้อผิดพลาดในการรีเซ็ต: " + err.message);
+  }
+}
+function openUserAttemptsModal(userId, userName) {
+  const modal = document.getElementById('userAttemptsModal');
+  const nameLabel = document.getElementById('attemptModalUserName');
+  const tbody = document.getElementById('userAttemptsListTbody');
+  const purgeBtn = document.getElementById('btnPurgeUserAttempts');
+  if (!modal || !tbody) return;
+
+  nameLabel.innerText = userName;
+
+  // 👈 ผูกคำสั่งให้ปุ่มล้างประวัติทำงานกับผู้ใช้คนนี้
+  if (purgeBtn) {
+    purgeBtn.onclick = () => purgeAllUserAttempts(userId, userName);
+  }
+
+  modal.classList.remove('hidden');
+
+  const userAttempts = cachedUserAttempts.filter(a => a.user_id === userId);
+
+  if (userAttempts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">ไม่พบประวัติการทำข้อสอบ</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = userAttempts.map(a => {
+    const dateStr = a.created_at 
+      ? new Date(a.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' น.'
+      : '-';
+    const scorePct = Number(a.score_percentage || 0);
+    const isPass = scorePct >= 60;
+    const modeLabel = a.exam_mode === 'competition' ? '🏆 แข่งขัน' : '📝 ฝึกซ้อม';
+
+    return `
+      <tr class="hover:bg-amber-50/20">
+        <td class="p-2.5 font-mono text-gray-600">${dateStr}</td>
+        <td class="p-2.5 font-bold ${a.exam_mode === 'competition' ? 'text-amber-700' : 'text-gray-700'}">${modeLabel}</td>
+        <td class="p-2.5 text-center font-mono">${a.score_obtained || '-'}/${a.total_questions || '-'}</td>
+        <td class="p-2.5 text-center font-bold font-mono ${isPass ? 'text-emerald-600' : 'text-rose-600'}">${scorePct}%</td>
+        <td class="p-2.5 text-center">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPass ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+            ${isPass ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function closeUserAttemptsModal() {
+  document.getElementById('userAttemptsModal')?.classList.add('hidden');
+}
+// ฟังก์ชันล้างประวัติการทำข้อสอบทั้งหมดของนักเรียนรายบุคคล
+async function purgeAllUserAttempts(userId, userName) {
+  const confirmMsg = `⚠️ คำเตือน!\n\nคุณต้องการลบประวัติการทำข้อสอบทั้งหมดของ "${userName}" ออกจากระบบใช่หรือไม่?\n` +
+    `(ประวัติการทำข้อสอบทั้งโหมดฝึกซ้อมและแข่งขันจะถูกลบทั้งหมด คะแนนเฉลี่ยจะกลับเป็น 0)`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const { error } = await supabase
+      .from('exam_attempts')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    alert(`ล้างประวัติการทำข้อสอบของ "${userName}" เรียบร้อยแล้ว`);
+    closeUserAttemptsModal();
+    loadAdminUsersList(); // รีโหลดสถิติใหม่ทันที
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการล้างประวัติ: ' + err.message);
   }
 }
 
@@ -1029,8 +1428,41 @@ const defaultTaxonomy = {
 
 let examTaxonomy = JSON.parse(localStorage.getItem('kru_exam_taxonomy_4levels')) || defaultTaxonomy;
 
-function saveTaxonomy() {
+// บันทึกลงเครื่องและอัปโหลดขึ้นตาราง system_configs บน Supabase แบบอัตโนมัติ
+async function saveTaxonomy() {
   localStorage.setItem('kru_exam_taxonomy_4levels', JSON.stringify(examTaxonomy));
+  try {
+    if (window.supabase) {
+      await supabase.from('system_configs').upsert({
+        key: 'exam_taxonomy_4levels',
+        value: JSON.stringify(examTaxonomy),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+    }
+  } catch (err) {
+    console.warn("ไม่สามารถซิงค์ Taxonomy ขึ้น Supabase ได้:", err);
+  }
+}
+
+// ฟังก์ชันดึงหมวดหมู่ล่าสุดจาก Supabase เมื่อเปิดเว็บ
+async function loadTaxonomyFromCloud() {
+  try {
+    if (!window.supabase) return;
+    const { data } = await supabase
+      .from('system_configs')
+      .select('value')
+      .eq('key', 'exam_taxonomy_4levels')
+      .maybeSingle();
+
+    if (data && data.value) {
+      examTaxonomy = JSON.parse(data.value);
+      localStorage.setItem('kru_exam_taxonomy_4levels', data.value);
+      onPartChange();
+      onTableFilterPartChange();
+    }
+  } catch (e) {
+    console.warn("โหลด Taxonomy จากคลาวด์ล้มเหลว ใช้ค่าในเครื่องแทน:", e);
+  }
 }
 
 function onPartChange(selectedCategory = null) {
@@ -1060,6 +1492,18 @@ function onSubCategoryChange(selectedTopic = null) {
   const topics = examTaxonomy[part]?.[cat]?.[sub] || [];
 
   topicSelect.innerHTML = topics.map(t => `<option value="${t}" ${t === selectedTopic ? 'selected' : ''}>${t}</option>`).join('');
+  updateQuickQuestionTargetLabel(); // 👈 สั่งอัปเดตป้ายข้อความทันที
+}
+// อัปเดตป้ายชื่อหมวดหมู่ที่กล่องเพิ่มข้อสอบด่วนให้เปลี่ยนตาม Dropdown เสมอ
+function updateQuickQuestionTargetLabel() {
+  const p = document.getElementById('selPart')?.value || '';
+  const c = document.getElementById('selCategory')?.value || '';
+  const s = document.getElementById('selSubCategory')?.value || '';
+  const t = document.getElementById('selTopic')?.value || '';
+  const label = document.getElementById('quickTargetCategoryLabel');
+  if (label) {
+    label.innerText = `${p} > ${c} > ${t || s || 'ทั่วไป'}`;
+  }
 }
 
 function addNewCategory() {
@@ -1170,15 +1614,23 @@ async function addQuickQuestion() {
   const choice_d = document.getElementById('qD').value.trim();
   const correct_answer = document.getElementById('qCorrect').value;
   const explanation = document.getElementById('qExp').value.trim();
+  // 🖼️ ประกาศตัวแปรดึงค่าจาก input ทั้งสองช่องก่อนนำไปใช้
+  const image_url = (document.getElementById('qImage')?.value || '').trim();
+  const explanation_image_url = (document.getElementById('qExpImage')?.value || '').trim();
 
   if (!question_text || !choice_a || !choice_b || !choice_c || !choice_d) {
     alert('กรุณากรอกโจทย์และตัวเลือก ก-ง ให้ครบถ้วน');
     return;
   }
 
+  const partVal = document.getElementById('selPart').value;
+  const dynamicExamId = partVal === 'ภาค ก' ? 'exam_part_a' : 'exam_part_b';
+
   const { error } = await supabase.from('questions').insert([{
     id: 'q_' + Date.now(),
-    exam_id: 'exam_cs204_01',
+    exam_id: dynamicExamId,
+    image_url: image_url || null,
+    explanation_image_url: explanation_image_url || null,
     question_text,
     choice_a,
     choice_b,
@@ -1197,11 +1649,13 @@ async function addQuickQuestion() {
   } else {
     alert('เพิ่มข้อสอบลงคลังสำเร็จ!');
     document.getElementById('qText').value = '';
+    if (document.getElementById('qImage')) document.getElementById('qImage').value = '';
     document.getElementById('qA').value = '';
     document.getElementById('qB').value = '';
     document.getElementById('qC').value = '';
     document.getElementById('qD').value = '';
     document.getElementById('qExp').value = '';
+    if (document.getElementById('qExpImage')) document.getElementById('qExpImage').value = '';
     loadQuestionsList();
   }
 }
@@ -1214,12 +1668,14 @@ function downloadExcelTemplate() {
       "กลุ่มวิชาย่อย": "เชิงปริมาณ (คณิตศาสตร์)",
       "หัวข้อย่อย": "อนุกรมตัวเลข",
       "โจทย์คำถาม": "6, 12, 24, 48, ?, 192 ตัวเลขในเครื่องหมายคำถามคือข้อใด",
+      "ลิงก์รูปภาพโจทย์ (URL)": "",
       "ตัวเลือก ก": "96",
       "ตัวเลือก ข": "84",
       "ตัวเลือก ค": "90",
       "ตัวเลือก ง": "100",
       "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": "ก",
-      "คำอธิบายเฉลย": "อนุกรมทวีคูณเพิ่มขึ้นเป็น 2 เท่า: 48 x 2 = 96"
+      "คำอธิบายเฉลย": "อนุกรมทวีคูณเพิ่มขึ้นเป็น 2 เท่า: 48 x 2 = 96",
+      "ลิงก์รูปภาพเฉลยวิธีทำ (URL)": "https://..."
     }
   ];
 
@@ -1260,7 +1716,29 @@ async function uploadExcelQuestions() {
 
       let isTaxonomyUpdated = false;
 
+      let skippedCount = 0;
+      const invalidRowsInfo = [];
+
       const insertRows = rows.map((r, index) => {
+        const rowNum = index + 2; // เลขบรรทัดในไฟล์ Excel (รวมหัวตาราง)
+        const qText = String(r["โจทย์คำถาม"] || '').trim();
+        const cA = String(r["ตัวเลือก ก"] || '').trim();
+        const cB = String(r["ตัวเลือก ข"] || '').trim();
+        const cC = String(r["ตัวเลือก ค"] || '').trim();
+        const cD = String(r["ตัวเลือก ง"] || '').trim();
+
+        // ตรวจสอบความสมบูรณ์ของข้อสอบ
+        if (!qText) {
+          skippedCount++;
+          return null;
+        }
+
+        if (!cA || !cB || !cC || !cD) {
+          invalidRowsInfo.push(`แถวที่ ${rowNum}: ขาดตัวเลือก ก-ง`);
+          skippedCount++;
+          return null;
+        }
+
         const rawAns = r["เฉลยที่ถูกต้อง (ก/ข/ค/ง)"] || r["เฉลยที่ถูกต้อง (A/B/C/D)"] || r["เฉลย"] || 'ก';
         const finalAns = normalizeAnswerToThai(rawAns);
 
@@ -1269,7 +1747,7 @@ async function uploadExcelQuestions() {
         const sub = r["กลุ่มวิชาย่อย"] || r["กลุ่มย่อย"] || document.getElementById('selSubCategory').value;
         const topic = r["หัวข้อย่อย"] || r["เรื่องย่อย"] || document.getElementById('selTopic').value;
 
-        // 🌟 อัปเดตโครงสร้าง Taxonomy 4 ระดับอัตโนมัติจากไฟล์ Excel
+        // อัปเดต Taxonomy 4 ระดับอัตโนมัติ
         if (part && cat && sub && topic) {
           if (!examTaxonomy[part]) examTaxonomy[part] = {};
           if (!examTaxonomy[part][cat]) examTaxonomy[part][cat] = {};
@@ -1280,22 +1758,35 @@ async function uploadExcelQuestions() {
           }
         }
 
+        const dynamicExamId = (part || '').includes('ภาค ข') ? 'exam_part_b' : 'exam_part_a';
+
         return {
           id: 'q_' + Date.now() + '_' + index,
-          exam_id: 'exam_cs204_01',
+          exam_id: dynamicExamId,
           exam_part: part,
           exam_category: cat,
           exam_sub_category: sub,
           exam_topic: topic,
-          question_text: r["โจทย์คำถาม"] || '',
-          choice_a: String(r["ตัวเลือก ก"] || ''),
-          choice_b: String(r["ตัวเลือก ข"] || ''),
-          choice_c: String(r["ตัวเลือก ค"] || ''),
-          choice_d: String(r["ตัวเลือก ง"] || ''),
+          question_text: qText,
+          image_url: r["ลิงก์รูปภาพโจทย์ (URL)"] || r["รูปภาพโจทย์"] || null,
+          choice_a: cA,
+          choice_b: cB,
+          choice_c: cC,
+          choice_d: cD,
           correct_answer: finalAns,
-          explanation: r["คำอธิบายเฉลย"] || ''
+          explanation: r["คำอธิบายเฉลย"] || '',
+          explanation_image_url: r["ลิงก์รูปภาพเฉลยวิธีทำ (URL)"] || r["รูปภาพเฉลย"] || null
         };
-      }).filter(q => q.question_text !== '');
+      }).filter(Boolean); // กรองแถวที่ไม่ผ่านเกณฑ์ทิ้ง
+
+      // แจ้งเตือนแอดมินหากพบแถวที่ข้อมูลไม่ครบ
+      if (invalidRowsInfo.length > 0) {
+        const warnMsg = `⚠️ พบข้อสอบไม่สมบูรณ์ (ตัวเลือกไม่ครบ 4 ข้อ) จำนวน ${invalidRowsInfo.length} แถว:\n` +
+          invalidRowsInfo.slice(0, 5).join('\n') +
+          (invalidRowsInfo.length > 5 ? `\n...และอีก ${invalidRowsInfo.length - 5} แถว` : '') +
+          `\n\nระบบจะข้ามแถวเหล่านี้ และบันทึกเฉพาะข้อที่สมบูรณ์ (${insertRows.length} ข้อ)`;
+        alert(warnMsg);
+      }
 
       statusElem.innerText = `กำลังบันทึกข้อสอบ ${insertRows.length} ข้อลง Supabase...`;
 
@@ -1382,14 +1873,41 @@ async function loadQuestionsList() {
   tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดข้อสอบ...</td></tr>';
 
   try {
-    const { data, error } = await supabase
-      .from('questions')
-      .select('id, question_text, choice_a, choice_b, choice_c, choice_d, exam_part, exam_category, exam_sub_category, exam_topic, correct_answer, explanation')
-      .order('id', { ascending: false });
+    let allData = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
 
-    if (error) throw error;
+    // ✅ เพิ่ม image_url, explanation_image_url ครบถ้วน
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('id, question_text, image_url, choice_a, choice_b, choice_c, choice_d, exam_part, exam_category, exam_sub_category, exam_topic, correct_answer, explanation, explanation_image_url')
+        .order('id', { ascending: false })
+        .range(from, from + step - 1);
 
-    allLoadedQuestions = data || [];
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        allData = allData.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false; // ข้อมูลรอบนี้ไม่ถึง 1,000 แสดงว่าหมดแล้ว
+      } else {
+        hasMore = false;
+      }
+    }
+
+    allLoadedQuestions = allData;
+    // 📊 คำนวณตัวเลขสถิติภาพรวมคลังข้อสอบ
+    const partA = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ก')).length;
+    const partB = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ข')).length;
+    const hasImg = allLoadedQuestions.filter(q => q.image_url || q.explanation_image_url).length;
+    const noExp = allLoadedQuestions.filter(q => !(q.explanation || '').trim() && !q.explanation_image_url).length;
+
+    if (document.getElementById('statPartACount')) document.getElementById('statPartACount').innerText = partA;
+    if (document.getElementById('statPartBCount')) document.getElementById('statPartBCount').innerText = partB;
+    if (document.getElementById('statHasImageCount')) document.getElementById('statHasImageCount').innerText = hasImg;
+    if (document.getElementById('statNoExpCount')) document.getElementById('statNoExpCount').innerText = noExp;
     if (countBadge) countBadge.innerText = allLoadedQuestions.length;
 
     // ซิงค์หมวดหมู่จากข้อสอบจริงในฐานข้อมูลเข้าสู่ตัวกรองอัตโนมัติ
@@ -1466,7 +1984,12 @@ function onTableFilterSubCategoryChange() {
   filterQuestionsTable();
 }
 
-// ปรับฟังก์ชัน filterQuestionsTable()
+// ==========================================
+// 11.2 จัดการระบบแบ่งหน้าตารางข้อสอบ (หน้าละ 25 ข้อ)
+// ==========================================
+let currentQPage = 1;
+const Q_PER_PAGE = 25; // กำหนดให้แสดงหน้าละ 25 ข้อ
+
 function filterQuestionsTable() {
   const term = (document.getElementById('searchQuestionInput')?.value || '').trim().toLowerCase();
   const part = document.getElementById('filterPartSelect')?.value || 'all';
@@ -1475,10 +1998,7 @@ function filterQuestionsTable() {
   const topic = document.getElementById('filterTopicSelect')?.value || 'all';
 
   currentlyRenderedQuestions = allLoadedQuestions.filter(q => {
-    // ถ้ากำลังกดดูเฉพาะข้อสอบที่หลุดหมวด
-    if (isShowingOnlyOrphans && !isQuestionOrphan(q)) {
-      return false;
-    }
+    if (isShowingOnlyOrphans && !isQuestionOrphan(q)) return false;
 
     const matchTerm = (!term) || 
       (q.question_text || '').toLowerCase().includes(term) ||
@@ -1493,14 +2013,55 @@ function filterQuestionsTable() {
     return matchTerm && matchPart && matchCat && matchSub && matchTopic;
   });
 
-  // อัปเดตตัวเลขแสดงผล
   const countBadge = document.getElementById('totalQuestionsCount');
   if (countBadge) {
     countBadge.innerText = `${currentlyRenderedQuestions.length} / ทั้งหมด ${allLoadedQuestions.length}`;
   }
 
   updateOrphanAlert();
-  renderQuestionsTable(currentlyRenderedQuestions);
+  currentQPage = 1; // รีเซ็ตกลับไปหน้า 1 ทุกครั้งที่มีการค้นหาหรือเปลี่ยนตัวกรอง
+  renderPaginatedQuestions(); // 👈 ส่งไปคำนวณแบ่งหน้าก่อนเรนเดอร์
+}
+// ฟังก์ชันเมื่อกดปุ่ม "ย้อนกลับ (-1)" หรือ "ถัดไป (+1)"
+function changeQuestionsPage(delta) {
+  const totalPages = Math.ceil(currentlyRenderedQuestions.length / Q_PER_PAGE) || 1;
+  const newPage = currentQPage + delta;
+  if (newPage >= 1 && newPage <= totalPages) {
+    currentQPage = newPage;
+    renderPaginatedQuestions();
+  }
+}
+
+// ฟังก์ชันตัดแบ่งข้อสอบเฉพาะหน้าปัจจุบันมาแสดงผล
+function renderPaginatedQuestions() {
+  const totalItems = currentlyRenderedQuestions.length;
+  const totalPages = Math.ceil(totalItems / Q_PER_PAGE) || 1;
+
+  if (currentQPage > totalPages) currentQPage = totalPages;
+  if (currentQPage < 1) currentQPage = 1;
+
+  const startIndex = (currentQPage - 1) * Q_PER_PAGE;
+  // ตัดข้อมูลเฉพาะ 25 ข้อของหน้านั้นๆ
+  const pageItems = currentlyRenderedQuestions.slice(startIndex, startIndex + Q_PER_PAGE);
+
+  // อัปเดตตัวเลขในแถบควบคุม Pagination ด้านล่าง
+  const rangeText = document.getElementById('pageRangeText');
+  const totalText = document.getElementById('pageTotalText');
+  const currentNum = document.getElementById('currentPageNum');
+  const totalNum = document.getElementById('totalPageNum');
+  const btnPrev = document.getElementById('btnPrevPage');
+  const btnNext = document.getElementById('btnNextPage');
+
+  if (rangeText) rangeText.innerText = totalItems > 0 ? `${startIndex + 1} - ${Math.min(startIndex + Q_PER_PAGE, totalItems)}` : '0 - 0';
+  if (totalText) totalText.innerText = totalItems;
+  if (currentNum) currentNum.innerText = currentQPage;
+  if (totalNum) totalNum.innerText = totalPages;
+
+  if (btnPrev) btnPrev.disabled = (currentQPage <= 1);
+  if (btnNext) btnNext.disabled = (currentQPage >= totalPages);
+
+  // ส่งเฉพาะ 25 ข้อไปวาดลงตาราง
+  renderQuestionsTable(pageItems);
 }
 
 // ปรับฟังก์ชัน renderQuestionsTable(list) ตรงคอลัมน์ "ภาค / หมวดวิชา / เรื่องย่อย"
@@ -1526,7 +2087,14 @@ function renderQuestionsTable(list) {
         <input type="checkbox" value="${q.id}" onchange="updateBulkToolbar()" class="q-row-checkbox w-4 h-4 rounded accent-[#755634] cursor-pointer" />
       </td>
       <td class="p-3 font-medium text-gray-900 max-w-xs break-words leading-relaxed">
-        ${q.question_text || '-'}
+        ${q.image_url ? `
+          <div class="mb-2">
+            <a href="${q.image_url}" target="_blank" title="คลิกดูรูปเต็ม">
+              <img src="${q.image_url}" alt="รูปประกอบ" class="h-16 w-auto max-w-[160px] object-cover rounded-lg border border-amber-200 hover:opacity-80 transition-opacity" />
+            </a>
+          </div>
+        ` : ''}
+        <span>${q.question_text || '-'}</span>
       </td>
       <td class="p-3">
         ${(typeof isQuestionOrphan === 'function' && isQuestionOrphan(q)) ? `
@@ -1553,8 +2121,16 @@ function renderQuestionsTable(list) {
           ${normalizeAnswerToThai(q.correct_answer)}
         </span>
       </td>
-      <td class="p-3 text-gray-500 text-[11px] max-w-[160px] break-words">
-        ${q.explanation || '-'}
+      <td class="p-3 text-gray-500 text-[11px] max-w-[180px] break-words">
+        ${q.explanation_image_url ? `
+          <div class="mb-1.5">
+            <a href="${q.explanation_image_url}" target="_blank" title="คลิกดูภาพเฉลยวิธีทำเต็มๆ" class="inline-block group">
+              <img src="${q.explanation_image_url}" alt="เฉลยภาพ" class="h-12 w-auto max-w-[140px] object-cover rounded border border-amber-300 group-hover:scale-105 transition-transform" />
+            </a>
+            <span class="block text-[9px] text-[#755634] font-bold">📷 ภาพวิธีทำ</span>
+          </div>
+        ` : ''}
+        <span>${q.explanation || (!q.explanation_image_url ? '-' : '')}</span>
       </td>
       <td class="p-3 text-center">
         <div class="flex items-center justify-center gap-1">
@@ -1630,6 +2206,111 @@ async function deleteSelectedQuestions() {
     alert('เกิดข้อผิดพลาดในการลบหลายรายการ: ' + err.message);
   }
 }
+// ฟังก์ชันลบข้อสอบทั้งหมดที่กำลังแสดงผลตามตัวกรองปัจจุบัน
+async function purgeFilteredQuestions() {
+  if (!currentlyRenderedQuestions || currentlyRenderedQuestions.length === 0) {
+    alert('ไม่มีรายการข้อสอบในตัวกรองปัจจุบันให้ลบ');
+    return;
+  }
+
+  const count = currentlyRenderedQuestions.length;
+  const partVal = document.getElementById('filterPartSelect')?.value || 'all';
+  const catVal = document.getElementById('filterCategorySelect')?.value || 'all';
+
+  const confirmMsg = `⚠️ คำเตือนสำคัญ!\n\nคุณกำลังจะลบข้อสอบจำนวนทั้งหมด ${count} ข้อ ที่กำลังแสดงอยู่ในตัวกรองนี้:\n` +
+    `• ภาค: ${partVal}\n` +
+    `• หมวด: ${catVal}\n\n` +
+    `ข้อสอบเหล่านี้จะถูกลบออกจาก Supabase อย่างถาวร ยืนยันการลบหรือไม่?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  // ยืนยันรอบที่สองเพื่อความปลอดภัย
+  if (!confirm(`ย้ำอีกครั้ง! ยืนยันลบข้อสอบทั้ง ${count} ข้อจริงหรือไม่?`)) return;
+
+  const targetIds = currentlyRenderedQuestions.map(q => q.id);
+
+  try {
+    // ทยอยลบทีละ 100 ข้อเพื่อป้องกัน payload เกินขนาด
+    const chunkSize = 100;
+    for (let i = 0; i < targetIds.length; i += chunkSize) {
+      const chunk = targetIds.slice(i, i + chunkSize);
+      const { error } = await supabase.from('questions').delete().in('id', chunk);
+      if (error) throw error;
+    }
+
+    alert(`ลบข้อสอบออกจากระบบสำเร็จทั้งหมด ${count} ข้อ`);
+    
+    // อัปเดตข้อมูลในหน่วยความจำ
+    const idSet = new Set(targetIds.map(String));
+    allLoadedQuestions = allLoadedQuestions.filter(q => !idSet.has(String(q.id)));
+    
+    filterQuestionsTable();
+
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการลบข้อสอบ: ' + err.message);
+  }
+}
+
+// ฟังก์ชันย้ายหมวดหมู่ข้อสอบที่เลือกแบบยกชุด
+async function bulkMoveSelectedQuestions() {
+  const checkedBoxes = document.querySelectorAll('.q-row-checkbox:checked');
+  const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+  if (selectedIds.length === 0) return;
+
+  const targetPart = document.getElementById('selPart').value;
+  const targetCategory = document.getElementById('selCategory').value;
+  const targetSubCategory = document.getElementById('selSubCategory').value;
+  const targetTopic = document.getElementById('selTopic').value;
+
+  if (!targetPart || !targetCategory) {
+    alert('กรุณาเลือกหมวดหมู่ปลายทางในกล่องด้านล่างให้ครบถ้วนก่อนย้าย');
+    return;
+  }
+
+  const confirmMsg = `คุณต้องการย้ายข้อสอบจำนวน ${selectedIds.length} ข้อ ไปยัง:\n` +
+    `• ภาค: ${targetPart}\n` +
+    `• หมวด: ${targetCategory}\n` +
+    `• เรื่อง: ${targetTopic || targetSubCategory || 'ทั่วไป'}\n\nยืนยันหรือไม่?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const payload = {
+      exam_part: targetPart,
+      exam_category: targetCategory,
+      exam_sub_category: targetSubCategory,
+      exam_topic: targetTopic,
+      exam_id: targetPart === 'ภาค ก' ? 'exam_part_a' : 'exam_part_b'
+    };
+
+    const { error } = await supabase
+      .from('questions')
+      .update(payload)
+      .in('id', selectedIds);
+
+    if (error) throw error;
+
+    // อัปเดตข้อมูลในหน่วยความจำทันที
+    const idSet = new Set(selectedIds.map(String));
+    allLoadedQuestions.forEach(q => {
+      if (idSet.has(String(q.id))) {
+        Object.assign(q, payload);
+      }
+    });
+
+    alert(`ย้ายหมวดหมู่ข้อสอบสำเร็จ ${selectedIds.length} ข้อ!`);
+    
+    // รีเซ็ต Checkbox
+    const selectAll = document.getElementById('selectAllCheckbox');
+    if (selectAll) selectAll.checked = false;
+    updateBulkToolbar();
+    filterQuestionsTable();
+
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการย้ายหมวดหมู่: ' + err.message);
+  }
+}
 
 async function deleteQuestion(id) {
   if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อสอบข้อนี้ออกจากระบบ?')) return;
@@ -1648,7 +2329,6 @@ async function deleteQuestion(id) {
   }
 }
 
-// ==========================================
 function openEditQuestionModal(id) {
   const q = allLoadedQuestions.find(item => String(item.id) === String(id));
   if (!q) return;
@@ -1657,9 +2337,14 @@ function openEditQuestionModal(id) {
   document.getElementById('editQIdBadge').innerText = q.id;
   document.getElementById('editQPart').value = q.exam_part || 'ภาค ก';
   document.getElementById('editQCategory').value = q.exam_category || '';
-  document.getElementById('editQSubCategory').value = q.exam_sub_category || ''; // 👈 ดึงค่ามาแสดง
+  document.getElementById('editQSubCategory').value = q.exam_sub_category || '';
   document.getElementById('editQTopic').value = q.exam_topic || '';
   document.getElementById('editQText').value = q.question_text || '';
+  
+  // 🖼️ ดึงลิงก์รูปภาพโจทย์และรูปเฉลยมาแสดงในช่องกรอก
+  if (document.getElementById('editQImage')) document.getElementById('editQImage').value = q.image_url || '';
+  if (document.getElementById('editQExpImage')) document.getElementById('editQExpImage').value = q.explanation_image_url || '';
+
   document.getElementById('editQA').value = q.choice_a || '';
   document.getElementById('editQB').value = q.choice_b || '';
   document.getElementById('editQC').value = q.choice_c || '';
@@ -1668,6 +2353,24 @@ function openEditQuestionModal(id) {
   document.getElementById('editQExp').value = q.explanation || '';
 
   document.getElementById('editQuestionModal').classList.remove('hidden');
+
+  // 🖼️ สั่งแสดงภาพตัวอย่างสดทันทีเมื่อเปิด Modal
+  updateLiveImagePreview('editQImage', 'previewQImage');
+  updateLiveImagePreview('editQExpImage', 'previewQExpImage');
+}
+// ฟังก์ชันอัปเดตรูปภาพตัวอย่างสดทันทีที่พิมพ์หรือวางลิงก์
+function updateLiveImagePreview(inputId, imgId) {
+  const url = (document.getElementById(inputId)?.value || '').trim();
+  const img = document.getElementById(imgId);
+  const container = img ? img.parentElement : null;
+
+  if (url && img && container) {
+    img.src = url;
+    container.classList.remove('hidden');
+  } else if (container) {
+    container.classList.add('hidden');
+    if (img) img.src = '';
+  }
 }
 
 function closeEditQuestionModal() {
@@ -1685,8 +2388,12 @@ async function saveEditedQuestion() {
   const explanation = document.getElementById('editQExp').value.trim();
   const exam_part = document.getElementById('editQPart').value;
   const exam_category = document.getElementById('editQCategory').value.trim();
-  const exam_sub_category = document.getElementById('editQSubCategory').value.trim(); // 👈 รับค่ามาเซฟ
+  const exam_sub_category = document.getElementById('editQSubCategory').value.trim();
   const exam_topic = document.getElementById('editQTopic').value.trim();
+
+  // 🖼️ ดึงค่าลิงก์รูปภาพโจทย์และรูปเฉลยวิธีทำ
+  const image_url = (document.getElementById('editQImage')?.value || '').trim();
+  const explanation_image_url = (document.getElementById('editQExpImage')?.value || '').trim();
 
   if (!question_text || !choice_a || !choice_b || !choice_c || !choice_d) {
     alert('กรุณากรอกโจทย์และตัวเลือก ก-ง ให้ครบถ้วน');
@@ -1696,13 +2403,16 @@ async function saveEditedQuestion() {
   try {
     const payload = {
       question_text, choice_a, choice_b, choice_c, choice_d,
-      correct_answer, explanation, exam_part, exam_category, exam_sub_category, exam_topic
+      correct_answer, explanation,
+      image_url: image_url || null,                       // 👈 เพิ่มบันทึกลงฐานข้อมูล
+      explanation_image_url: explanation_image_url || null, // 👈 เพิ่มบันทึกลงฐานข้อมูล
+      exam_part, exam_category, exam_sub_category, exam_topic
     };
 
     const { error } = await supabase.from('questions').update(payload).eq('id', id);
     if (error) throw error;
 
-    // ใน saveEditedQuestion
+    // อัปเดตข้อมูลในหน่วยความจำทันที
     const index = allLoadedQuestions.findIndex(q => String(q.id) === String(id));
     if (index !== -1) {
       allLoadedQuestions[index] = { ...allLoadedQuestions[index], ...payload };
@@ -1717,16 +2427,16 @@ async function saveEditedQuestion() {
 }
 
 // ==========================================
-// 7. เริ่มต้นทำงานเมื่อเปิดหน้าเว็บ
+// สั่งเริ่มต้นทำงานทันทีเมื่อโหลดหน้าเว็บเสร็จ
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadTaxonomyFromCloud(); // ดึงหมวดหมู่จาก Supabase ก่อน
   loadUsersList();
   loadAdminConfigs();
   onPartChange();
   loadAdminUsersList();
   loadApiKeysForAdmin();
 });
-
 
 // ฟังก์ชันส่งออกข้อสอบที่กำลังกรองอยู่บนตารางเป็นไฟล์ Excel (.xlsx)
 function downloadFilteredQuestionsExcel() {
@@ -1742,12 +2452,14 @@ function downloadFilteredQuestionsExcel() {
     "กลุ่มวิชาย่อย": q.exam_sub_category || '',
     "หัวข้อย่อย": q.exam_topic || '',
     "โจทย์คำถาม": q.question_text || '',
+    "ลิงก์รูปภาพโจทย์ (URL)": q.image_url || '',
     "ตัวเลือก ก": q.choice_a || '',
     "ตัวเลือก ข": q.choice_b || '',
     "ตัวเลือก ค": q.choice_c || '',
     "ตัวเลือก ง": q.choice_d || '',
     "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": normalizeAnswerToThai(q.correct_answer),
-    "คำอธิบายเฉลย": q.explanation || ''
+    "คำอธิบายเฉลย": q.explanation || '',
+    "ลิงก์รูปภาพเฉลยวิธีทำ (URL)": q.explanation_image_url || ''
   }));
 
   // 2. สร้าง Sheet และจัดขนาดความกว้างของคอลัมน์ให้อ่านง่าย
@@ -1955,6 +2667,83 @@ async function testAllKeysHealth() {
     checkTasks.push(checkSingleKey(i));
   }
   await Promise.all(checkTasks);
+}
+
+
+// ฟังก์ชันส่งออกสถิติผลการสอบของผู้ใช้งานทุกคนเป็น Excel (ดึงตรงจากแคช เร็วและไม่ติดเพดาน 1,000 แถว)
+function downloadUsersScoreReportExcel() {
+  try {
+    const users = cachedAdminUsers || [];
+    const attempts = cachedUserAttempts || [];
+
+    if (users.length === 0) {
+      alert("ไม่พบข้อมูลผู้ใช้งานสำหรับส่งออก");
+      return;
+    }
+
+    const reportRows = users.map((u, index) => {
+      const userAttempts = attempts.filter(a => a.user_id === u.id);
+      const count = userAttempts.length;
+      let avg = 0;
+      if (count > 0) {
+        const total = userAttempts.reduce((sum, curr) => sum + Number(curr.score_percentage || 0), 0);
+        avg = (total / count).toFixed(1);
+      }
+      const hasCompeted = userAttempts.some(a => a.exam_mode === 'competition') ? 'เคยสอบแล้ว' : 'ยังไม่เคยสอบ';
+
+      return {
+        "ลำดับ": index + 1,
+        "รหัสประจำตัว": u.student_id || '-',
+        "ชื่อ - นามสกุล": u.name || 'ไม่ระบุชื่อ',
+        "ระดับสิทธิ์": u.role || 'student',
+        "จำนวนชุดที่ฝึกทำ (ชุด)": count,
+        "คะแนนเฉลี่ย (%)": Number(avg),
+        "สถานะโหมดแข่งขัน": hasCompeted,
+        "วันที่สมัคร": u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-'
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(reportRows);
+    ws['!cols'] = [{ wch: 6 }, { wch: 15 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 18 }, { wch: 15 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "รายงานผลสอบนักเรียน");
+    XLSX.writeFile(wb, `รายงานสรุปผลการสอบ_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  } catch (err) {
+    alert("เกิดข้อผิดพลาดในการดาวน์โหลดรายงาน: " + err.message);
+  }
+}
+
+// ฟังก์ชันสำรองข้อมูลระบบทั้งหมดออกมาเป็นไฟล์ JSON ทันที
+async function backupAllSystemData() {
+  try {
+    const { data: users } = await supabase.from('users').select('*');
+    const { data: questions } = await supabase.from('questions').select('*');
+    const { data: configs } = await supabase.from('system_configs').select('*');
+    const { data: attempts } = await supabase.from('exam_attempts').select('*');
+
+    const backupPayload = {
+      backup_date: new Date().toISOString(),
+      created_by: "Admin Backup System",
+      system_configs: configs || [],
+      users: users || [],
+      questions: questions || [],
+      exam_attempts: attempts || []
+    };
+
+    const dataBlob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: "application/json" });
+    const downloadUrl = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `kru_system_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+
+    alert("✅ ดาวน์โหลดไฟล์สำรองข้อมูลฉุกเฉินเรียบร้อยแล้ว!");
+  } catch (err) {
+    alert("เกิดข้อผิดพลาดในการสำรองข้อมูล: " + err.message);
+  }
 }
 </script>
 </body>
