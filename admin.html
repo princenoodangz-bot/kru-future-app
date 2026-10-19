@@ -251,6 +251,45 @@
       </div>
     </div>
   </div>
+  <!-- ================= 🎯 กล่องจัดการชุดข้อสอบทดลองฟรี 20 ข้อ ================= -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-[20px]">lock_clock</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-gray-800">จัดการชุดข้อสอบทดลองฟรี (Trial CBT 20 ข้อ)</h3>
+            <p class="text-xs text-gray-500">สุ่มข้อสอบ 20 ข้อจากคลังจริง แล้วกดล็อกไว้ ทุกคนที่กดทดลองสอบจะเจอชุดนี้เหมือนกัน</p>
+          </div>
+        </div>
+        <span id="trialLockStatusBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 border self-start sm:self-auto">
+          ⚪ ยังไม่เคยล็อกชุดข้อสอบ
+        </span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="generateNewTrialSet()" class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-[#755634] border border-amber-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs">
+          <span class="material-symbols-outlined text-[16px]">shuffle</span>
+          <span>🎲 สุ่มชุดใหม่ 20 ข้อ (ภาค ก 10 + ภาค ข 10)</span>
+        </button>
+        <button type="button" onclick="saveLockedTrialSetToCloud()" id="btnSaveTrialSet" class="px-4 py-2 bg-[#755634] hover:bg-[#8c673e] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+          <span class="material-symbols-outlined text-[16px]">lock</span>
+          <span>🔒 บันทึก & ล็อกชุดข้อสอบนี้</span>
+        </button>
+      </div>
+
+      <!-- กล่องแสดงรายการ 20 ข้อที่สุ่มได้ -->
+      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold text-gray-700">
+          <span>รายการข้อสอบที่เตรียมล็อก (<span id="trialPreviewCount">0</span>/20 ข้อ):</span>
+          <span class="text-[11px] text-gray-400">ตรวจสอบความเรียบร้อยก่อนกดล็อก</span>
+        </div>
+        <div id="trialPreviewList" class="max-h-48 overflow-y-auto space-y-1.5 text-xs text-gray-600 pr-1">
+          <p class="text-gray-400 text-center py-4">คลิกปุ่ม "สุ่มชุดใหม่ 20 ข้อ" เพื่อเริ่มต้นจัดชุด</p>
+        </div>
+      </div>
+    </div>
   
 <!-- ================= แท็บ 4: จัดการ Gemini AI (10 คีย์) ================= -->
   <div id="tabContentAi" style="display: none;" class="space-y-6">
@@ -675,6 +714,8 @@
               <div class="flex items-center gap-1">
                 <button type="button" onclick="editCurrentCategory()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
                 <span class="text-gray-300">|</span>
+                <button type="button" onclick="deleteCurrentCategory()" class="text-[11px] text-rose-600 font-bold hover:underline">ลบ</button>
+                <span class="text-gray-300">|</span>
                 <button type="button" onclick="addNewCategory()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
               </div>
             </div>
@@ -688,6 +729,8 @@
               <div class="flex items-center gap-1">
                 <button type="button" onclick="editCurrentSubCategory()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
                 <span class="text-gray-300">|</span>
+                <button type="button" onclick="deleteCurrentSubCategory()" class="text-[11px] text-rose-600 font-bold hover:underline">ลบ</button>
+                <span class="text-gray-300">|</span>
                 <button type="button" onclick="addNewSubCategory()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
               </div>
             </div>
@@ -700,6 +743,8 @@
               <label class="font-semibold text-[#755634] font-bold">4. หัวข้อเรื่องย่อย</label>
               <div class="flex items-center gap-1">
                 <button type="button" onclick="editCurrentTopic()" class="text-[11px] text-amber-700 font-bold hover:underline">แก้ไข</button>
+                <span class="text-gray-300">|</span>
+                <button type="button" onclick="deleteCurrentTopic()" class="text-[11px] text-rose-600 font-bold hover:underline">ลบ</button>
                 <span class="text-gray-300">|</span>
                 <button type="button" onclick="addNewTopic()" class="text-[11px] text-[#755634] font-bold hover:underline">+ เพิ่ม</button>
               </div>
@@ -1644,6 +1689,194 @@ async function saveSystemConfigs() {
 }
 
 // ==========================================
+// ระบบสุ่มและล็อกชุดข้อสอบทดลอง 20 ข้อ
+// ==========================================
+let pendingTrialQuestions = [];
+
+async function loadCurrentLockedTrialStatus() {
+  try {
+    if (!window.supabase) return;
+    const { data } = await supabase
+      .from('system_configs')
+      .select('value, updated_at')
+      .eq('key', 'locked_trial_questions_20')
+      .maybeSingle();
+
+    const badge = document.getElementById('trialLockStatusBadge');
+    if (data && data.value) {
+      const list = JSON.parse(data.value);
+      pendingTrialQuestions = list;
+      renderTrialPreviewList();
+      const dateStr = data.updated_at ? new Date(data.updated_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      if (badge) {
+        badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300';
+        badge.innerText = `🟢 ล็อกอยู่: ${list.length} ข้อ (${dateStr} น.)`;
+      }
+    }
+  } catch (err) {
+    console.warn('โหลดสถานะชุดทดลองล้มเหลว:', err);
+  }
+}
+
+// สุ่มคละ ภาค ก 10 ข้อ + ภาค ข 10 ข้อ จากคลังข้อสอบจริง
+function generateNewTrialSet() {
+  if (!allLoadedQuestions || allLoadedQuestions.length === 0) {
+    alert('กำลังโหลดข้อสอบจากคลัง กรุณารอสักครู่แล้วกดใหม่อีกครั้ง');
+    loadQuestionsList();
+    return;
+  }
+
+  const poolA = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ก')).sort(() => Math.random() - 0.5);
+  const poolB = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ข')).sort(() => Math.random() - 0.5);
+
+  const pickedA = poolA.slice(0, 10);
+  const pickedB = poolB.slice(0, 10);
+
+  pendingTrialQuestions = [...pickedA, ...pickedB];
+
+  // ถ้าภาคใดมีไม่ครบ 10 ข้อ ให้ดึงข้อที่เหลือจากคลังมาเติมให้เต็ม 20 ข้อ
+  if (pendingTrialQuestions.length < 20) {
+    const remain = 20 - pendingTrialQuestions.length;
+    const pickedIds = new Set(pendingTrialQuestions.map(q => q.id));
+    const extra = allLoadedQuestions.filter(q => !pickedIds.has(q.id)).slice(0, remain);
+    pendingTrialQuestions.push(...extra);
+  }
+
+  renderTrialPreviewList();
+
+  const badge = document.getElementById('trialLockStatusBadge');
+  if (badge) {
+    badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 animate-pulse';
+    badge.innerText = `🟡 สุ่มแล้ว ${pendingTrialQuestions.length} ข้อ (ยังไม่ได้กดล็อก)`;
+  }
+}
+
+function renderTrialPreviewList() {
+  const container = document.getElementById('trialPreviewList');
+  const countBadge = document.getElementById('trialPreviewCount');
+  if (countBadge) countBadge.innerText = pendingTrialQuestions.length;
+  if (!container) return;
+
+  if (pendingTrialQuestions.length === 0) {
+    container.innerHTML = '<p class="text-gray-400 text-center py-4">ยังไม่มีข้อสอบในชุดทดลอง</p>';
+    return;
+  }
+
+  container.innerHTML = pendingTrialQuestions.map((q, idx) => `
+    <div class="p-2 rounded-lg bg-white border border-gray-200 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-5 h-5 rounded bg-stone-100 text-[#755634] font-bold text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
+        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${q.exam_part?.includes('ข') ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'} shrink-0">${q.exam_part || 'ทั่วไป'}</span>
+        <span class="truncate text-gray-800">${q.question_text || '-'}</span>
+      </div>
+      <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0">เฉลย: ${normalizeAnswerToThai(q.correct_answer)}</span>
+    </div>
+  `).join('');
+}
+
+// สั่งบันทึกล็อกชุด 20 ข้อขึ้น Supabase
+async function saveLockedTrialSetToCloud() {
+  if (pendingTrialQuestions.length === 0) {
+    alert('กรุณากดสุ่มข้อสอบก่อนกดล็อก');
+    return;
+  }
+
+  if (!confirm(`คุณต้องการล็อกข้อสอบจำนวน ${pendingTrialQuestions.length} ข้อนี้ ให้เป็นชุดทดลองสอบฟรีของระบบใช่หรือไม่?`)) return;
+
+  const btn = document.getElementById('btnSaveTrialSet');
+  btn.disabled = true;
+
+  try {
+    const { error } = await supabase.from('system_configs').upsert({
+      key: 'locked_trial_questions_20',
+      value: JSON.stringify(pendingTrialQuestions),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key' });
+
+    if (error) throw error;
+
+    alert(`✅ ล็อกชุดข้อสอบทดลองฟรี ${pendingTrialQuestions.length} ข้อ เรียบร้อยแล้ว! ผู้เข้าทดลองสอบทุกคนจะได้ทำชุดนี้ทันที`);
+    loadCurrentLockedTrialStatus();
+  } catch (err) {
+    alert('บันทึกล้มเหลว: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+// 🗑️ 1. ฟังก์ชันลบ "หมวดวิชาหลัก"
+function deleteCurrentCategory() {
+  const part = document.getElementById('selPart').value;
+  const current = document.getElementById('selCategory').value;
+  if (!current) return;
+
+  const countSub = Object.keys(examTaxonomy[part]?.[current] || {}).length;
+  const confirmMsg = `⚠️ คำเตือน!\nคุณต้องการลบหมวดวิชาหลัก: "${current}" ออกจาก [${part}] ใช่หรือไม่?\n(กลุ่มวิชาย่อย ${countSub} กลุ่ม และหัวข้อย่อยทั้งหมดภายใต้หมวดนี้จะถูกลบไปด้วย)`;
+
+  if (!confirm(confirmMsg)) return;
+
+  delete examTaxonomy[part][current];
+
+  // ถ้าไม่เหลือหมวดใดเลย ให้สร้างหมวดเริ่มต้นไว้ป้องกันระบบว่างเปล่า
+  if (Object.keys(examTaxonomy[part]).length === 0) {
+    examTaxonomy[part]['ทั่วไป'] = { 'ทั่วไป': ['พื้นฐาน'] };
+  }
+
+  saveTaxonomy();
+  onPartChange();
+  alert(`ลบหมวดวิชาหลัก "${current}" เรียบร้อยแล้ว`);
+}
+
+// 🗑️ 2. ฟังก์ชันลบ "กลุ่มวิชาย่อย"
+function deleteCurrentSubCategory() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const current = document.getElementById('selSubCategory').value;
+  if (!cat || !current) return;
+
+  const countTopics = (examTaxonomy[part]?.[cat]?.[current] || []).length;
+  const confirmMsg = `⚠️ คำเตือน!\nคุณต้องการลบกลุ่มวิชาย่อย: "${current}" ออกจากหมวด [${cat}] ใช่หรือไม่?\n(หัวข้อเรื่องย่อยทั้ง ${countTopics} เรื่องภายใต้กลุ่มนี้จะถูกลบไปด้วย)`;
+
+  if (!confirm(confirmMsg)) return;
+
+  delete examTaxonomy[part][cat][current];
+
+  // ถ้าไม่เหลือกลุ่มย่อยใดเลยในหมวดนี้ ให้สร้างกลุ่มทั่วไปไว้
+  if (Object.keys(examTaxonomy[part][cat]).length === 0) {
+    examTaxonomy[part][cat]['ทั่วไป'] = ['พื้นฐาน'];
+  }
+
+  saveTaxonomy();
+  onCategoryChange();
+  alert(`ลบกลุ่มวิชาย่อย "${current}" เรียบร้อยแล้ว`);
+}
+
+// 🗑️ 3. ฟังก์ชันลบ "หัวข้อเรื่องย่อย"
+function deleteCurrentTopic() {
+  const part = document.getElementById('selPart').value;
+  const cat = document.getElementById('selCategory').value;
+  const sub = document.getElementById('selSubCategory').value;
+  const current = document.getElementById('selTopic').value;
+  if (!sub || !current) return;
+
+  if (!confirm(`คุณต้องการลบหัวข้อเรื่องย่อย: "${current}" ใช่หรือไม่?`)) return;
+
+  const topics = examTaxonomy[part]?.[cat]?.[sub] || [];
+  const idx = topics.indexOf(current);
+  if (idx !== -1) {
+    topics.splice(idx, 1);
+  }
+
+  // ถ้าไม่เหลือเรื่องย่อยเลย ให้คงเรื่องพื้นฐานไว้ 1 เรื่อง
+  if (topics.length === 0) {
+    topics.push('ทั่วไป');
+  }
+
+  saveTaxonomy();
+  onSubCategoryChange();
+  alert(`ลบหัวข้อเรื่องย่อย "${current}" เรียบร้อยแล้ว`);
+}
+
+// ==========================================
 // 3. จัดการโครงสร้างหมวดหมู่ 4 ระดับ
 // ==========================================
 const defaultTaxonomy = {
@@ -2104,6 +2337,7 @@ function switchAdminTab(tabKey) {
   if (tabQuestions) tabQuestions.style.display = 'none';
   if (tabAi) tabAi.style.display = 'none'; // 👈 เพิ่มจุดนี้
   if (tabSocial) tabSocial.style.display = 'none';
+  
 
   document.querySelectorAll('.admin-tab-btn').forEach(btn => {
     btn.className = 'admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0 border border-gray-200';
@@ -2132,6 +2366,11 @@ function switchAdminTab(tabKey) {
     activeContent = tabSocial;
     activeBtnId = 'tabBtnSocial';
     initSocialCardStudio();
+  } else if (tabKey === 'dday') {
+    activeContent = tabDday;
+    activeBtnId = 'tabBtnDday';
+    loadAdminConfigs();
+    loadCurrentLockedTrialStatus();
   }
 
   if (activeContent) activeContent.style.display = 'block';
@@ -2189,12 +2428,11 @@ async function loadQuestionsList() {
     if (document.getElementById('statNoExpCount')) document.getElementById('statNoExpCount').innerText = noExp;
     if (countBadge) countBadge.innerText = allLoadedQuestions.length;
 
-    // ซิงค์หมวดหมู่จากข้อสอบจริงในฐานข้อมูลเข้าสู่ตัวกรองอัตโนมัติ
     allLoadedQuestions.forEach(q => {
-      const p = (q.exam_part || '').trim();
-      const c = (q.exam_category || '').trim();
-      const s = (q.exam_sub_category || '').trim();
-      const t = (q.exam_topic || '').trim();
+      const p = normalizeTaxonomyText(q.exam_part);
+      const c = normalizeTaxonomyText(q.exam_category);
+      const s = normalizeTaxonomyText(q.exam_sub_category);
+      const t = normalizeTaxonomyText(q.exam_topic);
       if (p && c && s && t) {
         if (!examTaxonomy[p]) examTaxonomy[p] = {};
         if (!examTaxonomy[p][c]) examTaxonomy[p][c] = {};
@@ -2211,8 +2449,16 @@ async function loadQuestionsList() {
     tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500">ไม่สามารถโหลดรายการข้อสอบได้: ' + err.message + '</td></tr>';
   }
 }
+// 🧹 ฟังก์ชันตัดช่องว่างแฝง อักขระล่องหน และจัดระเบียบตัวอักษรภาษาไทย
+function normalizeTaxonomyText(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // ตัด Zero-width space
+    .replace(/\u00A0/g, ' ')               // เปลี่ยน Non-breaking space เป็น space ปกติ
+    .replace(/\s+/g, ' ')                  // ยุบช่องว่างที่เคาะซ้ำๆ
+    .trim();
+}
 
-// 1. ฟังก์ชันอัปเดตดรอปดาวน์หมวดวิชาหลักด้านบน
 function onTableFilterPartChange() {
   const part = document.getElementById('filterPartSelect').value;
   const catSelect = document.getElementById('filterCategorySelect');
@@ -2220,9 +2466,12 @@ function onTableFilterPartChange() {
   if (part === 'all') {
     catSelect.innerHTML = '<option value="all">ทุกหมวดวิชาหลัก</option>';
   } else {
-    const cats = Object.keys(examTaxonomy[part] || {});
+    // 👈 กรองชื่อหมวดหมู่ให้สะอาดและยุบคำที่ซ้ำกันออก
+    const rawCats = Object.keys(examTaxonomy[part] || {});
+    const cleanCats = [...new Set(rawCats.map(c => normalizeTaxonomyText(c)).filter(Boolean))];
+
     catSelect.innerHTML = '<option value="all">ทุกหมวดวิชาหลัก</option>' + 
-      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      cleanCats.map(c => `<option value="${c}">${c}</option>`).join('');
   }
 
   onTableFilterCategoryChange();
@@ -2284,10 +2533,10 @@ function filterQuestionsTable() {
       (q.explanation || '').toLowerCase().includes(term) ||
       (q.exam_topic || '').toLowerCase().includes(term);
 
-    const matchPart = (part === 'all') || (q.exam_part === part);
-    const matchCat = (category === 'all') || (q.exam_category === category);
-    const matchSub = (subCategory === 'all') || (q.exam_sub_category === subCategory);
-    const matchTopic = (topic === 'all') || (q.exam_topic === topic);
+    const matchPart = (part === 'all') || (normalizeTaxonomyText(q.exam_part) === normalizeTaxonomyText(part));
+    const matchCat = (category === 'all') || (normalizeTaxonomyText(q.exam_category) === normalizeTaxonomyText(category));
+    const matchSub = (subCategory === 'all') || (normalizeTaxonomyText(q.exam_sub_category) === normalizeTaxonomyText(subCategory));
+    const matchTopic = (topic === 'all') || (normalizeTaxonomyText(q.exam_topic) === normalizeTaxonomyText(topic));
 
     return matchTerm && matchPart && matchCat && matchSub && matchTopic;
   });

@@ -468,9 +468,11 @@
 
           localStorage.setItem('kru_active_session', guestSessionToken);
           localStorage.setItem('kru_user_info', JSON.stringify(guestProfile));
+          localStorage.setItem('kru_guest_name', identifier); // จำชื่อเล่น
           
           setTimeout(() => {
-            location.href = 'index.html';
+            // 👈 สั่งเปิดเข้าหน้าทดลองสอบ trial-quiz.html ทันทีพร้อมส่งชื่อเล่น
+            location.href = `trial-quiz.html?name=${encodeURIComponent(identifier)}`;
           }, 300);
           return;
         }
