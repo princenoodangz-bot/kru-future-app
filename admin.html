@@ -1660,29 +1660,47 @@ async function addQuickQuestion() {
   }
 }
 
+// ฟังก์ชันดาวน์โหลดแม่แบบ Excel เรียงตามลำดับใหม่ (13 คอลัมน์)
 function downloadExcelTemplate() {
   const sampleData = [
     {
-      "ภาค (ภาค ก / ภาค ข)": "ภาค ก",
+      "ภาค": "ภาค ก",
       "หมวดวิชา": "ความสามารถในการคิดวิเคราะห์",
       "กลุ่มวิชาย่อย": "เชิงปริมาณ (คณิตศาสตร์)",
       "หัวข้อย่อย": "อนุกรมตัวเลข",
       "โจทย์คำถาม": "6, 12, 24, 48, ?, 192 ตัวเลขในเครื่องหมายคำถามคือข้อใด",
-      "ลิงก์รูปภาพโจทย์ (URL)": "",
       "ตัวเลือก ก": "96",
       "ตัวเลือก ข": "84",
       "ตัวเลือก ค": "90",
       "ตัวเลือก ง": "100",
-      "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": "ก",
+      "เฉลย": "ก",
       "คำอธิบายเฉลย": "อนุกรมทวีคูณเพิ่มขึ้นเป็น 2 เท่า: 48 x 2 = 96",
-      "ลิงก์รูปภาพเฉลยวิธีทำ (URL)": "https://..."
+      "ลิงก์รูปภาพโจทย์ (URL)": "",
+      "ลิงก์รูปภาพเฉลยวิธีทำ (URL)": ""
     }
   ];
 
   const ws = XLSX.utils.json_to_sheet(sampleData);
-  ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 25 }, { wch: 25 }, { wch: 45 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 40 }];
+
+  // ตั้งค่าความกว้างคอลัมน์ให้อ่านง่ายพอดีข้อความ
+  ws['!cols'] = [
+    { wch: 12 }, // ภาค
+    { wch: 30 }, // หมวดวิชา
+    { wch: 25 }, // กลุ่มวิชาย่อย
+    { wch: 25 }, // หัวข้อย่อย
+    { wch: 50 }, // โจทย์คำถาม
+    { wch: 20 }, // ตัวเลือก ก
+    { wch: 20 }, // ตัวเลือก ข
+    { wch: 20 }, // ตัวเลือก ค
+    { wch: 20 }, // ตัวเลือก ง
+    { wch: 10 }, // เฉลย
+    { wch: 45 }, // คำอธิบายเฉลย
+    { wch: 30 }, // ลิงก์รูปภาพโจทย์ (URL)
+    { wch: 30 }  // ลิงก์รูปภาพเฉลยวิธีทำ (URL)
+  ];
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "คลังข้อสอบครูผู้ช่วย");
+  XLSX.utils.book_append_sheet(wb, ws, "แม่แบบข้อสอบครูผู้ช่วย");
   XLSX.writeFile(wb, "แม่แบบนำเข้าข้อสอบ_ครูผู้ช่วย.xlsx");
 }
 
@@ -1721,11 +1739,11 @@ async function uploadExcelQuestions() {
 
       const insertRows = rows.map((r, index) => {
         const rowNum = index + 2; // เลขบรรทัดในไฟล์ Excel (รวมหัวตาราง)
-        const qText = String(r["โจทย์คำถาม"] || '').trim();
-        const cA = String(r["ตัวเลือก ก"] || '').trim();
-        const cB = String(r["ตัวเลือก ข"] || '').trim();
-        const cC = String(r["ตัวเลือก ค"] || '').trim();
-        const cD = String(r["ตัวเลือก ง"] || '').trim();
+        const qText = String(r["โจทย์คำถาม"] || r["โจทย์"] || '').trim();
+        const cA = String(r["ตัวเลือก ก"] || r["ก"] || '').trim();
+        const cB = String(r["ตัวเลือก ข"] || r["ข"] || '').trim();
+        const cC = String(r["ตัวเลือก ค"] || r["ค"] || '').trim();
+        const cD = String(r["ตัวเลือก ง"] || r["ง"] || '').trim();
 
         // ตรวจสอบความสมบูรณ์ของข้อสอบ
         if (!qText) {
@@ -1739,15 +1757,24 @@ async function uploadExcelQuestions() {
           return null;
         }
 
-        const rawAns = r["เฉลยที่ถูกต้อง (ก/ข/ค/ง)"] || r["เฉลยที่ถูกต้อง (A/B/C/D)"] || r["เฉลย"] || 'ก';
+        // 🎯 1. อ่านเฉลยตามแม่แบบใหม่ (ตรวจคอลัมน์ "เฉลย" เป็นอันดับแรก)
+        const rawAns = r["เฉลย"] || r["เฉลยที่ถูกต้อง (ก/ข/ค/ง)"] || r["เฉลยที่ถูกต้อง"] || 'ก';
         const finalAns = normalizeAnswerToThai(rawAns);
 
-        const part = r["ภาค (ภาค ก / ภาค ข)"] || r["ภาค"] || document.getElementById('selPart').value;
-        const cat = r["หมวดวิชา"] || document.getElementById('selCategory').value;
-        const sub = r["กลุ่มวิชาย่อย"] || r["กลุ่มย่อย"] || document.getElementById('selSubCategory').value;
-        const topic = r["หัวข้อย่อย"] || r["เรื่องย่อย"] || document.getElementById('selTopic').value;
+        // 🎯 2. อ่านหมวดหมู่ 4 ระดับ (ตรวจคอลัมน์ "ภาค" เป็นอันดับแรก)
+        const part = String(r["ภาค"] || r["ภาค (ภาค ก / ภาค ข)"] || document.getElementById('selPart').value || 'ภาค ก').trim();
+        const cat = String(r["หมวดวิชา"] || document.getElementById('selCategory').value || '').trim();
+        const sub = String(r["กลุ่มวิชาย่อย"] || r["กลุ่มย่อย"] || document.getElementById('selSubCategory').value || '').trim();
+        const topic = String(r["หัวข้อย่อย"] || r["เรื่องย่อย"] || document.getElementById('selTopic').value || '').trim();
 
-        // อัปเดต Taxonomy 4 ระดับอัตโนมัติ
+        // 🎯 3. อ่านคำอธิบายเฉลย
+        const expText = String(r["คำอธิบายเฉลย"] || r["คำอธิบาย"] || '').trim();
+
+        // 🎯 4. อ่านลิงก์รูปภาพ (ตัดช่องว่าง trim() ป้องกัน URL เสีย)
+        const rawImgUrl = String(r["ลิงก์รูปภาพโจทย์ (URL)"] || r["รูปภาพโจทย์"] || r["image_url"] || '').trim();
+        const rawExpImgUrl = String(r["ลิงก์รูปภาพเฉลยวิธีทำ (URL)"] || r["รูปภาพเฉลย"] || r["explanation_image_url"] || '').trim();
+
+        // อัปเดต Taxonomy 4 ระดับอัตโนมัติเข้าหน่วยความจำ
         if (part && cat && sub && topic) {
           if (!examTaxonomy[part]) examTaxonomy[part] = {};
           if (!examTaxonomy[part][cat]) examTaxonomy[part][cat] = {};
@@ -1758,7 +1785,7 @@ async function uploadExcelQuestions() {
           }
         }
 
-        const dynamicExamId = (part || '').includes('ภาค ข') ? 'exam_part_b' : 'exam_part_a';
+        const dynamicExamId = part.includes('ภาค ข') ? 'exam_part_b' : 'exam_part_a';
 
         return {
           id: 'q_' + Date.now() + '_' + index,
@@ -1768,14 +1795,14 @@ async function uploadExcelQuestions() {
           exam_sub_category: sub,
           exam_topic: topic,
           question_text: qText,
-          image_url: r["ลิงก์รูปภาพโจทย์ (URL)"] || r["รูปภาพโจทย์"] || null,
           choice_a: cA,
           choice_b: cB,
           choice_c: cC,
           choice_d: cD,
           correct_answer: finalAns,
-          explanation: r["คำอธิบายเฉลย"] || '',
-          explanation_image_url: r["ลิงก์รูปภาพเฉลยวิธีทำ (URL)"] || r["รูปภาพเฉลย"] || null
+          explanation: expText,
+          image_url: rawImgUrl || null,
+          explanation_image_url: rawExpImgUrl || null
         };
       }).filter(Boolean); // กรองแถวที่ไม่ผ่านเกณฑ์ทิ้ง
 
@@ -2437,7 +2464,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadApiKeysForAdmin();
 });
 
-// ฟังก์ชันส่งออกข้อสอบที่กำลังกรองอยู่บนตารางเป็นไฟล์ Excel (.xlsx)
+// ฟังก์ชันส่งออกข้อสอบตามตัวกรอง เรียงลำดับตรงตามแม่แบบใหม่
 function downloadFilteredQuestionsExcel() {
   if (!currentlyRenderedQuestions || currentlyRenderedQuestions.length === 0) {
     alert('ไม่พบข้อสอบในหมวดที่เลือก หรือตารางว่างเปล่า ไม่สามารถดาวน์โหลดได้');
@@ -2446,22 +2473,21 @@ function downloadFilteredQuestionsExcel() {
 
   const exportData = currentlyRenderedQuestions.map((q, idx) => ({
     "ลำดับ": idx + 1,
-    "ภาค (ภาค ก / ภาค ข)": q.exam_part || '',
+    "ภาค": q.exam_part || '',
     "หมวดวิชา": q.exam_category || '',
     "กลุ่มวิชาย่อย": q.exam_sub_category || '',
     "หัวข้อย่อย": q.exam_topic || '',
     "โจทย์คำถาม": q.question_text || '',
-    "ลิงก์รูปภาพโจทย์ (URL)": q.image_url || '',
     "ตัวเลือก ก": q.choice_a || '',
     "ตัวเลือก ข": q.choice_b || '',
     "ตัวเลือก ค": q.choice_c || '',
     "ตัวเลือก ง": q.choice_d || '',
-    "เฉลยที่ถูกต้อง (ก/ข/ค/ง)": normalizeAnswerToThai(q.correct_answer),
+    "เฉลย": normalizeAnswerToThai(q.correct_answer),
     "คำอธิบายเฉลย": q.explanation || '',
+    "ลิงก์รูปภาพโจทย์ (URL)": q.image_url || '',
     "ลิงก์รูปภาพเฉลยวิธีทำ (URL)": q.explanation_image_url || ''
   }));
 
-  // 2. สร้าง Sheet และจัดขนาดความกว้างของคอลัมน์ให้อ่านง่าย
   const ws = XLSX.utils.json_to_sheet(exportData);
   ws['!cols'] = [
     { wch: 6 },  // ลำดับ
@@ -2474,11 +2500,12 @@ function downloadFilteredQuestionsExcel() {
     { wch: 20 }, // ตัวเลือก ข
     { wch: 20 }, // ตัวเลือก ค
     { wch: 20 }, // ตัวเลือก ง
-    { wch: 15 }, // เฉลย
-    { wch: 40 }  // คำอธิบาย
+    { wch: 10 }, // เฉลย
+    { wch: 45 }, // คำอธิบายเฉลย
+    { wch: 30 }, // ลิงก์รูปภาพโจทย์ (URL)
+    { wch: 30 }  // ลิงก์รูปภาพเฉลยวิธีทำ (URL)
   ];
 
-  // 3. กำหนดชื่อไฟล์ตามหมวดหมู่ที่กำลังกรองอยู่
   const partVal = document.getElementById('filterPartSelect')?.value || 'all';
   const catVal = document.getElementById('filterCategorySelect')?.value || 'all';
   const topicVal = document.getElementById('filterTopicSelect')?.value || 'all';
@@ -2487,11 +2514,9 @@ function downloadFilteredQuestionsExcel() {
   if (catVal !== 'all') filterLabel += `_${catVal}`;
   if (topicVal !== 'all') filterLabel += `_${topicVal}`;
 
-  // ตัดอักขระพิเศษที่ไม่รองรับในชื่อไฟล์
   const safeFilename = filterLabel.replace(/[/\\?%*:|"<>]/g, '-');
   const filename = `${safeFilename}_${currentlyRenderedQuestions.length}ข้อ.xlsx`;
 
-  // 4. บันทึกและดาวน์โหลดไฟล์
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "ข้อสอบ");
   XLSX.writeFile(wb, filename);
