@@ -413,6 +413,51 @@
     };
     return map[a] || a;
   }
+  // 🎯 ฟังก์ชันหาว่าช้อยส์ข้อใด (A, B, C, D) คือคำตอบที่ถูกต้องที่แท้จริง
+function resolveQuestionCorrectKey(q) {
+  if (!q) return 'A';
+  const raw = String(q.correct_answer || '').trim();
+
+  const choices = [
+    { key: 'A', text: q.choice_a },
+    { key: 'B', text: q.choice_b },
+    { key: 'C', text: q.choice_c },
+    { key: 'D', text: q.choice_d }
+  ];
+
+  const clean = (s) => String(s || '').replace(/^[ก-งa-dA-D1-4][\.\)\s]+/, '').trim().toLowerCase();
+  const targetClean = clean(raw);
+
+  // 1. ถ้าเฉลยเป็นข้อความยาว ให้เทียบเนื้อหากับช้อยส์ A-D ก่อนเสมอ (ห้ามใช้ charAt(0) เด็ดขาด!)
+  if (targetClean.length > 1) {
+    for (const c of choices) {
+      if (clean(c.text) === targetClean) return c.key;
+    }
+    for (const c of choices) {
+      const cClean = clean(c.text);
+      if (cClean && targetClean && (cClean.includes(targetClean) || targetClean.includes(cClean))) {
+        return c.key;
+      }
+    }
+  }
+
+  // 2. ถ้าเฉลยระบุมาเป็นตัวอักษรเดี่ยว ก-ง หรือ A-D หรือ 1-4
+  const letterMapToEng = {
+    'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D',
+    'ก': 'A', 'ข': 'B', 'ค': 'C', 'ง': 'D',
+    '1': 'A', '2': 'B', '3': 'C', '4': 'D'
+  };
+  const upper = raw.toUpperCase();
+  if (letterMapToEng[upper]) return letterMapToEng[upper];
+
+  // 3. ถ้ามีคำนำหน้า เช่น "ง. การจำหน่าย..." หรือ "D) ..."
+  const match = raw.match(/^([ก-งA-D1-4])([\.\)\s]|$)/i);
+  if (match && letterMapToEng[match[1].toUpperCase()]) {
+    return letterMapToEng[match[1].toUpperCase()];
+  }
+
+  return 'A';
+}
 
   let questions = [
     { id: '1', question_text: '6, 12, 24, 48, ?, 192 ตัวเลขถัดไปคืออะไร', choice_a: '96', choice_b: '84', choice_c: '90', choice_d: '100', correct_answer: 'A', explanation: 'เป็นอนุกรมที่เพิ่มขึ้นทีละ 2 เท่า: 48 x 2 = 96' },
@@ -690,7 +735,8 @@
     const box = document.getElementById('solutionBox');
     const text = document.getElementById('solutionText');
     if (box.classList.contains('hidden')) {
-      const thaiAnswer = normalizeAnswerToThai(q.correct_answer);
+      const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง', 'ก': 'ก', 'ข': 'ข', 'ค': 'ค', 'ง': 'ง' };
+      const thaiAnswer = engToThai[resolveQuestionCorrectKey(q)] || 'ก';
       let expHtml = `<strong class="text-emerald-800 block mb-1">คำตอบที่ถูกต้องคือ: ข้อ ${thaiAnswer}.</strong>`;
       
       // 🖼️ ใส่รูปภาพวิธีทำเฉลย (ถ้ามี)
@@ -763,29 +809,17 @@
                     ? userAnswers[idx] 
                     : (userAnswers[q.id] !== undefined ? userAnswers[q.id] : userAnswers[q.question_id]);
 
-      const choices = [
-        { key: 'ก', text: q.choice_a },
-        { key: 'ข', text: q.choice_b },
-        { key: 'ค', text: q.choice_c },
-        { key: 'ง', text: q.choice_d }
-      ];
+      const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง', 'ก': 'ก', 'ข': 'ข', 'ค': 'ค', 'ง': 'ง' };
+      
+      // 🎯 ตรวจหาข้อที่ถูกจริง (ไม่ถูกหลอกด้วย charAt(0))
+      const correctKeyEng = resolveQuestionCorrectKey(q);
+      const correctLetter = engToThai[correctKeyEng] || 'ก';
 
-      const uStr = String(userRaw || '').trim();
-      let userLetter = letterMap[uStr] || letterMap[uStr.toUpperCase()] || letterMap[uStr.charAt(0)] || null;
-      if (!userLetter && userRaw) {
-        const uClean = cleanText(userRaw);
-        choices.forEach(c => {
-          if (cleanText(c.text) === uClean) userLetter = c.key;
-        });
-      }
-
-      const rawCorrect = String(q.correct_answer || '').trim();
-      let correctLetter = letterMap[rawCorrect] || letterMap[rawCorrect.toUpperCase()] || letterMap[rawCorrect.charAt(0)] || null;
-      if (!correctLetter) {
-        const cClean = cleanText(rawCorrect);
-        choices.forEach(c => {
-          if (cleanText(c.text) === cClean) correctLetter = c.key;
-        });
+      // 🎯 ตรวจหาช้อยส์ที่ผู้สอบเลือก
+      let userLetter = null;
+      if (userRaw !== undefined && userRaw !== null) {
+        const userKeyEng = resolveQuestionCorrectKey({ ...q, correct_answer: userRaw });
+        userLetter = engToThai[userKeyEng] || null;
       }
 
       const isCorrect = Boolean(userLetter && correctLetter && userLetter === correctLetter);
@@ -1142,29 +1176,14 @@
       { key: 'ง', label: 'ง', text: q.choice_d }
     ];
 
-    const cleanText = (str) => String(str || '').replace(/^[ก-งa-dA-D0-4][\.\)]\s*/, '').trim();
-    const letterMap = { 
-      'A':'ก', 'B':'ข', 'C':'ค', 'D':'ง', 
-      'a':'ก', 'b':'ข', 'c':'ค', 'd':'ง', 
-      '1':'ก', '2':'ข', '3':'ค', '4':'ง', 
-      'ก':'ก', 'ข':'ข', 'ค':'ค', 'ง':'ง' 
-    };
+    const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง', 'ก': 'ก', 'ข': 'ข', 'ค': 'ค', 'ง': 'ง' };
+    const correctKeyEng = resolveQuestionCorrectKey(q);
+    const correctLetter = engToThai[correctKeyEng] || 'ก';
 
-    let userLetter = letterMap[String(userRaw || '').trim()] || letterMap[String(userRaw || '').trim().toUpperCase()] || null;
-    if (!userLetter && userRaw) {
-      const uClean = cleanText(userRaw);
-      choices.forEach(c => {
-        if (cleanText(c.text) === uClean) userLetter = c.key;
-      });
-    }
-
-    const rawCorrect = String(q.correct_answer || '').trim();
-    let correctLetter = letterMap[rawCorrect] || letterMap[rawCorrect.toUpperCase()] || letterMap[rawCorrect.charAt(0)] || null;
-    if (!correctLetter) {
-      const cClean = cleanText(rawCorrect);
-      choices.forEach(c => {
-        if (cleanText(c.text) === cClean) correctLetter = c.key;
-      });
+    let userLetter = null;
+    if (userRaw !== undefined && userRaw !== null) {
+      const userKeyEng = resolveQuestionCorrectKey({ ...q, correct_answer: userRaw });
+      userLetter = engToThai[userKeyEng] || null;
     }
 
     const container = document.getElementById('choicesContainer');
@@ -1296,6 +1315,7 @@
       renderQuestion();
     }
   }
+  
 
   function shuffleArray(array) {
     const arr = [...array];
@@ -1306,44 +1326,48 @@
     return arr;
   }
 
+
   function shuffleChoicesForQuestion(q) {
-    const originalChoices = [
-      { key: 'A', text: q.choice_a },
-      { key: 'B', text: q.choice_b },
-      { key: 'C', text: q.choice_c },
-      { key: 'D', text: q.choice_d }
-    ];
+  const originalChoices = [
+    { key: 'A', text: q.choice_a },
+    { key: 'B', text: q.choice_b },
+    { key: 'C', text: q.choice_c },
+    { key: 'D', text: q.choice_d }
+  ];
 
-    const relativePattern = /ถูกทุกข้อ|ผิดทุกข้อ|ไม่มีข้อใดถูก|ข้อ.*และ.*ถูก|ถูกทั้ง/i;
-    const hasRelative = originalChoices.some(c => relativePattern.test(c.text || ''));
+  const relativePattern = /ถูกทุกข้อ|ผิดทุกข้อ|ไม่มีข้อใดถูก|ข้อ.*และ.*ถูก|ถูกทั้ง/i;
+  const hasRelative = originalChoices.some(c => relativePattern.test(c.text || ''));
 
-    if (hasRelative) {
-      return q;
-    }
+  // 🎯 หาช้อยส์ที่ถูกต้องที่แท้จริงก่อนทำการสลับ
+  const targetOriginalKey = resolveQuestionCorrectKey(q);
 
-    const toEngKey = { 'ก':'A', 'ข':'B', 'ค':'C', 'ง':'D', 'A':'A', 'B':'B', 'C':'C', 'D':'D', '1':'A', '2':'B', '3':'C', '4':'D' };
-    const rawChar = String(q.correct_answer || '').trim().replace(/[\.\)\s]/g, '').toUpperCase().charAt(0);
-    const targetOriginalKey = toEngKey[rawChar] || 'A';
-
-    const shuffledChoices = shuffleArray(originalChoices);
-    const keys = ['A', 'B', 'C', 'D'];
-    let newCorrectAnswer = targetOriginalKey;
-
-    shuffledChoices.forEach((item, index) => {
-      if (item.key === targetOriginalKey) {
-        newCorrectAnswer = keys[index];
-      }
-    });
-
+  if (hasRelative) {
     return {
       ...q,
-      choice_a: shuffledChoices[0].text,
-      choice_b: shuffledChoices[1].text,
-      choice_c: shuffledChoices[2].text,
-      choice_d: shuffledChoices[3].text,
-      correct_answer: newCorrectAnswer
+      correct_answer: targetOriginalKey
     };
   }
+
+  const shuffledChoices = shuffleArray(originalChoices);
+  const keys = ['A', 'B', 'C', 'D'];
+  let newCorrectAnswer = 'A';
+
+  // ติดตามว่าช้อยส์ที่ถูกต้องจริง ๆ ย้ายไปอยู่ที่ตำแหน่งไหนหลังสลับ
+  shuffledChoices.forEach((item, index) => {
+    if (item.key === targetOriginalKey) {
+      newCorrectAnswer = keys[index];
+    }
+  });
+
+  return {
+    ...q,
+    choice_a: shuffledChoices[0].text,
+    choice_b: shuffledChoices[1].text,
+    choice_c: shuffledChoices[2].text,
+    choice_d: shuffledChoices[3].text,
+    correct_answer: newCorrectAnswer // บันทึกเป็นตำแหน่งที่ถูกต้องจริงหลังสลับเสมอ
+  };
+}
 
   function getSeenStorageKey() {
     let uid = 'guest';
@@ -1392,9 +1416,9 @@
       // ถ้าข้อนี้ผู้สอบไม่ได้กดตอบ ให้ดึงมาเป็นข้อที่ต้องแก้ตัวทันที
       if (userAnswers[idx] === undefined) return true;
 
-      const uAns = normalizeAnswerToThai(userAnswers[idx]);
-      const cAns = normalizeAnswerToThai(q.correct_answer);
-      return uAns !== cAns;
+      const cKey = resolveQuestionCorrectKey(q);
+      const uKey = resolveQuestionCorrectKey({ ...q, correct_answer: userAnswers[idx] });
+      return uKey !== cKey;
     });
 
     if (wrongQuestions.length === 0) {
@@ -1431,9 +1455,9 @@
     questions.forEach((q, idx) => {
       // ต้องมีการกดเลือกคำตอบจริงเท่านั้น ถึงจะนำมาตรวจว่าถูกหรือไม่
       if (userAnswers[idx] !== undefined) {
-        const uAns = normalizeAnswerToThai(userAnswers[idx]);
-        const cAns = normalizeAnswerToThai(q.correct_answer);
-        if (uAns === cAns) correct++;
+        const cKey = resolveQuestionCorrectKey(q);
+        const uKey = resolveQuestionCorrectKey({ ...q, correct_answer: userAnswers[idx] });
+        if (uKey === cKey) correct++;
       }
     });
     const percentage = Math.round((correct / questions.length) * 100);
