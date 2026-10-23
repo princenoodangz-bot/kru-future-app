@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>ครูในอนาคต - หน้าแรก</title>
 
   <!-- แท็กสำหรับ iPhone / iPad (iOS Safari) -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
   <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ครูในอนาคต">
   <meta name="theme-color" content="#755634">
@@ -126,16 +127,16 @@
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่าพาสเทล) -->
+  <!-- ฉากหลัง Multi-Layer (บนมือถือแสดงพื้นหลังนิ่ง บนคอมแสดงลูกแก้วเคลื่อนไหว) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
-    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+    <div class="hidden sm:block absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
+    <div class="hidden sm:block absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="hidden sm:block absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
   </div>
 
   <!-- Toast แจ้งเตือนเล็กๆ ด้านบน (แทนการใช้ alert และแสดงเอฟเฟกต์ลูกเล่น) -->
-  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15 whitespace-nowrap">
+  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 sm:backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15 whitespace-nowrap">
     <span id="miniToastIcon" class="text-amber-400">✨</span>
     <span id="miniToastText">แจ้งเตือนระบบ</span>
   </div>
@@ -143,8 +144,8 @@
   <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
   <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
 
-    <!-- ================= แถบด้านบน (Sticky Glass Header) ================= -->
-    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+    <!-- ================= แถบด้านบน (Sticky Glass Header - ปลดเบลอบนมือถือ) ================= -->
+    <header class="sticky top-0 z-30 bg-white/95 sm:bg-white/80 sm:backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between transition-all">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] via-[#755634] to-[#4E3820] flex items-center justify-center text-white shadow-md shadow-amber-900/20 shrink-0 relative overflow-hidden">
           <div class="absolute -top-2 -right-2 w-5 h-5 bg-amber-300/30 rounded-full blur-xs"></div>
@@ -181,7 +182,7 @@
 
         <div class="flex items-center justify-between relative z-10 gap-2">
           <div class="flex-1 min-w-0">
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 mb-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 sm:backdrop-blur-md border border-white/20 mb-2">
               <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
               <span class="text-[10px] font-extrabold tracking-wider uppercase text-amber-200">COUNTDOWN TO EXAM</span>
               <span id="dDayBadge" class="px-1.5 py-0.2 rounded-md bg-gradient-to-r from-amber-400 to-orange-400 text-amber-950 text-[10px] font-extrabold ml-0.5 shadow-2xs">D-DAY</span>
@@ -191,22 +192,22 @@
 
             <!-- ตัวเลขนับถอยหลัง 4 กล่องพาสเทลเรืองแสง -->
             <div class="flex items-center gap-1.5">
-              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 sm:backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdDays" class="text-lg font-extrabold text-amber-300 leading-none">00</span>
                 <span class="text-[9px] text-amber-100/80 font-bold mt-1">วัน</span>
               </div>
               <span class="text-amber-300/70 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 sm:backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdHours" class="text-lg font-extrabold text-white leading-none">00</span>
                 <span class="text-[9px] text-amber-100/80 font-bold mt-1">ชม.</span>
               </div>
               <span class="text-amber-300/70 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 sm:backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdMinutes" class="text-lg font-extrabold text-white leading-none">00</span>
                 <span class="text-[9px] text-amber-100/80 font-bold mt-1">นาที</span>
               </div>
               <span class="text-amber-300/70 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-amber-400/35 to-orange-500/25 backdrop-blur-md rounded-2xl px-2 py-2 min-w-[42px] border border-amber-300/40 shadow-inner">
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-amber-400/35 to-orange-500/25 sm:backdrop-blur-md rounded-2xl px-2 py-2 min-w-[42px] border border-amber-300/40 shadow-inner">
                 <span id="cdSeconds" class="text-base font-extrabold text-amber-200 leading-none animate-pulse">00</span>
                 <span class="text-[9px] text-amber-100 font-bold mt-1">วิ</span>
               </div>
@@ -307,7 +308,7 @@
       </section>
 
       <!-- 3. ภารกิจรายวัน & ทำเนียบยอดฝีมือ Top 10 (แสดง 1-3 และกดขยายดู 4-10 ได้) -->
-      <section class="stagger-3 bg-white/90 backdrop-blur-xl rounded-[28px] p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-4">
+      <section class="stagger-3 bg-white/95 sm:bg-white/90 sm:backdrop-blur-xl rounded-[28px] p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-4">
         
         <!-- กล่องภารกิจรายวันสีพาสเทลพร้อมหมุด Milestone (10 / 20 / 30 ข้อ) -->
         <div class="relative overflow-hidden p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/95 via-orange-50/85 to-rose-50/80 border-2 border-amber-200/70 space-y-2.5 shadow-2xs">
@@ -385,7 +386,7 @@
       </section>
 
       <!-- 4. คำคมสร้างแรงบันดาลใจประจำวันแบบอินเทอร์แอคทีฟ (Stagger 4) -->
-      <section class="stagger-4 relative overflow-hidden bg-gradient-to-br from-rose-50/95 via-amber-50/90 to-orange-100/80 backdrop-blur-md rounded-[28px] p-4 shadow-[0_8px_25px_rgba(244,63,94,0.07)] border-2 border-rose-200/70 space-y-3">
+      <section class="stagger-4 relative overflow-hidden bg-gradient-to-br from-rose-50/95 via-amber-50/90 to-orange-100/80 sm:backdrop-blur-md rounded-[28px] p-4 shadow-[0_8px_25px_rgba(244,63,94,0.07)] border-2 border-rose-200/70 space-y-3">
         <!-- แถบสีด้านบนสุดของการ์ดคำคม -->
         <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-400 via-amber-400 to-orange-400"></div>
         <!-- ไอคอนลายน้ำด้านหลัง -->
@@ -425,8 +426,8 @@
     <!-- =========================================================================
          🌟 POPUP 1: ป๊อปอัปต้อนรับหลังล็อกอิน (Welcome & Daily Mission Popup)
          ========================================================================= -->
-    <div id="welcomeLoginModal" onclick="if(event.target === this) closeWelcomePopup()" class="fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="animate-popup-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.22)] border-2 border-white text-center space-y-4 relative overflow-hidden">
+    <div id="welcomeLoginModal" onclick="if(event.target === this) closeWelcomePopup()" class="fixed inset-0 z-50 bg-slate-900/70 sm:bg-slate-900/55 sm:backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="animate-popup-in bg-white/98 sm:bg-white/95 sm:backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.22)] border-2 border-white text-center space-y-4 relative overflow-hidden">
         
         <!-- แสงตกแต่งมุมบนป๊อปอัป -->
         <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-56 h-32 rounded-full bg-gradient-to-b from-amber-300/35 to-transparent blur-2xl pointer-events-none"></div>
@@ -490,8 +491,8 @@
     <!-- =========================================================================
          POPUP 2: หน้าต่างเลือกโหมดการสอบเมื่อกด "ลงแข่ง" (Centered Modal)
          ========================================================================= -->
-    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="animate-popup-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-2xl border-2 border-white space-y-3.5 max-h-[85vh] overflow-y-auto relative">
+    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/70 sm:bg-slate-900/60 sm:backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="animate-popup-in bg-white/98 sm:bg-white/95 sm:backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-2xl border-2 border-white space-y-3.5 max-h-[85vh] overflow-y-auto relative">
 
         <!-- ส่วนหัว Modal -->
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">

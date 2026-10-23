@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>ครูในอนาคต - ประวัติและสถิติการสอบ</title>
 
   <!-- สคริปต์เชื่อมต่อ Supabase, Auth, Theme Manager และ Chart.js -->
@@ -89,19 +91,19 @@
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่า) -->
+  <!-- ฉากหลัง Multi-Layer (บนมือถือแสดงพื้นหลังนิ่ง บนคอมแสดงลูกแก้วเคลื่อนไหว) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -right-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
-    <div class="absolute -bottom-24 left-10 w-80 h-80 rounded-full bg-emerald-200/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+    <div class="hidden sm:block absolute -top-24 -left-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
+    <div class="hidden sm:block absolute top-1/3 -right-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="hidden sm:block absolute -bottom-24 left-10 w-80 h-80 rounded-full bg-emerald-200/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
   </div>
 
   <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
   <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
 
-    <!-- แถบด้านบน (Sticky Glass Header) -->
-    <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+    <!-- แถบด้านบน (Sticky Glass Header - ปลดเบลอบนมือถือ) -->
+    <header class="sticky top-0 z-30 bg-white/95 sm:bg-white/75 sm:backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between transition-all">
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
           <span class="material-symbols-outlined text-[20px]">monitoring</span>
@@ -122,8 +124,8 @@
     <!-- เนื้อหาหลัก -->
     <main class="flex-1 flex flex-col relative w-full pt-3.5 px-4 space-y-4">
 
-      <!-- 1. แถบสลับแท็บด้านบน (3 แท็บ พร้อม Sliding Pill วิ่งตามนิ้ว) -->
-      <div class="relative grid grid-cols-3 p-1 bg-white/75 backdrop-blur-md border-2 border-white rounded-2xl shadow-xs text-xs font-extrabold select-none">
+      <!-- 1. แถบสลับแท็บด้านบน (3 แท็บ พร้อม Sliding Pill วิ่งตามนิ้ว - ปลดเบลอบนมือถือ) -->
+      <div class="relative grid grid-cols-3 p-1 bg-white/95 sm:bg-white/75 sm:backdrop-blur-md border-2 border-white rounded-2xl shadow-xs text-xs font-extrabold select-none transition-all">
         <div id="tabSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.6px)] bg-gradient-to-r from-[#755634] to-[#8F683E] rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
 
         <button type="button" onclick="switchHistoryTab('graph')" id="tabBtnGraph" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-white flex items-center justify-center gap-1 transition-colors duration-200">
@@ -144,7 +146,7 @@
       <div id="contentTabGraph" class="space-y-4">
         
         <!-- ดรอปดาวน์เลือกดูสถิติตามโหมด -->
-        <div class="animate-card-in bg-white/85 backdrop-blur-md p-3 rounded-2xl border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex items-center justify-between gap-2">
+        <div class="animate-card-in bg-white/95 sm:bg-white/85 sm:backdrop-blur-md p-3 rounded-2xl border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex items-center justify-between gap-2 transition-all">
           <label class="text-xs font-extrabold text-slate-700 shrink-0 flex items-center gap-1.5">
             <span class="w-7 h-7 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center">
               <span class="material-symbols-outlined text-[17px]">filter_list</span>
@@ -172,7 +174,7 @@
 
         <!-- สรุปตัวเลข 3 ช่อง (Bento KPI Cards) -->
         <section class="animate-card-in grid grid-cols-3 gap-2.5" style="animation-delay: 60ms;">
-          <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden">
+          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
             <div class="w-7 h-7 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center mb-1">
               <span class="material-symbols-outlined text-[16px]">library_books</span>
             </div>
@@ -181,7 +183,7 @@
           </div>
 
           <!-- ช่อง 2: คะแนนเฉลี่ย -->
-          <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden">
+          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
             <div class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
               <span class="material-symbols-outlined text-[16px]">query_stats</span>
             </div>
@@ -189,7 +191,7 @@
             <span id="statAvgScore" class="text-lg font-extrabold text-emerald-600 mt-0.5 tracking-tight">0%</span>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden">
+          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
             <div class="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1">
               <span class="material-symbols-outlined text-[16px]">emoji_events</span>
             </div>
@@ -199,7 +201,7 @@
         </section>
 
         <!-- การ์ดวิเคราะห์ความพร้อมรอบด้าน (Multi-Color AI Radar Chart) -->
-        <div class="animate-card-in bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3.5" style="animation-delay: 120ms;">
+        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3.5 transition-all" style="animation-delay: 120ms;">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <div class="flex items-center gap-2.5">
               <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold shadow-sm">
@@ -251,7 +253,7 @@
         </div>
 
         <!-- กราฟแท่งความถี่ 7 วัน (Elastic Pill Bars) -->
-        <section class="animate-card-in bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white flex flex-col gap-3.5" style="animation-delay: 180ms;">
+        <section class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white flex flex-col gap-3.5 transition-all" style="animation-delay: 180ms;">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
@@ -306,7 +308,7 @@
 
       <!-- ================= แท็บ 2: เวลาแต่ละโหมด (Speed Analytics Cards) ================= -->
       <div id="contentTabTime" class="hidden space-y-4">
-        <div class="animate-card-in bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3">
+        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -321,7 +323,7 @@
           <div id="timeStatsTableBody" class="space-y-2.5"></div>
         </div>
 
-        <div class="animate-card-in bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3" style="animation-delay: 80ms;">
+        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all" style="animation-delay: 80ms;">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -360,8 +362,6 @@
       </div>
 
     </main>
-
-    
 
   </div>
 
@@ -437,7 +437,7 @@
     } catch (err) {
       console.error('Error loading history:', err);
       document.getElementById('historyTimelineList').innerHTML = 
-        `<div class="bg-white/80 rounded-2xl p-4 text-center text-rose-500 text-xs font-bold">ไม่สามารถโหลดข้อมูลได้: ${err.message}</div>`;
+        `<div class="bg-white/95 sm:bg-white/80 sm:backdrop-blur-md rounded-2xl p-4 text-center text-rose-500 text-xs font-bold">ไม่สามารถโหลดข้อมูลได้: ${err.message}</div>`;
     }
   }
 
@@ -580,7 +580,7 @@
 
     if (attempts.length === 0) {
       listContainer.innerHTML = `
-        <div class="bg-white/80 backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-xs space-y-2">
+        <div class="bg-white/95 sm:bg-white/80 sm:backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-xs space-y-2 transition-all">
           <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
             <span class="material-symbols-outlined text-[24px]">history_edu</span>
           </div>
@@ -605,7 +605,7 @@
         : '<span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[9px] font-bold">ฝึกซ้อม</span>';
 
       return `
-        <div style="animation-delay: ${delayMs}ms;" class="animate-card-in bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border-2 border-white shadow-[0_4px_15px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all">
+        <div style="animation-delay: ${delayMs}ms;" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md p-3.5 rounded-2xl border-2 border-white shadow-[0_4px_15px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <div class="w-10 h-10 rounded-2xl ${isPass ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'} flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[20px]">${isPass ? 'verified' : 'sentiment_dissatisfied'}</span>
@@ -712,7 +712,7 @@
 
         if (!error && wrongs && wrongs.length > 0) {
           container.innerHTML = wrongs.map((w, idx) => `
-            <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex flex-col gap-2.5">
+            <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-2xl p-3.5 border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex flex-col gap-2.5 transition-all">
               <div class="flex items-center justify-between gap-2">
                 <span class="px-2.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-[#755634] text-[10px] font-extrabold truncate max-w-[200px]">
                   ${w.exam_topic || w.exam_category || 'หมวดทั่วไป'}
