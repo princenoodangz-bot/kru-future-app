@@ -551,13 +551,13 @@ function resolveQuestionCorrectKey(q) {
         
         if (paramQid) {
           const { data } = await supabase.from('questions').select('*').eq('id', paramQid);
-          if (data && data.length > 0) questions = data;
+          if (data && data.length > 0) questions = data.map(q => shuffleChoicesForQuestion(q));
         } else if (userInfo.id) {
           const { data: wrongs } = await supabase.from('wrong_answers').select('question_id').eq('user_id', userInfo.id).limit(20);
           if (wrongs && wrongs.length > 0) {
             const { data: wrongQuestions } = await supabase.from('questions').select('*').in('id', wrongs.map(w => w.question_id));
             if (wrongQuestions && wrongQuestions.length > 0) {
-              questions = wrongQuestions.sort(() => Math.random() - 0.5);
+              questions = wrongQuestions.sort(() => Math.random() - 0.5).map(q => shuffleChoicesForQuestion(q));
             }
           }
         }
@@ -831,8 +831,7 @@ function resolveQuestionCorrectKey(q) {
       }
     });
 
-    // โค้ดใหม่:
-    const baseCount = questions.length; // ล็อกตัวหารเป็นจำนวนข้อสอบเต็มของชุดนั้นเสมอ (เช่น 20 ข้อ)
+    const baseCount = questions.length;
     const percentage = baseCount > 0 ? parseFloat(((correct / baseCount) * 100).toFixed(1)) : 0;
 
     const elapsedSec = typeof totalSecondsElapsed !== 'undefined' ? totalSecondsElapsed : 0;
@@ -840,80 +839,60 @@ function resolveQuestionCorrectKey(q) {
     const sec = elapsedSec % 60;
     const currentMode = typeof examMode !== 'undefined' ? examMode : 'practice';
 
-    try {
-      const rawUser = localStorage.getItem('kru_user_info') 
-                   || localStorage.getItem('user_profile') 
-                   || localStorage.getItem('kru_user') 
-                   || '{}';
-      const userInfo = JSON.parse(rawUser);
-
-      // ถ้าเป็นโหมดแข่งขันให้ใช้ ID ที่จองไว้ตั้งแต่เริ่มสอบ แต่ถ้าเป็นโหมดซ้อมทั่วไปให้สุ่ม ID ใหม่
-      const attemptId = activeCompetitionAttemptId || ('att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6));
-      const currentUserId = userInfo.id || userInfo.user_id || 'anonymous_user';
-
-      if (window.supabase) {
-        const firstQ = questions[0] || {};
-        const fullExamTitle = firstQ.exam_part 
-          ? `[${firstQ.exam_part}] ${firstQ.exam_category || ''} - ${firstQ.exam_topic || 'ทั่วไป'}`
-          : (firstQ.exam_topic || firstQ.exam_category || 'ชุดข้อสอบทั่วไป');
-
-        // ใช้คำสั่ง upsert เพื่ออัปเดตทับแถวที่จองสิทธิ์ไว้ด้วยคะแนนและเวลาจริง
-        const { error: attemptError } = await supabase
-          .from('exam_attempts')
-          .upsert([{
-            id: attemptId,
-            user_id: currentUserId,
-            exam_id: fullExamTitle,
-            exam_mode: currentMode,
-            target_questions: typeof targetQuestionCount !== 'undefined' ? targetQuestionCount : questions.length,
-            total_attempted: doneCount,
-            total_correct: correct,
-            score_percentage: percentage,
-            time_spent_seconds: elapsedSec,
-            completed_at: new Date().toISOString()
-          }], { onConflict: 'id' });
-
-        if (attemptError) {
-          console.error("❌ บันทึก exam_attempts ไม่ผ่าน:", attemptError.message);
-        }
-
-        for (const wq of wrongQuestionsToSave) {
-          if (!wq.id) continue;
-          const recordId = `wrg_${currentUserId}_${wq.id}`;
-
-          let currentCount = 1;
-          const { data: existingWrong } = await supabase
-            .from('wrong_answers')
-            .select('wrong_count')
-            .eq('id', recordId)
-            .maybeSingle();
-
-          if (existingWrong && existingWrong.wrong_count) {
-            currentCount = existingWrong.wrong_count + 1;
-          }
-
-          await supabase.from('wrong_answers').upsert([{
-            id: recordId,
-            user_id: currentUserId,
-            question_id: wq.id,
-            exam_category: wq.exam_category || '',
-            exam_topic: wq.exam_topic || '',
-            wrong_count: currentCount,
-            last_wrong_at: new Date().toISOString()
-          }], { onConflict: 'id' });
-        }
-      }
-    } catch (err) {
-      console.error("Save attempt error:", err);
-    } finally {
-      isSubmittingExam = false;
-    }
-
+    // 🌟 1. แสดงผลคะแนนทันที 0 ดีเลย์! ผู้สอบเห็นคะแนนและกราฟทันที ไม่ต้องรอเน็ต
     if (typeof showCustomResultModal === 'function') {
       showCustomResultModal(percentage, correct, doneCount, currentMode, min, sec);
     } else {
       alert(`🎉 ส่งข้อสอบเรียบร้อย!\nโหมด: ${currentMode}\nตอบถูก: ${correct}/${doneCount} ข้อ\nคะแนน: ${percentage}%\nเวลาที่ใช้: ${min} นาที ${sec} วินาที`);
     }
+
+    // 🌟 2. ให้ระบบบันทึกฐานข้อมูลทำงานอยู่เบื้องหลังแบบมัดรวม (Batch Sync)
+    (async () => {
+      try {
+        const rawUser = localStorage.getItem('kru_user_info') 
+                     || localStorage.getItem('user_profile') 
+                     || localStorage.getItem('kru_user') 
+                     || '{}';
+        const userInfo = JSON.parse(rawUser);
+
+        const attemptId = activeCompetitionAttemptId || ('att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6));
+        const currentUserId = userInfo.id || userInfo.user_id || 'anonymous_user';
+
+        if (window.supabase) {
+          const firstQ = questions[0] || {};
+          const fullExamTitle = firstQ.exam_part 
+            ? `[${firstQ.exam_part}] ${firstQ.exam_category || ''} - ${firstQ.exam_topic || 'ทั่วไป'}`
+            : (firstQ.exam_topic || firstQ.exam_category || 'ชุดข้อสอบทั่วไป');
+
+          // รวบข้อมูลข้อที่ผิดเป็น JSON ส่งไปพร้อมคะแนนในคำขอเดียว
+          const wrongListPayload = wrongQuestionsToSave
+            .filter(wq => Boolean(wq.id))
+            .map(wq => ({
+              question_id: String(wq.id),
+              exam_category: wq.exam_category || '',
+              exam_topic: wq.exam_topic || ''
+            }));
+
+          // ยิงคำขอเดียวจบ ฐานข้อมูลจัดการ atomic transaction เอง
+          await supabase.rpc('submit_exam_bundle', {
+            p_attempt_id: attemptId,
+            p_user_id: currentUserId,
+            p_exam_id: fullExamTitle,
+            p_exam_mode: currentMode,
+            p_target_questions: typeof targetQuestionCount !== 'undefined' ? targetQuestionCount : questions.length,
+            p_total_attempted: doneCount,
+            p_total_correct: correct,
+            p_score_percentage: percentage,
+            p_time_spent_seconds: elapsedSec,
+            p_wrong_questions: wrongListPayload
+          });
+        }
+      } catch (err) {
+        console.error("Background sync attempt error:", err);
+      } finally {
+        isSubmittingExam = false;
+      }
+    })();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -953,6 +932,7 @@ function resolveQuestionCorrectKey(q) {
   let perQuestionInterval = null;
 
   function startTotalTimer() {
+    clearInterval(totalTimerInterval); // 🌟 ล้างตัวนับเวลาเดิมก่อนเสมอ ป้องกันเวลาเดินเบิ้ล
     totalTimerInterval = setInterval(() => {
       totalSecondsElapsed++;
       const m = Math.floor(totalSecondsElapsed / 60);
@@ -1003,8 +983,13 @@ function resolveQuestionCorrectKey(q) {
     }
   }
 
-  // 🌟 เปิดป๊อปอัปยืนยันการส่งข้อสอบแบบโมเดิร์น
   function promptSubmitExam() {
+    // 🌟 หากกำลังตรวจเฉลยอยู่ ให้เปิดหน้าต่างสรุปผลคะแนนแทน ไม่ส่งข้อสอบซ้ำ
+    if (typeof isReviewMode !== 'undefined' && isReviewMode) {
+      exitReviewMode();
+      return;
+    }
+
     const doneCount = Object.keys(userAnswers || {}).length;
     const total = questions.length;
     const remain = Math.max(0, total - doneCount);
@@ -1315,7 +1300,6 @@ function resolveQuestionCorrectKey(q) {
       renderQuestion();
     }
   }
-  
 
   function shuffleArray(array) {
     const arr = [...array];
@@ -1434,6 +1418,17 @@ function resolveQuestionCorrectKey(q) {
     userAnswers = {};
     bookmarkedIndices.clear();
     totalSecondsElapsed = 0;
+
+    // 🌟 คืนค่าหัวข้อและนาฬิกานับถอยหลังรายข้อ
+    const headerTitle = document.getElementById('examTitleHeader');
+    if (headerTitle) {
+      headerTitle.innerText = '🎯 สอบแก้ตัวข้อที่ตอบผิด';
+      headerTitle.className = 'text-xs font-extrabold text-rose-600 truncate';
+    }
+    const perQBadge = document.getElementById('perQuestionBadge');
+    if (perQBadge && localStorage.getItem('kru_pref_timer') !== 'false') {
+      perQBadge.style.display = '';
+    }
 
     isReviewMode = false;
     renderQuestion();
@@ -1625,9 +1620,11 @@ function resolveQuestionCorrectKey(q) {
   function closeResultModal() {
     document.getElementById('resultSummaryModal').classList.add('hidden');
   }
+  let isExamFinished = false; // 🌟 ตัวแปรจำว่าสอบเสร็จเรียบร้อยแล้วหรือยัง
+
   // ป้องกันการเผลอกดออกจากห้องสอบระหว่างอยู่ในโหมดแข่งขัน
   window.addEventListener('beforeunload', (e) => {
-    if (examMode === 'competition' && !isSubmittingExam && currentIndex > 0) {
+    if (examMode === 'competition' && !isSubmittingExam && !isExamFinished && currentIndex > 0) {
       e.preventDefault();
       e.returnValue = 'คุณกำลังอยู่ในโหมดแข่งขัน หากออกจากหน้านี้ตอนนี้ การสอบจะไม่สมบูรณ์ ยืนยันออกจากระบบหรือไม่?';
     }

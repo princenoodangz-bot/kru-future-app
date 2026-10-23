@@ -46,26 +46,26 @@
       100% { background-position: 0% 50%; }
     }
     .bg-aurora {
-      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+      background: linear-gradient(-45deg, #FFFBF5, #FEF0D8, #FCE8EF, #E8F4FE, #EAFBF2);
       background-size: 400% 400%;
       animation: auroraBG 18s ease infinite;
     }
 
     .bg-grid-pattern {
-      background-size: 28px 28px;
+      background-size: 26px 26px;
       background-image: 
-        linear-gradient(to right, rgba(117, 86, 52, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(117, 86, 52, 0.04) 1px, transparent 1px);
+        linear-gradient(to right, rgba(117, 86, 52, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.045) 1px, transparent 1px);
     }
 
     @keyframes orbitBlob {
       0%, 100% { transform: translate(0px, 0px) scale(1); }
-      50% { transform: translate(20px, -25px) scale(1.12); }
+      50% { transform: translate(22px, -28px) scale(1.14); }
     }
     .animate-blob { animation: orbitBlob 10s ease-in-out infinite; }
 
     /* =========================================
-       2. UI MICRO-ANIMATIONS
+       2. UI MICRO-ANIMATIONS & EFFECTS
        ========================================= */
     @keyframes floatMascot {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -95,11 +95,12 @@
     }
     .animate-popup-in { animation: popBounce 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-    @keyframes sheetSlideUp {
-      from { opacity: 0; transform: translateY(100%); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes firePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.35) rotate(-10deg); }
+      100% { transform: scale(1) rotate(0deg); }
     }
-    .animate-sheet-up { animation: sheetSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .animate-fire-pop { animation: firePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
     @keyframes shimmerSweep {
       0% { transform: translateX(-150%) skewX(-20deg); }
@@ -109,46 +110,61 @@
       content: '';
       position: absolute;
       top: 0; left: 0; width: 45%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32), transparent);
-      animation: shimmerSweep 4s infinite;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
+      animation: shimmerSweep 3.8s infinite;
+      pointer-events: none;
+    }
+
+    /* ไฮไลต์เวลาสุ่มเมนูลัด (Quick Roulette) */
+    .menu-roulette-active {
+      transform: translateY(-5px) scale(1.05) !important;
+      box-shadow: 0 0 0 3px #F59E0B, 0 14px 28px rgba(245, 158, 11, 0.35) !important;
+      z-index: 20;
     }
   </style>
 </head>
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่า) -->
+  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่าพาสเทล) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
-    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-200/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+  </div>
+
+  <!-- Toast แจ้งเตือนเล็กๆ ด้านบน (แทนการใช้ alert และแสดงเอฟเฟกต์ลูกเล่น) -->
+  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15 whitespace-nowrap">
+    <span id="miniToastIcon" class="text-amber-400">✨</span>
+    <span id="miniToastText">แจ้งเตือนระบบ</span>
   </div>
 
   <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
   <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
 
     <!-- ================= แถบด้านบน (Sticky Glass Header) ================= -->
-    <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
-          <span class="material-symbols-outlined text-[20px]">school</span>
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] via-[#755634] to-[#4E3820] flex items-center justify-center text-white shadow-md shadow-amber-900/20 shrink-0 relative overflow-hidden">
+          <div class="absolute -top-2 -right-2 w-5 h-5 bg-amber-300/30 rounded-full blur-xs"></div>
+          <span class="material-symbols-outlined text-[21px]">school</span>
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-1.5">
             <span class="text-base font-extrabold text-slate-800 leading-none tracking-tight">ครูในอนาคต</span>
-            <span class="px-1.5 py-0.5 text-[9px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md uppercase">GEN 4</span>
+            <span class="px-1.5 py-0.5 text-[9px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md uppercase shadow-2xs">GEN 4</span>
           </div>
-          <span class="text-[10px] text-slate-500 font-medium mt-0.5" id="headerGreetingText">ระบบเตรียมความพร้อมสอบครูผู้ช่วย</span>
+          <span class="text-[10px] text-slate-500 font-semibold mt-0.5" id="headerGreetingText">ระบบเตรียมความพร้อมสอบครูผู้ช่วย</span>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button onclick="location.href='all-exams.html'" class="w-9 h-9 rounded-2xl bg-white/90 border border-slate-200/70 flex items-center justify-center text-slate-600 shadow-2xs active:scale-90 transition-all hover:text-[#755634]" title="ค้นหาข้อสอบ">
+        <button onclick="location.href='all-exams.html'" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-100/80 border-2 border-white flex items-center justify-center text-indigo-600 shadow-sm active:scale-90 transition-all hover:text-indigo-800" title="ค้นหาข้อสอบ">
           <i class="fa-solid fa-magnifying-glass text-xs"></i>
         </button>
         <!-- กดที่รูปโปรไฟล์เพื่อเปิดดูป๊อปอัปต้อนรับซ้ำได้ตลอด -->
-        <button onclick="showWelcomePopup(true)" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white text-[#755634] flex items-center justify-center font-extrabold text-xs shadow-sm active:scale-90 transition-transform" id="userInitial" title="ดูการ์ดต้อนรับ">
+        <button onclick="showWelcomePopup(true)" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 border-2 border-white text-[#755634] flex items-center justify-center font-extrabold text-xs shadow-sm active:scale-90 transition-transform" id="userInitial" title="ดูการ์ดต้อนรับ">
           ครู
         </button>
       </div>
@@ -158,180 +174,253 @@
     <main class="flex-1 flex flex-col relative w-full pt-3.5 px-4 space-y-4">
 
       <!-- 1. นับถอยหลังวันสอบจริง (Hero D-Day Countdown Card) -->
-      <section class="stagger-1 relative bg-gradient-to-br from-[#2A1E14] via-[#4A3423] to-[#755634] rounded-3xl p-4 sm:p-5 text-white shadow-[0_14px_35px_rgba(117,86,52,0.22)] border border-amber-300/20 overflow-hidden">
+      <section class="stagger-1 relative bg-gradient-to-br from-[#2A1E14] via-[#4A3423] to-[#755634] rounded-[28px] p-4 sm:p-5 text-white shadow-[0_14px_35px_rgba(117,86,52,0.24)] border-2 border-amber-300/30 overflow-hidden">
         <!-- แสงตกแต่งด้านใน -->
-        <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-amber-400/20 blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-12 -left-12 w-36 h-36 rounded-full bg-orange-500/15 blur-2xl pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-amber-400/25 blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-rose-500/15 blur-2xl pointer-events-none"></div>
 
         <div class="flex items-center justify-between relative z-10 gap-2">
           <div class="flex-1 min-w-0">
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/15 mb-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 mb-2">
               <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
               <span class="text-[10px] font-extrabold tracking-wider uppercase text-amber-200">COUNTDOWN TO EXAM</span>
-              <span id="dDayBadge" class="px-1.5 py-0.2 rounded-md bg-amber-400 text-amber-950 text-[10px] font-extrabold ml-0.5">D-DAY</span>
+              <span id="dDayBadge" class="px-1.5 py-0.2 rounded-md bg-gradient-to-r from-amber-400 to-orange-400 text-amber-950 text-[10px] font-extrabold ml-0.5 shadow-2xs">D-DAY</span>
             </div>
             
-            <p id="targetExamTitleText" class="text-xs font-bold text-amber-100/90 mb-3 truncate">กำลังโหลดกำหนดการสอบ...</p>
+            <p id="targetExamTitleText" class="text-xs font-extrabold text-amber-100/95 mb-3 truncate">กำลังโหลดกำหนดการสอบ...</p>
 
-            <!-- ตัวเลขนับถอยหลัง 4 กล่อง -->
+            <!-- ตัวเลขนับถอยหลัง 4 กล่องพาสเทลเรืองแสง -->
             <div class="flex items-center gap-1.5">
-              <div class="flex flex-col items-center justify-center bg-white/12 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/15 shadow-inner">
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdDays" class="text-lg font-extrabold text-amber-300 leading-none">00</span>
-                <span class="text-[9px] text-amber-100/70 font-semibold mt-1">วัน</span>
+                <span class="text-[9px] text-amber-100/80 font-bold mt-1">วัน</span>
               </div>
-              <span class="text-amber-300/60 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-white/12 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/15 shadow-inner">
+              <span class="text-amber-300/70 font-extrabold text-xs">:</span>
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdHours" class="text-lg font-extrabold text-white leading-none">00</span>
-                <span class="text-[9px] text-amber-100/70 font-semibold mt-1">ชม.</span>
+                <span class="text-[9px] text-amber-100/80 font-bold mt-1">ชม.</span>
               </div>
-              <span class="text-amber-300/60 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-white/12 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/15 shadow-inner">
+              <span class="text-amber-300/70 font-extrabold text-xs">:</span>
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-2.5 py-2 min-w-[48px] border border-white/20 shadow-inner">
                 <span id="cdMinutes" class="text-lg font-extrabold text-white leading-none">00</span>
-                <span class="text-[9px] text-amber-100/70 font-semibold mt-1">นาที</span>
+                <span class="text-[9px] text-amber-100/80 font-bold mt-1">นาที</span>
               </div>
-              <span class="text-amber-300/60 font-extrabold text-xs">:</span>
-              <div class="flex flex-col items-center justify-center bg-amber-500/25 backdrop-blur-md rounded-2xl px-2 py-2 min-w-[42px] border border-amber-400/30 shadow-inner">
-                <span id="cdSeconds" class="text-base font-extrabold text-amber-300 leading-none animate-pulse">00</span>
-                <span class="text-[9px] text-amber-200 font-semibold mt-1">วิ</span>
+              <span class="text-amber-300/70 font-extrabold text-xs">:</span>
+              <div class="flex flex-col items-center justify-center bg-gradient-to-b from-amber-400/35 to-orange-500/25 backdrop-blur-md rounded-2xl px-2 py-2 min-w-[42px] border border-amber-300/40 shadow-inner">
+                <span id="cdSeconds" class="text-base font-extrabold text-amber-200 leading-none animate-pulse">00</span>
+                <span class="text-[9px] text-amber-100 font-bold mt-1">วิ</span>
               </div>
             </div>
           </div>
 
-          <!-- 2. ปรับให้รูปชิดขอบล่างและดึงลงมาแตะขอบปุ่มพอดี -->
+          <!-- มาสคอตคู่ครูข้าราชการ -->
           <div class="shrink-0 w-28 sm:w-32 flex items-end justify-center self-end -mb-4 relative z-0">
             <img src="https://eyrqvgdcgmgljtprjlrk.supabase.co/storage/v1/object/public/assets/kru_chibi%203.png" 
+                 onerror="this.src='https://placehold.co/140x140/755634/FFFBF5?text=KRU'"
                  alt="คู่ครูข้าราชการ" 
-                 class="w-full h-auto object-contain drop-shadow-sm select-none pointer-events-none" />
+                 class="w-full h-auto object-contain drop-shadow-md select-none pointer-events-none" />
           </div>
         </div>
 
         <!-- ปุ่มเริ่มทำข้อสอบทันที -->
-        <button onclick="location.href='quiz.html'" class="shimmer-effect relative overflow-hidden w-full mt-4 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-extrabold text-xs shadow-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 group">
+        <button onclick="location.href='quiz.html'" class="shimmer-effect relative overflow-hidden w-full mt-4 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-amber-950 font-extrabold text-xs shadow-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 group">
           <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
           <span>เริ่มสุ่มทำข้อสอบทันที</span>
           <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
         </button>
       </section>
 
-      <!-- 2. ภารกิจรายวัน & ทำเนียบยอดฝีมือ (Podium + Leaderboard) -->
-      <section class="stagger-2 bg-white/90 backdrop-blur-xl rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-4">
-        
-        <!-- แถบหัวข้อภารกิจรายวัน (Daily Goal Progress) -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 to-orange-50/60 border border-amber-200/70 space-y-2">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <span class="material-symbols-outlined text-[18px]">local_fire_department</span>
-              </div>
-              <div class="min-w-0">
-                <h5 class="text-xs font-extrabold text-slate-800 truncate">ภารกิจพิชิตข้อสอบรายวัน</h5>
-                <p id="dailyProgressSubtext" class="text-[10px] text-slate-500 font-medium">เป้าหมายอย่างน้อยวันละ 30 ข้อ</p>
-              </div>
-            </div>
-            <button onclick="location.href='quiz.html?mode=practice&count=30'" type="button" class="px-3 py-1.5 rounded-xl bg-[#755634] hover:bg-[#5E4325] text-white text-[11px] font-extrabold shrink-0 shadow-xs active:scale-95 transition-all">
-              ลุย 30 ข้อ
-            </button>
+      <!-- 2. เมนูลัด 4 กล่องสีพาสเทลสดใส (Colorful Bento Grid + วงล้อสุ่มวิชาดวงดี) -->
+      <section class="stagger-2 space-y-2.5">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 ring-4 ring-amber-500/15"></span>
+            <h3 class="text-xs font-extrabold text-slate-800 tracking-tight">เมนูลัดเตรียมสอบด่วน</h3>
           </div>
-          <!-- หลอดความคืบหน้าของวันนี้ -->
-          <div class="w-full h-2 bg-white rounded-full overflow-hidden border border-amber-200/50">
-            <div id="dailyGoalBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-700" style="width: 8%;"></div>
+          <div class="flex items-center gap-2">
+            <!-- ปุ่มลูกเล่นใหม่: สุ่มวิชาดวงดี -->
+            <button type="button" onclick="spinDailyMenuRoulette()" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-[10px] font-extrabold shadow-xs flex items-center gap-1 active:scale-95 transition-transform">
+              <span class="material-symbols-outlined text-[13px] text-amber-300">casino</span>
+              <span>สุ่มวิชาดวงดี</span>
+            </button>
+            <a class="text-[11px] font-extrabold text-[#755634] hover:underline flex items-center gap-0.5" href="all-exams.html">
+              <span>ทั้งหมด</span>
+              <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            </a>
           </div>
         </div>
 
-        <!-- ส่วนทำเนียบยอดฝีมือ (Competition Leaderboard) -->
+        <!-- กริด 4 กล่องสีพาสเทลพร้อมไอคอนลายน้ำ 3 มิติ -->
+        <div class="grid grid-cols-4 gap-2.5">
+          <!-- กล่อง 1: คลังข้อสอบ (โทนคราม-ไวโอเล็ต) -->
+          <a href="all-exams.html" data-quick-menu="0" class="group relative overflow-hidden bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-100/90 border-2 border-indigo-200/80 hover:border-indigo-300 rounded-[22px] p-2.5 flex flex-col items-center justify-between text-center shadow-[0_6px_18px_rgba(99,102,241,0.08)] hover:-translate-y-1 active:scale-95 transition-all">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-violet-500"></div>
+            <span class="material-symbols-outlined text-[44px] absolute -right-2 -bottom-2 text-indigo-500/10 pointer-events-none group-hover:scale-115 group-hover:-rotate-12 transition-transform">inventory_2</span>
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 flex items-center justify-center mt-1 mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform relative z-10">
+              <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+            </div>
+            <div class="relative z-10">
+              <span class="text-[11px] font-extrabold text-indigo-950 block leading-tight">คลังข้อสอบ</span>
+              <span class="text-[9px] font-bold text-indigo-600/80 block mt-0.5">ครบทุกภาค</span>
+            </div>
+          </a>
+
+          <!-- กล่อง 2: แยกตามบท (โทนเขียวมรกต-มิ้นต์) -->
+          <a href="all-exams.html" data-quick-menu="1" class="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-green-100/90 border-2 border-emerald-200/80 hover:border-emerald-300 rounded-[22px] p-2.5 flex flex-col items-center justify-between text-center shadow-[0_6px_18px_rgba(16,185,129,0.08)] hover:-translate-y-1 active:scale-95 transition-all">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500"></div>
+            <span class="material-symbols-outlined text-[44px] absolute -right-2 -bottom-2 text-emerald-500/10 pointer-events-none group-hover:scale-115 group-hover:-rotate-12 transition-transform">auto_stories</span>
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 flex items-center justify-center mt-1 mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform relative z-10">
+              <span class="material-symbols-outlined text-[20px]">auto_stories</span>
+            </div>
+            <div class="relative z-10">
+              <span class="text-[11px] font-extrabold text-emerald-950 block leading-tight">แยกตามบท</span>
+              <span class="text-[9px] font-bold text-emerald-700/80 block mt-0.5">เจาะลึกรายเรื่อง</span>
+            </div>
+          </a>
+
+          <!-- กล่อง 3: เรดาร์จุดอ่อน (โทนม่วงลาเวนเดอร์-ฟิวเชีย) -->
+          <a href="history.html" data-quick-menu="2" class="group relative overflow-hidden bg-gradient-to-br from-purple-50 via-fuchsia-50 to-pink-100/90 border-2 border-purple-200/80 hover:border-purple-300 rounded-[22px] p-2.5 flex flex-col items-center justify-between text-center shadow-[0_6px_18px_rgba(168,85,247,0.08)] hover:-translate-y-1 active:scale-95 transition-all">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500"></div>
+            <span class="material-symbols-outlined text-[44px] absolute -right-2 -bottom-2 text-purple-500/10 pointer-events-none group-hover:scale-115 group-hover:-rotate-12 transition-transform">radar</span>
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white shadow-md shadow-purple-500/25 flex items-center justify-center mt-1 mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform relative z-10">
+              <span class="material-symbols-outlined text-[20px]">radar</span>
+            </div>
+            <div class="relative z-10">
+              <span class="text-[11px] font-extrabold text-purple-950 block leading-tight">เรดาร์จุดอ่อน</span>
+              <span class="text-[9px] font-bold text-purple-700/80 block mt-0.5">วิเคราะห์สถิติ</span>
+            </div>
+          </a>
+
+          <!-- กล่อง 4: จำลองสอบจริง (โทนส้มพีช-คอรัล) -->
+          <a href="quiz.html?mode=mock&count=20" data-quick-menu="3" class="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-rose-100/90 border-2 border-orange-200/80 hover:border-orange-300 rounded-[22px] p-2.5 flex flex-col items-center justify-between text-center shadow-[0_6px_18px_rgba(249,115,22,0.08)] hover:-translate-y-1 active:scale-95 transition-all">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-orange-400 via-rose-400 to-amber-500"></div>
+            <span class="material-symbols-outlined text-[44px] absolute -right-2 -bottom-2 text-orange-500/10 pointer-events-none group-hover:scale-115 group-hover:-rotate-12 transition-transform">timer</span>
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 text-white shadow-md shadow-orange-500/25 flex items-center justify-center mt-1 mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform relative z-10">
+              <span class="material-symbols-outlined text-[20px]">timer</span>
+            </div>
+            <div class="relative z-10">
+              <span class="text-[11px] font-extrabold text-orange-950 block leading-tight">จำลองสอบจริง</span>
+              <span class="text-[9px] font-bold text-orange-700/80 block mt-0.5">จับเวลาเป๊ะ</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- 3. ภารกิจรายวัน & ทำเนียบยอดฝีมือ Top 10 (แสดง 1-3 และกดขยายดู 4-10 ได้) -->
+      <section class="stagger-3 bg-white/90 backdrop-blur-xl rounded-[28px] p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-4">
+        
+        <!-- กล่องภารกิจรายวันสีพาสเทลพร้อมหมุด Milestone (10 / 20 / 30 ข้อ) -->
+        <div class="relative overflow-hidden p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/95 via-orange-50/85 to-rose-50/80 border-2 border-amber-200/70 space-y-2.5 shadow-2xs">
+          <div class="absolute -right-4 -bottom-4 text-amber-500/10 pointer-events-none">
+            <span class="material-symbols-outlined text-[64px]">local_fire_department</span>
+          </div>
+
+          <div class="flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <h5 class="text-xs font-extrabold text-slate-800 truncate">ภารกิจพิชิตข้อสอบรายวัน</h5>
+                  <span class="text-[9px] font-extrabold bg-white/90 text-amber-800 px-1.5 py-0.5 rounded-md border border-amber-200">DAILY QUEST</span>
+                </div>
+                <p id="dailyProgressSubtext" class="text-[10px] text-amber-900/75 font-bold mt-0.5">เป้าหมายอย่างน้อยวันละ 30 ข้อ</p>
+              </div>
+            </div>
+            <button onclick="location.href='quiz.html?mode=practice&count=30'" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#755634] to-[#946C40] hover:from-[#5E4325] hover:to-[#755634] text-white text-[11px] font-extrabold shrink-0 shadow-sm active:scale-95 transition-all relative z-10">
+              ลุย 30 ข้อ
+            </button>
+          </div>
+
+          <!-- หลอดความคืบหน้าของวันนี้ -->
+          <div class="space-y-1.5 relative z-10">
+            <div class="w-full h-2.5 bg-white/90 rounded-full overflow-hidden border border-amber-200/80 p-0.5 shadow-inner">
+              <div id="dailyGoalBar" class="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-emerald-500 rounded-full transition-all duration-700" style="width: 8%;"></div>
+            </div>
+            <!-- หมุดรางวัลย่อย 3 ระดับ -->
+            <div class="flex items-center justify-between text-[9px] font-extrabold px-0.5">
+              <span id="msBadge10" class="px-2 py-0.5 rounded-full bg-white/85 text-slate-500 border border-amber-200/60">🥉 10 ข้อ (อุ่นเครื่อง)</span>
+              <span id="msBadge20" class="px-2 py-0.5 rounded-full bg-white/85 text-slate-500 border border-amber-200/60">🥈 20 ข้อ (กำลังดี)</span>
+              <span id="msBadge30" class="px-2 py-0.5 rounded-full bg-white/85 text-amber-800 border border-amber-300">🏆 30 ข้อ (สำเร็จ!)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ส่วนทำเนียบยอดฝีมือ (Competition Leaderboard Top 10) -->
         <div class="space-y-3 pt-1">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-amber-100/80 text-[#755634] flex items-center justify-center font-bold">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-200 text-[#755634] border border-amber-300/60 flex items-center justify-center font-bold shadow-2xs">
                 <span class="material-symbols-outlined text-[20px]">emoji_events</span>
               </div>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ทำเนียบยอดฝีมือ (โหมดแข่งขัน 20 ข้อ)</h3>
-                <p class="text-[10px] text-slate-400 font-medium">เกณฑ์ตัดสิน: คะแนนสูงสุด + เวลาน้อยที่สุด (สอบได้คนละ 1 ครั้ง)</p>
+                <div class="flex items-center gap-1.5">
+                  <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ทำเนียบยอดฝีมือ</h3>
+                  <span class="text-[9px] font-extrabold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md">TOP 10</span>
+                </div>
+                <p class="text-[10px] text-slate-400 font-medium">โหมดแข่งขัน 20 ข้อ • คะแนนสูงสุด + เวลาน้อยสุด</p>
               </div>
             </div>
-            <button id="btnCompeteAction" type="button" onclick="openCompetitionSetup()" class="px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#8F683E] text-white rounded-full text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center gap-1">
+            <button id="btnCompeteAction" type="button" onclick="openCompetitionSetup()" class="px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#946C40] text-white rounded-full text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px]">swords</span>
               <span id="btnCompeteText">ลงแข่ง</span>
             </button>
           </div>
 
-          <!-- ป้ายแสดงการแข่งขันรุ่นมาตรฐาน 20 ข้อ (ล็อกจำนวนข้อเฉพาะรุ่นนี้) -->
-          <div class="flex items-center justify-between p-2 rounded-2xl bg-amber-50/90 border border-amber-200/70 text-xs font-extrabold text-[#755634]">
+          <!-- ป้ายแสดงการแข่งขันรุ่นมาตรฐาน 20 ข้อ -->
+          <div class="flex items-center justify-between px-3 py-2 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-violet-50/80 to-purple-50/90 border border-indigo-200/70 text-xs font-extrabold text-indigo-900">
             <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[17px] text-amber-600">verified</span>
-              <span>รุ่นมาตรฐานแข่งขัน: 20 ข้อ (จับเวลา 1 นาที/ข้อ)</span>
+              <span class="material-symbols-outlined text-[17px] text-indigo-600">verified</span>
+              <span>รุ่นมาตรฐานแข่งขัน: 20 ข้อ (1 นาที/ข้อ)</span>
             </span>
-            <span class="text-[10px] bg-white px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs">จำกัด 1 สิทธิ์</span>
+            <span class="text-[10px] bg-white text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200 shadow-2xs">จำกัด 1 สิทธิ์</span>
           </div>
 
-          <!-- พื้นที่เรนเดอร์แท่นรางวัล Podium Top 3 + อันดับ 4-5 -->
-          <div id="leaderboardList" class="space-y-2 pt-1">
+          <!-- พื้นที่เรนเดอร์แท่นรางวัล Podium Top 1-3 + ปุ่มกดเปิด/ย่อ อันดับ 4-10 -->
+          <div id="leaderboardList" class="space-y-2.5 pt-1">
             <div class="p-6 text-center text-slate-400 text-xs">กำลังโหลดอันดับผู้สอบ...</div>
           </div>
         </div>
       </section>
 
-      <!-- 3. เมนูลัด 4 ช่องสไตล์ Bento Grid (Stagger 3) -->
-      <section class="stagger-3 space-y-2.5">
-        <div class="flex items-center justify-between px-1">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-[#755634]"></span>
-            <h3 class="text-xs font-extrabold text-slate-800">เมนูลัดเตรียมสอบ</h3>
+      <!-- 4. คำคมสร้างแรงบันดาลใจประจำวันแบบอินเทอร์แอคทีฟ (Stagger 4) -->
+      <section class="stagger-4 relative overflow-hidden bg-gradient-to-br from-rose-50/95 via-amber-50/90 to-orange-100/80 backdrop-blur-md rounded-[28px] p-4 shadow-[0_8px_25px_rgba(244,63,94,0.07)] border-2 border-rose-200/70 space-y-3">
+        <!-- แถบสีด้านบนสุดของการ์ดคำคม -->
+        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-400 via-amber-400 to-orange-400"></div>
+        <!-- ไอคอนลายน้ำด้านหลัง -->
+        <span class="material-symbols-outlined text-[72px] absolute -right-3 -bottom-4 text-rose-500/10 pointer-events-none select-none">format_quote</span>
+
+        <div class="flex items-start gap-3 relative z-10 pt-0.5">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/20 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[21px]">format_quote</span>
           </div>
-          <a class="text-xs font-extrabold text-[#755634] hover:underline flex items-center gap-0.5" href="all-exams.html">
-            <span>ดูคลังทั้งหมด</span>
-            <i class="fa-solid fa-chevron-right text-[10px]"></i>
-          </a>
+          <div class="space-y-1 min-w-0 flex-1">
+            <div class="flex items-center justify-between">
+              <h4 class="text-[10px] font-extrabold text-rose-800 uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full border border-rose-200/60">DAILY INSPIRATION • กำลังใจวันนี้</h4>
+            </div>
+            <blockquote id="quoteText" class="text-xs text-slate-700 font-bold italic leading-relaxed pt-1">
+              “ความพยายามในวันนี้ คือความสำเร็จในวันที่ชื่อของคุณปรากฏในบัญชีผู้สอบแข่งขันได้”
+            </blockquote>
+          </div>
         </div>
 
-        <div class="grid grid-cols-4 gap-2.5">
-          <a href="all-exams.html" class="group bg-white/90 backdrop-blur-md border-2 border-white hover:border-indigo-200 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-[0_6px_20px_rgba(117,86,52,0.05)] active:scale-95 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">inventory_2</span>
-            </div>
-            <span class="text-[11px] font-extrabold text-slate-700">คลังข้อสอบ</span>
-          </a>
+        <!-- ปุ่มลูกเล่น: สุ่มเปลี่ยนคำคม & กดเติมไฟสะสมพลังใจ -->
+        <div class="flex items-center justify-between pt-2 border-t border-white/70 relative z-10">
+          <button type="button" onclick="cycleInspirationQuote()" class="text-[10px] font-extrabold text-slate-600 hover:text-[#755634] bg-white/85 hover:bg-white px-2.5 py-1 rounded-xl border border-white shadow-2xs flex items-center gap-1 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[14px] text-amber-600">autorenew</span>
+            <span>เปลี่ยนคำคม</span>
+          </button>
 
-          <a href="all-exams.html" class="group bg-white/90 backdrop-blur-md border-2 border-white hover:border-emerald-200 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-[0_6px_20px_rgba(117,86,52,0.05)] active:scale-95 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">auto_stories</span>
-            </div>
-            <span class="text-[11px] font-extrabold text-slate-700">แยกตามบท</span>
-          </a>
-
-          <a href="history.html" class="group bg-white/90 backdrop-blur-md border-2 border-white hover:border-purple-200 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-[0_6px_20px_rgba(117,86,52,0.05)] active:scale-95 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">radar</span>
-            </div>
-            <span class="text-[11px] font-extrabold text-slate-700">เรดาร์จุดอ่อน</span>
-          </a>
-
-          <a href="quiz.html?mode=mock&count=20" class="group bg-white/90 backdrop-blur-md border-2 border-white hover:border-orange-200 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-[0_6px_20px_rgba(117,86,52,0.05)] active:scale-95 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mb-1.5 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">timer</span>
-            </div>
-            <span class="text-[11px] font-extrabold text-slate-700">จำลองสอบจริง</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- 4. คำคมสร้างแรงบันดาลใจประจำวัน (Stagger 4) -->
-      <section class="stagger-4 bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-[0_8px_25px_rgba(117,86,52,0.05)] border-2 border-white flex items-start gap-3">
-        <div class="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[20px]">format_quote</span>
-        </div>
-        <div class="space-y-1 min-w-0 flex-1">
-          <h4 class="text-[11px] font-extrabold text-[#755634] uppercase tracking-wider">DAILY INSPIRATION • กำลังใจวันนี้</h4>
-          <blockquote id="quoteText" class="text-xs text-slate-600 font-medium italic leading-relaxed">
-            “กำลังโหลดคำคมประจำวัน...”
-          </blockquote>
+          <button type="button" id="cheerFireBtn" onclick="boostDailyFire()" class="text-[10px] font-extrabold text-rose-700 bg-white/90 hover:bg-rose-500 hover:text-white px-3 py-1 rounded-xl border border-rose-200/80 shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all">
+            <span id="cheerFireIcon" class="text-xs">🔥</span>
+            <span>เติมไฟลุยสอบ</span>
+            <span id="cheerFireCount" class="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 text-[9px] font-extrabold">128</span>
+          </button>
         </div>
       </section>
 
     </main>
-
-    
 
     <!-- =========================================================================
          🌟 POPUP 1: ป๊อปอัปต้อนรับหลังล็อกอิน (Welcome & Daily Mission Popup)
@@ -343,7 +432,7 @@
         <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-56 h-32 rounded-full bg-gradient-to-b from-amber-300/35 to-transparent blur-2xl pointer-events-none"></div>
 
         <!-- ปุ่มกากบาทปิดมุมขวาบน -->
-        <button type="button" onclick="closeWelcomePopup()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center active:scale-90 transition-all">
+        <button type="button" onclick="closeWelcomePopup()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-500 flex items-center justify-center active:scale-90 transition-all">
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
 
@@ -361,21 +450,21 @@
         </div>
 
         <!-- กล่องสรุปสถานะวันสอบ & ภารกิจวันนี้ -->
-        <div class="bg-slate-50/90 rounded-2xl p-3.5 border border-slate-200/70 space-y-2.5 text-left">
+        <div class="bg-gradient-to-br from-amber-50/70 via-white to-rose-50/60 rounded-2xl p-3.5 border border-amber-200/70 space-y-2.5 text-left">
           <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[16px] text-rose-500">event_upcoming</span>
               <span>นับถอยหลังวันสอบจริง:</span>
             </span>
-            <span id="popupDDayText" class="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg">อีก -- วัน</span>
+            <span id="popupDDayText" class="text-xs font-extrabold text-rose-600 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-lg">อีก -- วัน</span>
           </div>
 
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[16px] text-emerald-600">task_alt</span>
               <span>ฝึกทำข้อสอบวันนี้แล้ว:</span>
             </span>
-            <span id="popupTodayCountText" class="text-xs font-extrabold text-emerald-700">0 / 30 ข้อ</span>
+            <span id="popupTodayCountText" class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-lg">0 / 30 ข้อ</span>
           </div>
         </div>
 
@@ -399,19 +488,24 @@
     </div>
 
     <!-- =========================================================================
-         POPUP 2: หน้าต่างเลือกโหมดการสอบเมื่อกด "ลงแข่ง" (Bottom Sheet Modal)
+         POPUP 2: หน้าต่างเลือกโหมดการสอบเมื่อกด "ลงแข่ง" (Centered Modal)
          ========================================================================= -->
     <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-3xl p-5 shadow-2xl border-2 border-white space-y-3.5 max-h-[85vh] overflow-y-auto">
+      <div class="animate-popup-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-2xl border-2 border-white space-y-3.5 max-h-[85vh] overflow-y-auto relative">
 
         <!-- ส่วนหัว Modal -->
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">
-          <div>
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">LEADERBOARD CHALLENGE</span>
-            <h3 class="text-base font-extrabold text-slate-800 mt-1.5 leading-tight">ประลองข้อสอบครูผู้ช่วย</h3>
-            <p class="text-[11px] text-slate-400 font-medium mt-0.5">คละข้อสอบทุกหมวดวิชาเพื่อบันทึกสถิติขึ้นทำเนียบ</p>
+          <div class="flex items-start gap-2.5">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[22px]">emoji_events</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">LEADERBOARD CHALLENGE</span>
+              <h3 class="text-base font-extrabold text-slate-800 mt-1 leading-tight">ประลองข้อสอบครูผู้ช่วย</h3>
+              <p class="text-[11px] text-slate-400 font-medium mt-0.5">คละข้อสอบทุกหมวดวิชาเพื่อบันทึกสถิติขึ้นทำเนียบ</p>
+            </div>
           </div>
-          <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center active:scale-90 transition-all">
+          <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center active:scale-90 transition-all shrink-0">
             <i class="fa-solid fa-xmark text-xs"></i>
           </button>
         </div>
@@ -421,18 +515,24 @@
           <label class="text-xs font-extrabold text-slate-700 block">1. เลือกโหมดการสอบ</label>
           <div class="grid grid-cols-3 gap-2">
             <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
-              <span class="material-symbols-outlined text-[#755634] text-[20px] block mx-auto">edit_note</span>
-              <span class="text-xs font-extrabold text-slate-800 block mt-1">ฝึกซ้อม</span>
-              <span class="text-[10px] text-slate-500 block">เฉลยทันที</span>
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mx-auto shadow-2xs">
+                <span class="material-symbols-outlined text-[18px]">edit_note</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">ฝึกซ้อม</span>
+              <span class="text-[10px] text-emerald-700 font-bold block">เฉลยทันที</span>
             </button>
-            <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs">
-              <span class="material-symbols-outlined text-amber-500 text-[20px] block mx-auto">bolt</span>
-              <span class="text-xs font-extrabold text-slate-800 block mt-1">แข่งขัน</span>
+            <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn p-2.5 rounded-2xl border-2 border-amber-500 bg-amber-50/80 text-center transition-all active:scale-95 shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center mx-auto shadow-2xs">
+                <span class="material-symbols-outlined text-[18px]">bolt</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">แข่งขัน</span>
               <span class="text-[10px] text-amber-600 font-bold block">1 นาที/ข้อ</span>
             </button>
             <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
-              <span class="material-symbols-outlined text-purple-600 text-[20px] block mx-auto">workspace_premium</span>
-              <span class="text-xs font-extrabold text-slate-800 block mt-1">จำลองจริง</span>
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mx-auto shadow-2xs">
+                <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+              </div>
+              <span class="text-xs font-extrabold text-slate-800 block mt-1.5">จำลองจริง</span>
               <span class="text-[10px] text-purple-600 font-bold block">ตรงเวลาจริง</span>
             </button>
           </div>
@@ -473,6 +573,131 @@
     let calculatedDaysLeft = '--';
     let todayDoneQuestions = 0;
 
+    // ชุดคำคมสร้างแรงบันดาลใจสำหรับสลับเปลี่ยน
+    const INSPIRATION_QUOTES = [
+      'ความพยายามในวันนี้ คือความสำเร็จในวันที่ชื่อของคุณปรากฏในบัญชีผู้สอบแข่งขันได้',
+      'อ่านหนังสือวันละนิด ฝึกข้อสอบวันละหน่อย วินัยเล็กๆ จะพาไปสู่ชุดข้าราชการที่ฝันไว้',
+      'ไม่มีข้อสอบใดยากเกินกว่าคนที่เตรียมตัวมาอย่างสม่ำเสมอ สู้ๆ ครับว่าที่คุณครู!',
+      'เหนื่อยวันนี้เพื่อความมั่นคงในวันหน้า ทุกข้อที่ฝึกทำคือก้าวที่ใกล้ความจริงขึ้นเสมอ',
+      'จงเชื่อมั่นในศักยภาพของตัวเอง คุณครูคนเก่งคนต่อไปคือคุณแน่นอน!'
+    ];
+    let currentQuoteIndex = 0;
+
+    // ตัวอย่างข้อมูลทำเนียบยอดฝีมือ 10 อันดับ (สำหรับแสดงผลกรณีรัน Preview หรือยังไม่มีข้อมูลจริง)
+    const SAMPLE_LEADERBOARD_TOP10 = [
+      { user_id: 'u1', score_percentage: 95, time_spent_seconds: 512, total_correct: 19, users: { name: 'ครูกานต์ วิชาการ', student_id: '6701' } },
+      { user_id: 'u2', score_percentage: 90, time_spent_seconds: 540, total_correct: 18, users: { name: 'ครูแพรว สายลุย', student_id: '6702' } },
+      { user_id: 'u3', score_percentage: 90, time_spent_seconds: 585, total_correct: 18, users: { name: 'ครูภูมิ คณิตเป๊ะ', student_id: '6703' } },
+      { user_id: 'u4', score_percentage: 85, time_spent_seconds: 495, total_correct: 17, users: { name: 'ครูมายด์ ภาษาไทย', student_id: '6704' } },
+      { user_id: 'u5', score_percentage: 85, time_spent_seconds: 530, total_correct: 17, users: { name: 'ครูต้น คอมพิวเตอร์', student_id: '6705' } },
+      { user_id: 'u6', score_percentage: 80, time_spent_seconds: 510, total_correct: 16, users: { name: 'ครูฟ้า อังกฤษแม่น', student_id: '6706' } },
+      { user_id: 'u7', score_percentage: 80, time_spent_seconds: 560, total_correct: 16, users: { name: 'ครูเจมส์ กฎหมายแน่น', student_id: '6707' } },
+      { user_id: 'u8', score_percentage: 75, time_spent_seconds: 480, total_correct: 15, users: { name: 'ครูเนย ปฐมวัย', student_id: '6708' } },
+      { user_id: 'u9', score_percentage: 75, time_spent_seconds: 525, total_correct: 15, users: { name: 'ครูบาส สังคมศึกษา', student_id: '6709' } },
+      { user_id: 'u10', score_percentage: 70, time_spent_seconds: 550, total_correct: 14, users: { name: 'ครูออม วิทยาศาสตร์', student_id: '6710' } }
+    ];
+
+    // Toast แจ้งเตือนด้านบน
+    let toastTimer = null;
+    function showMiniToast(message, icon = '✨') {
+      const toast = document.getElementById('miniToast');
+      const iconEl = document.getElementById('miniToastIcon');
+      const textEl = document.getElementById('miniToastText');
+      if (!toast) return;
+      iconEl.innerText = icon;
+      textEl.innerText = message;
+      toast.classList.remove('opacity-0', '-translate-y-3');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-3');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2400);
+    }
+
+    // ลูกเล่นวงล้อสุ่มเมนูลัดประจำวัน
+    let isSpinningMenu = false;
+    function spinDailyMenuRoulette() {
+      if (isSpinningMenu) return;
+      const cards = Array.from(document.querySelectorAll('[data-quick-menu]'));
+      if (cards.length === 0) return;
+
+      isSpinningMenu = true;
+      showMiniToast('กำลังสุ่มโหมดฝึกซ้อมนำโชค...', '🎲');
+
+      let step = 0;
+      const totalSteps = 12;
+      const interval = setInterval(() => {
+        cards.forEach(c => c.classList.remove('menu-roulette-active'));
+        const activeIdx = step % cards.length;
+        cards[activeIdx].classList.add('menu-roulette-active');
+        step++;
+
+        if (step >= totalSteps) {
+          clearInterval(interval);
+          setTimeout(() => {
+            cards.forEach(c => c.classList.remove('menu-roulette-active'));
+            isSpinningMenu = false;
+            showMiniToast('ได้โหมดฝึกซ้อมคละวิชา 20 ข้อ ลุยเลย!', '🚀');
+            setTimeout(() => {
+              window.location.href = 'quiz.html?mode=practice&count=20';
+            }, 450);
+          }, 350);
+        }
+      }, 95);
+    }
+
+    // ลูกเล่นสลับคำคม & เติมไฟกำลังใจ
+    function cycleInspirationQuote() {
+      currentQuoteIndex = (currentQuoteIndex + 1) % INSPIRATION_QUOTES.length;
+      const quoteEl = document.getElementById('quoteText');
+      if (quoteEl) {
+        quoteEl.innerText = `“${INSPIRATION_QUOTES[currentQuoteIndex]}”`;
+      }
+      showMiniToast('อัปเดตคำคมเติมพลังใจแล้ว!', '💡');
+    }
+
+    function initCheerFireCounter() {
+      const saved = parseInt(localStorage.getItem('kru_daily_fire_count') || '128', 10);
+      const countEl = document.getElementById('cheerFireCount');
+      if (countEl) countEl.innerText = saved.toLocaleString();
+    }
+
+    function boostDailyFire() {
+      const countEl = document.getElementById('cheerFireCount');
+      const iconEl = document.getElementById('cheerFireIcon');
+      let current = parseInt(localStorage.getItem('kru_daily_fire_count') || '128', 10);
+      current += 1;
+      try {
+        localStorage.setItem('kru_daily_fire_count', String(current));
+      } catch (e) {}
+
+      if (countEl) countEl.innerText = current.toLocaleString();
+      if (iconEl) {
+        iconEl.classList.remove('animate-fire-pop');
+        void iconEl.offsetWidth;
+        iconEl.classList.add('animate-fire-pop');
+      }
+      showMiniToast('เติมไฟสำเร็จ! ขอให้สอบติดอันดับต้นๆ ครับ 🔥', '🔥');
+    }
+
+    // อัปเดตสีหมุด Milestone (10 / 20 / 30 ข้อ)
+    function updateMilestoneBadges(doneCount) {
+      const b10 = document.getElementById('msBadge10');
+      const b20 = document.getElementById('msBadge20');
+      const b30 = document.getElementById('msBadge30');
+
+      if (b10 && doneCount >= 10) {
+        b10.className = 'px-2 py-0.5 rounded-full bg-emerald-500 text-white border border-emerald-600 shadow-2xs';
+      }
+      if (b20 && doneCount >= 20) {
+        b20.className = 'px-2 py-0.5 rounded-full bg-emerald-500 text-white border border-emerald-600 shadow-2xs';
+      }
+      if (b30 && doneCount >= 30) {
+        b30.className = 'px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-600 shadow-xs';
+      }
+    }
+
     // =========================================================
     // 1. ฟังก์ชันจัดการป๊อปอัปต้อนรับตอนล็อกอิน (Welcome Popup)
     // =========================================================
@@ -480,7 +705,6 @@
       const currentSession = localStorage.getItem('kru_active_session') || 'default_session';
       const alreadyShownKey = `kru_welcome_shown_${currentSession}`;
 
-      // ถ้าเคยแสดงไปแล้วในรอบการล็อกอินนี้ และไม่ได้กดเรียกเอง ให้ข้ามไป
       if (!forceShow && sessionStorage.getItem(alreadyShownKey) === 'true') {
         return;
       }
@@ -521,9 +745,8 @@
         } catch (e) {}
       }
 
-      // ดึงการตั้งค่า D-Day และคำคมจาก Supabase
       try {
-        if (window.supabase) {
+        if (window.supabase && typeof supabase.from === 'function') {
           const { data: configs, error } = await supabase.from('system_configs').select('*');
           if (!error && configs) {
             const conf = {};
@@ -531,16 +754,20 @@
 
             if (conf.target_exam_title) {
               document.getElementById('targetExamTitleText').innerText = `${conf.target_exam_title}`;
+            } else {
+              document.getElementById('targetExamTitleText').innerText = 'การสอบแข่งขันเพื่อบรรจุและแต่งตั้งบุคคลเข้ารับราชการครู (ครูผู้ช่วย)';
             }
             if (conf.daily_quote) {
               document.getElementById('quoteText').innerText = `“${conf.daily_quote}”`;
             }
 
             setupCountdown(conf.target_exam_date || '2026-11-20T09:00:00Z');
+          } else {
+            document.getElementById('targetExamTitleText').innerText = 'การสอบแข่งขันเพื่อบรรจุและแต่งตั้งบุคคลเข้ารับราชการครู (ครูผู้ช่วย)';
+            setupCountdown('2026-11-20T09:00:00Z');
           }
 
-          
-          // คำนวณจำนวนข้อที่ทำไปวันนี้ตามเวลาท้องถิ่นประเทศไทย (Local Timezone)
+          // คำนวณจำนวนข้อที่ทำไปวันนี้ตามเวลาท้องถิ่นประเทศไทย
           if (userId && !String(userId).startsWith('guest_')) {
             const now = new Date();
             const year = now.getFullYear();
@@ -574,15 +801,19 @@
                   ? `🎉 สำเร็จเป้าหมายวันนี้แล้ว (${todayDoneQuestions}/30 ข้อ)!` 
                   : `วันนี้ทำไปแล้ว ${todayDoneQuestions} / 30 ข้อ (${pct}%)`;
               }
+              updateMilestoneBadges(todayDoneQuestions);
             }
           }
+        } else {
+          document.getElementById('targetExamTitleText').innerText = 'การสอบแข่งขันเพื่อบรรจุและแต่งตั้งบุคคลเข้ารับราชการครู (ครูผู้ช่วย)';
+          setupCountdown('2026-11-20T09:00:00Z');
         }
       } catch (err) {
         console.warn('Config load fallback:', err);
+        document.getElementById('targetExamTitleText').innerText = 'การสอบแข่งขันเพื่อบรรจุและแต่งตั้งบุคคลเข้ารับราชการครู (ครูผู้ช่วย)';
         setupCountdown('2026-11-20T09:00:00Z');
       }
 
-      // แสดงป๊อปอัปต้อนรับหลังจากโหลดข้อมูลเสร็จ
       setTimeout(() => showWelcomePopup(false), 350);
     }
 
@@ -616,9 +847,27 @@
     }
 
     // =========================================================
-    // 3. ระบบทำเนียบยอดฝีมือ (โหมดแข่งขัน 20 ข้อ ล็อก 1 สิทธิ์)
+    // 3. ระบบทำเนียบยอดฝีมือ (โหมดแข่งขัน 20 ข้อ Top 10 + กดย่อ/ขยายอันดับ 4-10)
     // =========================================================
-    let currentLeaderboardCount = 20;
+    let isLeaderboardExpanded = false;
+
+    function toggleExtraLeaderboard(extraCount = 7) {
+      const extraBox = document.getElementById('extraRanksContainer');
+      const btnText = document.getElementById('toggleLeaderboardBtnText');
+      const btnIcon = document.getElementById('toggleLeaderboardBtnIcon');
+      if (!extraBox) return;
+
+      isLeaderboardExpanded = !isLeaderboardExpanded;
+      if (isLeaderboardExpanded) {
+        extraBox.classList.remove('hidden');
+        if (btnText) btnText.innerText = 'ย่อเก็บอันดับที่ 4 - 10';
+        if (btnIcon) btnIcon.style.transform = 'rotate(180deg)';
+      } else {
+        extraBox.classList.add('hidden');
+        if (btnText) btnText.innerText = `ดูอันดับที่ 4 - ${3 + extraCount} เพิ่มเติม (${extraCount} คน)`;
+        if (btnIcon) btnIcon.style.transform = 'rotate(0deg)';
+      }
+    }
 
     // ตรวจสอบสถานะสิทธิ์ของผู้ใช้เพื่อเปิด/ปิดปุ่ม "ลงแข่ง"
     async function checkUserCompetitionStatus() {
@@ -631,12 +880,11 @@
       try { user = JSON.parse(rawUser); } catch (e) {}
       const userId = user.id || user.user_id;
 
-      // ถ้าเป็น Guest ปล่อยให้ปุ่มกดได้ เพื่อให้คลิกแล้วเจอแจ้งเตือน
       if (!userId || String(userId).startsWith('guest_') || user.studentId === 'GUEST') {
         return;
       }
 
-      if (window.supabase) {
+      if (window.supabase && typeof supabase.from === 'function') {
         try {
           const { data: existingAttempts } = await supabase
             .from('exam_attempts')
@@ -650,7 +898,7 @@
             if (btnText) btnText.innerText = 'ใช้สิทธิ์แล้ว';
           } else {
             btn.disabled = false;
-            btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#8F683E] text-white rounded-full text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center gap-1';
+            btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-[#755634] to-[#946C40] text-white rounded-full text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center gap-1';
             if (btnText) btnText.innerText = 'ลงแข่ง';
           }
         } catch (e) {
@@ -659,49 +907,48 @@
       }
     }
 
-    // โหลดอันดับคะแนนโหมดแข่งขันรุ่น 20 ข้อ (กรองเฉพาะคนที่มีบัญชี ไม่ซ้ำคน)
+    // โหลดอันดับคะแนนโหมดแข่งขันรุ่น 20 ข้อ (ดึงสูงสุด 10 อันดับแรก ไม่ซ้ำคน)
     async function loadLeaderboardData() {
       const container = document.getElementById('leaderboardList');
       if (!container) return;
 
+      let uniqueUsersList = [];
+
       try {
-        if (!window.supabase) {
-          container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">ไม่พบการเชื่อมต่อฐานข้อมูล</div>';
-          return;
-        }
+        if (window.supabase && typeof supabase.from === 'function') {
+          const { data, error } = await supabase
+            .from('exam_attempts')
+            .select('id, user_id, score_percentage, time_spent_seconds, total_correct, users(name, student_id)')
+            .eq('exam_mode', 'competition')
+            .eq('target_questions', 20)
+            .order('score_percentage', { ascending: false })
+            .order('time_spent_seconds', { ascending: true })
+            .limit(80);
 
-        const { data, error } = await supabase
-          .from('exam_attempts')
-          .select('id, user_id, score_percentage, time_spent_seconds, total_correct, users(name, student_id)')
-          .eq('exam_mode', 'competition')
-          .eq('target_questions', 20)
-          .order('score_percentage', { ascending: false })
-          .order('time_spent_seconds', { ascending: true })
-          .limit(50);
+          if (!error && data && data.length > 0) {
+            const seenUserIds = new Set();
+            for (const item of data) {
+              const uId = item.user_id;
+              if (!uId || String(uId).startsWith('guest_')) continue;
 
-        if (error) throw error;
-
-        const uniqueUsersList = [];
-        const seenUserIds = new Set();
-
-        if (data && data.length > 0) {
-          for (const item of data) {
-            const uId = item.user_id;
-            if (!uId || String(uId).startsWith('guest_')) continue;
-
-            if (!seenUserIds.has(uId)) {
-              seenUserIds.add(uId);
-              uniqueUsersList.push(item);
+              if (!seenUserIds.has(uId)) {
+                seenUserIds.add(uId);
+                uniqueUsersList.push(item);
+              }
+              // ดึงสูงสุด 10 อันดับแรก (Top 10)
+              if (uniqueUsersList.length === 10) break;
             }
-            if (uniqueUsersList.length === 5) break;
           }
+        } else {
+          // กรณีรันในโหมด Preview ให้แสดงตัวอย่าง 10 อันดับเพื่อให้ทดสอบปุ่มย่อ/ขยายได้ทันที
+          uniqueUsersList = SAMPLE_LEADERBOARD_TOP10;
         }
 
         if (uniqueUsersList.length === 0) {
           container.innerHTML = `
-            <div class="p-6 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 space-y-1">
+            <div class="p-6 text-center bg-gradient-to-br from-amber-50/60 to-orange-50/40 rounded-2xl border-2 border-dashed border-amber-200 space-y-1">
               <span class="text-2xl block">🏆</span>
-              <p class="text-xs font-extrabold text-slate-600">ยังไม่มีผู้สอบในโหมดแข่งขันรุ่น 20 ข้อ</p>
+              <p class="text-xs font-extrabold text-slate-700">ยังไม่มีผู้สอบในโหมดแข่งขันรุ่น 20 ข้อ</p>
               <p class="text-[10px] text-slate-400">กดปุ่ม "ลงแข่ง" ด้านบนเพื่อเริ่มทำข้อสอบเป็นคนแรก!</p>
             </div>`;
           return;
@@ -718,73 +965,111 @@
         const top1 = uniqueUsersList[0];
         const top2 = uniqueUsersList[1] || null;
         const top3 = uniqueUsersList[2] || null;
-        const restList = uniqueUsersList.slice(3);
+        const restList = uniqueUsersList.slice(3, 10); // อันดับที่ 4 ถึง 10
 
+        // แท่นรางวัล Podium Top 1 - 3 ดีไซน์ 3 มิติสีเมทัลลิกพาสเทล (แสดงเสมอ)
         const podiumHTML = `
-          <div class="grid grid-cols-3 gap-2 items-end pt-3 pb-1 px-1">
-            <!-- อันดับ 2 (ซ้าย) -->
+          <div class="grid grid-cols-3 gap-2.5 items-end pt-3 pb-1 px-1">
+            <!-- อันดับ 2 (ซ้าย - โทนเงินครามพาสเทล) -->
             ${top2 ? `
               <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 80ms;">
-                <div class="w-10 h-10 rounded-2xl bg-slate-100 border-2 border-slate-300 text-slate-700 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-100 via-indigo-50 to-slate-200 border-2 border-indigo-200 text-indigo-900 font-extrabold text-xs flex items-center justify-center shadow-sm relative mb-1.5">
                   ${getName(top2).charAt(0)}
-                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-slate-400 text-white text-[9px] font-extrabold">2</span>
+                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-indigo-500 text-white text-[9px] font-extrabold shadow-2xs">2</span>
                 </div>
-                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top2)}</span>
-                <span class="text-xs font-extrabold text-slate-600">${top2.score_percentage}%</span>
-                <span class="text-[9px] text-slate-400">${formatTime(top2.time_spent_seconds)}</span>
-                <div class="w-full h-12 rounded-t-2xl bg-gradient-to-t from-slate-200/80 to-slate-100 border-t-2 border-x border-slate-300/60 mt-1.5 flex items-center justify-center text-lg">🥈</div>
+                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full px-1">${getName(top2)}</span>
+                <span class="text-xs font-extrabold text-indigo-600">${top2.score_percentage}%</span>
+                <span class="text-[9px] text-slate-400 font-semibold">${formatTime(top2.time_spent_seconds)}</span>
+                <div class="w-full h-14 rounded-t-2xl bg-gradient-to-t from-indigo-100/90 via-slate-100 to-white border-t-2 border-x border-indigo-200/80 mt-1.5 flex flex-col items-center justify-center shadow-inner">
+                  <span class="text-lg leading-none">🥈</span>
+                  <span class="text-[8px] font-extrabold text-indigo-700/70 uppercase mt-0.5">SILVER</span>
+                </div>
               </div>
             ` : '<div></div>'}
 
-            <!-- อันดับ 1 (ตรงกลาง) -->
-            <div class="animate-podium flex flex-col items-center text-center">
-              <span class="text-base -mb-1 animate-bounce">👑</span>
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 border-2 border-white text-amber-950 font-extrabold text-sm flex items-center justify-center shadow-md relative mb-1.5">
+            <!-- อันดับ 1 (ตรงกลาง - โทนทองอำพันเรืองแสง) -->
+            <div class="animate-podium flex flex-col items-center text-center relative">
+              <span class="text-lg -mb-1 animate-bounce drop-shadow-xs">👑</span>
+              <div class="w-13 h-13 w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-400 border-2 border-white text-amber-950 font-extrabold text-sm flex items-center justify-center shadow-md shadow-amber-500/25 relative mb-1.5">
                 ${getName(top1).charAt(0)}
-                <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[9px] font-extrabold">1</span>
+                <span class="absolute -bottom-1.5 px-2 py-0.2 rounded-full bg-[#755634] text-white text-[9px] font-extrabold shadow-2xs">1</span>
               </div>
-              <span class="text-xs font-extrabold text-slate-900 truncate w-full">${getName(top1)}</span>
+              <span class="text-xs font-extrabold text-slate-900 truncate w-full px-1">${getName(top1)}</span>
               <span class="text-sm font-extrabold text-emerald-600">${top1.score_percentage}%</span>
-              <span class="text-[9px] text-amber-700 font-semibold">${formatTime(top1.time_spent_seconds)}</span>
-              <div class="w-full h-16 rounded-t-2xl bg-gradient-to-t from-amber-200/90 to-amber-100/80 border-t-2 border-x border-amber-300 mt-1.5 flex items-center justify-center text-xl shadow-inner">🥇</div>
+              <span class="text-[9px] text-amber-700 font-bold">${formatTime(top1.time_spent_seconds)}</span>
+              <div class="w-full h-20 rounded-t-2xl bg-gradient-to-t from-amber-300/90 via-amber-100 to-yellow-50 border-t-2 border-x border-amber-300 mt-1.5 flex flex-col items-center justify-center shadow-inner">
+                <span class="text-2xl leading-none">🥇</span>
+                <span class="text-[9px] font-extrabold text-amber-900/80 uppercase mt-0.5">CHAMPION</span>
+              </div>
             </div>
 
-            <!-- อันดับ 3 (ขวา) -->
+            <!-- อันดับ 3 (ขวา - โทนทองแดงพีชพาสเทล) -->
             ${top3 ? `
               <div class="animate-podium flex flex-col items-center text-center" style="animation-delay: 150ms;">
-                <div class="w-10 h-10 rounded-2xl bg-orange-50 border-2 border-orange-300 text-orange-800 font-extrabold text-xs flex items-center justify-center shadow-xs relative mb-1.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-100 via-amber-50 to-rose-100 border-2 border-orange-300 text-orange-900 font-extrabold text-xs flex items-center justify-center shadow-sm relative mb-1.5">
                   ${getName(top3).charAt(0)}
-                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-orange-500 text-white text-[9px] font-extrabold">3</span>
+                  <span class="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-orange-500 text-white text-[9px] font-extrabold shadow-2xs">3</span>
                 </div>
-                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full">${getName(top3)}</span>
-                <span class="text-xs font-extrabold text-orange-700">${top3.score_percentage}%</span>
-                <span class="text-[9px] text-slate-400">${formatTime(top3.time_spent_seconds)}</span>
-                <div class="w-full h-10 rounded-t-2xl bg-gradient-to-t from-orange-100/90 to-orange-50 border-t-2 border-x border-orange-200 mt-1.5 flex items-center justify-center text-base">🥉</div>
+                <span class="text-[11px] font-extrabold text-slate-700 truncate w-full px-1">${getName(top3)}</span>
+                <span class="text-xs font-extrabold text-orange-600">${top3.score_percentage}%</span>
+                <span class="text-[9px] text-slate-400 font-semibold">${formatTime(top3.time_spent_seconds)}</span>
+                <div class="w-full h-12 rounded-t-2xl bg-gradient-to-t from-orange-200/80 via-orange-50 to-white border-t-2 border-x border-orange-200 mt-1.5 flex flex-col items-center justify-center shadow-inner">
+                  <span class="text-base leading-none">🥉</span>
+                  <span class="text-[8px] font-extrabold text-orange-800/70 uppercase mt-0.5">BRONZE</span>
+                </div>
               </div>
             ` : '<div></div>'}
           </div>
         `;
 
+        // รายการอันดับที่ 4 ถึง 10 (ซ่อนไว้เป็นค่าเริ่มต้น กดปุ่มเพื่อกางออก/พับเก็บ)
+        const rankBadgeThemes = [
+          'from-violet-500 to-purple-600 text-white',
+          'from-emerald-500 to-teal-600 text-white',
+          'from-sky-500 to-blue-600 text-white',
+          'from-rose-500 to-pink-600 text-white',
+          'from-amber-500 to-orange-500 text-white',
+          'from-cyan-500 to-teal-500 text-white',
+          'from-fuchsia-500 to-purple-600 text-white'
+        ];
+
         const restHTML = restList.map((item, idx) => {
           const rank = idx + 4;
+          const badgeTheme = rankBadgeThemes[idx % rankBadgeThemes.length];
           return `
-            <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/90 border border-slate-100 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-2xl bg-gradient-to-r from-white via-amber-50/30 to-orange-50/40 border border-amber-200/60 hover:border-amber-300 text-xs shadow-2xs transition-all">
               <div class="flex items-center gap-2.5 min-w-0">
-                <span class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-center font-extrabold text-slate-500 flex items-center justify-center text-[11px]">${rank}</span>
+                <span class="w-7 h-7 rounded-xl bg-gradient-to-br ${badgeTheme} text-center font-extrabold flex items-center justify-center text-[11px] shadow-2xs shrink-0">${rank}</span>
                 <div class="min-w-0">
-                  <h4 class="font-extrabold text-slate-700 truncate">${getName(item)}</h4>
-                  <span class="text-[10px] text-slate-400">เวลา ${formatTime(item.time_spent_seconds)}</span>
+                  <h4 class="font-extrabold text-slate-800 truncate">${getName(item)}</h4>
+                  <span class="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                    <i class="fa-regular fa-clock text-[9px] text-amber-600"></i> เวลา ${formatTime(item.time_spent_seconds)}
+                  </span>
                 </div>
               </div>
-              <div class="text-right shrink-0">
+              <div class="text-right shrink-0 bg-white/90 px-2.5 py-1 rounded-xl border border-amber-100">
                 <span class="font-extrabold text-xs text-[#755634]">${item.score_percentage}%</span>
-                <span class="text-[10px] text-slate-400 block">${item.total_correct}/20 ข้อ</span>
+                <span class="text-[9px] font-bold text-slate-400 block">${item.total_correct}/20 ข้อ</span>
               </div>
             </div>
           `;
         }).join('');
 
-        container.innerHTML = podiumHTML + (restHTML ? `<div class="space-y-1.5 pt-1">${restHTML}</div>` : '');
+        isLeaderboardExpanded = false;
+        const toggleButtonHTML = restList.length > 0 ? `
+          <div class="pt-1">
+            <div id="extraRanksContainer" class="hidden space-y-1.5 pb-2.5 transition-all">
+              ${restHTML}
+            </div>
+            <button type="button" onclick="toggleExtraLeaderboard(${restList.length})" 
+                    class="w-full py-2 px-3 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-[11px] font-extrabold text-[#755634] flex items-center justify-center gap-1.5 shadow-2xs active:scale-[0.99] transition-all">
+              <span id="toggleLeaderboardBtnText">ดูอันดับที่ 4 - ${3 + restList.length} เพิ่มเติม (${restList.length} คน)</span>
+              <i id="toggleLeaderboardBtnIcon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300"></i>
+            </button>
+          </div>
+        ` : '';
+
+        container.innerHTML = podiumHTML + toggleButtonHTML;
 
       } catch (err) {
         console.error('Leaderboard error:', err);
@@ -807,11 +1092,11 @@
       const userId = user.id || user.user_id;
 
       if (!userId || String(userId).startsWith('guest_') || user.studentId === 'GUEST') {
-        alert('ต้องเข้าสู่ระบบด้วยรหัสสมาชิกเท่านั้น');
+        showMiniToast('ต้องเข้าสู่ระบบด้วยรหัสสมาชิกเท่านั้นจึงจะลงแข่งได้', '🔒');
         return;
       }
 
-      if (window.supabase) {
+      if (window.supabase && typeof supabase.from === 'function') {
         const { data: existingAttempts } = await supabase
           .from('exam_attempts')
           .select('id')
@@ -819,7 +1104,7 @@
           .eq('exam_mode', 'competition');
 
         if (existingAttempts && existingAttempts.length > 0) {
-          alert('คุณได้ใช้สิทธิ์เข้าสอบโหมดแข่งขันไปแล้ว (อนุญาตให้สอบได้ 1 ครั้ง)\nหากต้องการสอบใหม่ กรุณาติดต่อแอดมินเพื่อขอเปิดสิทธิ์');
+          showMiniToast('คุณใช้สิทธิ์สอบโหมดแข่งขันไปแล้ว (จำกัด 1 ครั้ง)', '⚠️');
           checkUserCompetitionStatus();
           return;
         }
@@ -840,7 +1125,7 @@
         const btn = document.getElementById(m === 'practice' ? 'optModePractice' : m === 'competition' ? 'optModeCompetition' : 'optModeMock');
         if (btn) {
           btn.className = (m === mode)
-            ? 'mode-opt-btn p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs'
+            ? 'mode-opt-btn p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/80 text-center transition-all active:scale-95 shadow-2xs scale-[1.02]'
             : 'mode-opt-btn p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95';
         }
       });
@@ -872,7 +1157,7 @@
         const btn = document.getElementById(`optCount${cnt}`);
         if (btn) {
           btn.className = (cnt === count)
-            ? 'count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95'
+            ? 'count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/80 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95'
             : 'count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95';
         }
       });
@@ -886,6 +1171,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      initCheerFireCounter();
       loadHomeDashboard();
       loadLeaderboardData();
       checkUserCompetitionStatus();

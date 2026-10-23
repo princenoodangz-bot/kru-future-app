@@ -38,41 +38,33 @@
       100% { background-position: 0% 50%; }
     }
     .bg-aurora {
-      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+      background: linear-gradient(-45deg, #FFFBF5, #FEF0D8, #FCE8EF, #E8F4FE, #EAFBF2);
       background-size: 400% 400%;
       animation: auroraBG 18s ease infinite;
     }
 
     .bg-grid-pattern {
-      background-size: 28px 28px;
+      background-size: 26px 26px;
       background-image: 
-        linear-gradient(to right, rgba(117, 86, 52, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(117, 86, 52, 0.04) 1px, transparent 1px);
+        linear-gradient(to right, rgba(117, 86, 52, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.045) 1px, transparent 1px);
     }
 
     @keyframes orbitBlob {
       0%, 100% { transform: translate(0px, 0px) scale(1); }
-      50% { transform: translate(20px, -25px) scale(1.12); }
+      50% { transform: translate(22px, -28px) scale(1.14); }
     }
     .animate-blob { animation: orbitBlob 10s ease-in-out infinite; }
 
     /* =========================================
-       2. CARD & MODAL MICRO-ANIMATIONS
+       2. CARD, ROULETTE & MODAL MICRO-ANIMATIONS
        ========================================= */
     @keyframes cardPopIn {
-      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      from { opacity: 0; transform: translateY(16px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .animate-card-in {
-      animation: cardPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    @keyframes sheetSlideUp {
-      from { opacity: 0; transform: translateY(100%); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-sheet-up {
-      animation: sheetSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: cardPopIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     @keyframes shimmerSweep {
@@ -83,56 +75,149 @@
       content: '';
       position: absolute;
       top: 0; left: 0; width: 45%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-      animation: shimmerSweep 4s infinite;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmerSweep 3.8s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(4deg); }
+    }
+    .animate-float-slow {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+
+    @keyframes starPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.4) rotate(15deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .animate-star-pop {
+      animation: starPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ไฮไลต์เวลาสุ่มการ์ดนำโชค (Lucky Roulette) */
+    .roulette-active {
+      transform: translateY(-4px) scale(1.03) !important;
+      box-shadow: 0 0 0 3px #F59E0B, 0 16px 32px rgba(245, 158, 11, 0.3) !important;
+      z-index: 20;
     }
   </style>
 </head>
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่า) -->
+  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่าพาสเทล) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/2 -left-28 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
-    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-sky-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+  </div>
+
+  <!-- Toast แจ้งเตือนเล็กๆ ด้านบนเมื่อปักหมุดหรือสุ่มข้อสอบ -->
+  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15">
+    <span id="miniToastIcon" class="text-amber-400">✨</span>
+    <span id="miniToastText">บันทึกเรียบร้อย</span>
   </div>
 
   <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
   <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
 
     <!-- แถบด้านบน (Sticky Glass Header) -->
-    <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
-          <span class="material-symbols-outlined text-[20px]">local_library</span>
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] via-[#755634] to-[#4E3820] flex items-center justify-center text-white shadow-md shadow-amber-900/20 shrink-0 relative overflow-hidden">
+          <div class="absolute -top-2 -right-2 w-5 h-5 bg-amber-300/30 rounded-full blur-xs"></div>
+          <span class="material-symbols-outlined text-[21px]">local_library</span>
         </div>
         <div>
           <div class="flex items-center gap-1.5">
             <h1 class="text-[10px] font-extrabold text-[#755634] tracking-widest uppercase">EXAM ARENA</h1>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-700 gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> LIVE
+            </span>
           </div>
           <p class="text-base font-extrabold text-slate-800 leading-tight tracking-tight">คลังข้อสอบครูผู้ช่วย</p>
         </div>
       </div>
 
       <!-- ไอคอนโปรไฟล์แสดงตัวย่อชื่อ -->
-      <div id="userHeaderBadge" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white flex items-center justify-center text-xs font-extrabold text-[#755634] shadow-sm">
-        ครู
+      <div class="flex items-center gap-2">
+        <div id="userHeaderBadge" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 border-2 border-white flex items-center justify-center text-xs font-extrabold text-[#755634] shadow-sm">
+          ครู
+        </div>
       </div>
     </header>
 
     <!-- เนื้อหาหลัก -->
     <main class="flex-1 px-4 pt-3.5 space-y-3.5">
 
-      <!-- 1. ช่องค้นหาข้อสอบแบบ Floating Search Bar -->
+      <!-- 0. กล่อง Bento สรุปภาพรวมสีพาสเทลสดใส (3 กล่อง) -->
+      <div class="grid grid-cols-3 gap-2">
+        <!-- กล่อง 1: หัวข้อในภาคนี้ -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100/90 border-2 border-white p-2.5 shadow-sm">
+          <div class="absolute -right-2 -bottom-2 text-amber-500/15 pointer-events-none">
+            <span class="material-symbols-outlined text-[42px]">menu_book</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-2xs">
+              <span class="material-symbols-outlined text-[14px]">library_books</span>
+            </div>
+            <span class="text-[10px] font-bold text-amber-900/70">หัวข้อสอบ</span>
+          </div>
+          <p class="mt-1.5 text-sm font-extrabold text-amber-950 leading-none">
+            <span id="statTopicCount">0</span> <span class="text-[10px] font-bold text-amber-800/70">เรื่อง</span>
+          </p>
+        </div>
+
+        <!-- กล่อง 2: จำนวนข้อสอบรวม -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 via-violet-50 to-indigo-100/90 border-2 border-white p-2.5 shadow-sm">
+          <div class="absolute -right-2 -bottom-2 text-indigo-500/15 pointer-events-none">
+            <span class="material-symbols-outlined text-[42px]">quiz</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-2xs">
+              <span class="material-symbols-outlined text-[14px]">bolt</span>
+            </div>
+            <span class="text-[10px] font-bold text-indigo-900/70">คลังข้อสอบ</span>
+          </div>
+          <p class="mt-1.5 text-sm font-extrabold text-indigo-950 leading-none">
+            <span id="statQuestionCount">0</span> <span class="text-[10px] font-bold text-indigo-800/70">ข้อ</span>
+          </p>
+        </div>
+
+        <!-- กล่อง 3: หัวข้อที่ปักหมุดไว้ (กดเพื่อกรองดูเฉพาะที่ปักหมุดได้) -->
+        <button type="button" onclick="toggleFavoriteFilter()" id="favStatCard" class="text-left relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100/90 border-2 border-white p-2.5 shadow-sm transition-all active:scale-95">
+          <div class="absolute -right-2 -bottom-2 text-rose-500/15 pointer-events-none">
+            <span class="material-symbols-outlined text-[42px]">kid_star</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-2xs">
+                <i class="fa-solid fa-star text-[10px]"></i>
+              </div>
+              <span class="text-[10px] font-bold text-rose-900/70">ปักหมุด</span>
+            </div>
+            <span id="favFilterActiveDot" class="hidden w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          </div>
+          <p class="mt-1.5 text-sm font-extrabold text-rose-950 leading-none flex items-center justify-between">
+            <span><span id="statFavCount">0</span> <span class="text-[10px] font-bold text-rose-800/70">เรื่อง</span></span>
+            <span id="favStatHint" class="text-[9px] font-extrabold text-rose-600 bg-white/80 px-1.5 py-0.5 rounded-md">ดูทั้งหมด</span>
+          </p>
+        </button>
+      </div>
+
+      <!-- 1. ช่องค้นหาข้อสอบแบบ Floating Search Bar สีสันสดใส -->
       <div class="relative flex items-center group">
-        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all absolute left-3.5 text-[19px]">search</span>
+        <div class="w-7 h-7 rounded-xl bg-amber-100/80 text-[#755634] flex items-center justify-center absolute left-2.5 transition-transform group-focus-within:scale-110 group-focus-within:bg-[#755634] group-focus-within:text-white">
+          <span class="material-symbols-outlined text-[17px]">search</span>
+        </div>
         <input id="searchInput" oninput="handleSearch(this.value)" 
-               class="w-full pl-10 pr-9 py-2.5 bg-white/85 backdrop-blur-md rounded-2xl border-2 border-white focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-[0_4px_15px_rgba(0,0,0,0.03)] transition-all" 
+               class="w-full pl-11 pr-9 py-2.5 bg-white/90 backdrop-blur-md rounded-2xl border-2 border-white focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs font-semibold text-slate-800 placeholder-slate-400 outline-none shadow-[0_6px_20px_rgba(117,86,52,0.05)] transition-all" 
                placeholder="ค้นหาชื่อเรื่อง เช่น อนุกรม, พ.ร.บ., จิตวิทยา..." type="text">
-        <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-3 w-5 h-5 rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 items-center justify-center text-[10px]">
+        <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-3 w-5 h-5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 items-center justify-center text-[10px] transition-colors">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -140,8 +225,8 @@
       <!-- 2. แถบเลือกระดับที่ 1 (ภาค ก / ภาค ข แบบ Sliding Pill) + ปุ่มสลับ Grid/List -->
       <div class="flex items-center justify-between gap-2">
         <!-- Sliding Pill Container -->
-        <div class="relative grid grid-cols-2 p-1 bg-white/70 backdrop-blur-md border border-white rounded-2xl flex-1 shadow-2xs">
-          <div id="partSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#755634] to-[#8F683E] rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
+        <div class="relative grid grid-cols-2 p-1 bg-white/80 backdrop-blur-md border-2 border-white rounded-2xl flex-1 shadow-sm">
+          <div id="partSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#A47846] rounded-xl shadow-md shadow-amber-900/20 transition-transform duration-300 ease-out"></div>
           
           <button id="tabPartA" onclick="selectMainPart('ภาค ก')" class="relative z-10 py-1.5 px-2 rounded-xl text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200">
             <span class="material-symbols-outlined text-[15px]">psychology</span>
@@ -154,8 +239,8 @@
         </div>
 
         <!-- ปุ่มสลับ Grid / List -->
-        <div class="flex items-center bg-white/80 backdrop-blur-md p-1 rounded-2xl border border-white shrink-0 shadow-2xs">
-          <button id="btnViewGrid" onclick="setViewMode('grid')" title="แสดงแบบการ์ดตาราง" class="w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90">
+        <div class="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl border-2 border-white shrink-0 shadow-sm">
+          <button id="btnViewGrid" onclick="setViewMode('grid')" title="แสดงแบบการ์ดตาราง" class="w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100 shadow-2xs transition-all active:scale-90">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
           </button>
           <button id="btnViewList" onclick="setViewMode('list')" title="แสดงแบบรายการยาว" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90">
@@ -177,47 +262,74 @@
         </div>
       </div>
 
-      <!-- 4. แบนเนอร์ปุ่มลัด: สุ่มทำข้อสอบรวมในหมวดที่กำลังเลือก (เรียกใช้ startScopeExam) -->
-      <div onclick="startScopeExam()" class="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#755634] via-[#8B653B] to-[#63482B] p-3 text-white shadow-md shadow-amber-900/15 cursor-pointer active:scale-[0.98] transition-all flex items-center justify-between border border-amber-300/30">
-        <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-amber-200 shrink-0 group-hover:rotate-12 group-hover:scale-110 transition-transform">
-            <span class="material-symbols-outlined text-[20px]">shuffle</span>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <span class="text-[9px] font-extrabold uppercase tracking-wider bg-amber-400 text-amber-950 px-1.5 py-0.5 rounded-md">QUICK MIX</span>
-              <h4 id="scopeBannerTitle" class="text-xs font-extrabold truncate">สุ่มสอบรวมหมวดนี้ (20 ข้อ)</h4>
+      <!-- 4. แบนเนอร์ปุ่มลัด: สุ่มทำข้อสอบรวมในหมวดที่กำลังเลือก + ปุ่มสุ่มการ์ดนำโชค -->
+      <div class="grid grid-cols-12 gap-2">
+        <!-- ปุ่มหลัก: สุ่มสอบรวมหมวดนี้ (เรียกใช้ startScopeExam) -->
+        <div onclick="startScopeExam()" class="col-span-8 shimmer-effect group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#5E4325] p-3 text-white shadow-md shadow-amber-900/20 cursor-pointer active:scale-[0.98] transition-all flex items-center justify-between border border-amber-300/40">
+          <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-amber-300/15 blur-xl pointer-events-none"></div>
+          <div class="flex items-center gap-2.5 min-w-0 relative z-10">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-sm flex items-center justify-center shrink-0 group-hover:rotate-12 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[20px]">shuffle</span>
             </div>
-            <p class="text-[10px] text-amber-100/80 truncate mt-0.5">คละข้อสอบทุกเรื่องย่อยในหมวดที่เลือกอยู่ทันที</p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1">
+                <span class="text-[8px] font-extrabold uppercase tracking-wider bg-white/20 text-amber-200 px-1.5 py-0.5 rounded-md border border-white/15">QUICK MIX</span>
+              </div>
+              <h4 id="scopeBannerTitle" class="text-xs font-extrabold truncate mt-0.5">สุ่มสอบรวมหมวดนี้ (20 ข้อ)</h4>
+              <p class="text-[9px] text-amber-100/85 truncate">คละข้อสอบทุกเรื่องย่อยทันที</p>
+            </div>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform relative z-10">
+            <i class="fa-solid fa-play text-[10px] ml-0.5"></i>
           </div>
         </div>
-        <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
-          <i class="fa-solid fa-play text-[10px] ml-0.5"></i>
-        </div>
+
+        <!-- ปุ่มลูกเล่นใหม่: สุ่มการ์ดนำโชค (Lucky Roulette) -->
+        <button type="button" onclick="spinLuckyTopic()" class="col-span-4 group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 p-2.5 text-white shadow-md shadow-purple-900/20 cursor-pointer active:scale-95 transition-all flex flex-col justify-between border border-purple-300/40 text-left">
+          <div class="absolute -right-3 -bottom-3 text-white/15 pointer-events-none group-hover:rotate-12 transition-transform">
+            <span class="material-symbols-outlined text-[44px]">casino</span>
+          </div>
+          <div class="flex items-center justify-between w-full relative z-10">
+            <span class="text-[8px] font-extrabold uppercase tracking-wider bg-white/20 text-purple-100 px-1.5 py-0.5 rounded-md">LUCKY PICK</span>
+            <span class="material-symbols-outlined text-[16px] text-amber-300 group-hover:rotate-180 transition-transform duration-500">casino</span>
+          </div>
+          <div class="relative z-10 mt-1">
+            <div class="text-[11px] font-extrabold leading-tight">สุ่มการ์ดนำโชค</div>
+            <div class="text-[9px] text-purple-100/85 truncate">เลือกหัวข้อให้ฉัน!</div>
+          </div>
+        </button>
       </div>
 
       <!-- 5. หัวข้อแสดงจำนวนเรื่องย่อยที่พบ -->
-      <div class="flex items-center justify-between px-1 pt-1">
+      <div class="flex items-center justify-between px-1 pt-0.5">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-[#755634] ring-4 ring-amber-500/15"></span>
-          <h3 id="displayTopicCountTitle" class="text-xs font-extrabold text-slate-800 tracking-tight">เลือกหัวข้อเรื่องย่อยที่ต้องการฝึก</h3>
+          <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 ring-4 ring-amber-500/15"></span>
+          <h3 id="displayTopicCountTitle" class="text-xs font-extrabold text-slate-800 tracking-tight">เลือกกล่องหัวข้อเรื่องย่อยที่ต้องการฝึก</h3>
         </div>
-        <span id="topicCountBadge" class="text-[10px] text-[#755634] font-extrabold bg-white/80 border border-amber-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">0 เรื่อง</span>
+        <div class="flex items-center gap-1.5">
+          <button id="clearFavFilterBtn" onclick="toggleFavoriteFilter()" class="hidden text-[10px] font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full items-center gap-1">
+            <i class="fa-solid fa-xmark text-[9px]"></i> ล้างตัวกรองดาว
+          </button>
+          <span id="topicCountBadge" class="text-[10px] text-[#755634] font-extrabold bg-white/90 border border-amber-200 px-2.5 py-0.5 rounded-full shadow-2xs">0 เรื่อง</span>
+        </div>
       </div>
 
-      <!-- 6. พื้นที่เรนเดอร์การ์ดระดับที่ 4 (เรื่องย่อย) -->
+      <!-- 6. พื้นที่เรนเดอร์การ์ดระดับที่ 4 (เรื่องย่อย - กล่องสีพาสเทลสดใส) -->
       <div id="cardsDisplayContainer" class="grid grid-cols-2 gap-3 transition-all">
         <!-- การ์ดเรื่องย่อยจะถูกเรนเดอร์ที่นี่ -->
       </div>
 
       <!-- กล่องแจ้งเตือนเมื่อค้นหาไม่พบ -->
-      <div id="noResultsNotice" class="hidden bg-white/70 backdrop-blur-md rounded-3xl p-8 text-center border border-white shadow-xs space-y-2 my-4">
-        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-1">
-          <span class="material-symbols-outlined text-[28px]">search_off</span>
+      <div id="noResultsNotice" class="hidden bg-white/80 backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-sm space-y-2.5 my-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 flex items-center justify-center mx-auto mb-1 shadow-inner">
+          <span class="material-symbols-outlined text-[30px]">search_off</span>
         </div>
-        <p class="text-xs font-bold text-slate-700">ไม่พบหัวข้อข้อสอบที่ค้นหา</p>
-        <p class="text-[11px] text-slate-400">ลองเปลี่ยนคำค้นหา หรือเลือกดู "ทั้งหมดทุกหมวด"</p>
+        <p class="text-xs font-extrabold text-slate-700">ไม่พบกล่องข้อสอบที่ตรงกับเงื่อนไข</p>
+        <p class="text-[11px] text-slate-400">ลองเปลี่ยนคำค้นหา หรือกดดู "ทั้งหมดทุกหมวด"</p>
+        <button onclick="resetAllFilters()" class="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#755634] text-white text-xs font-extrabold shadow-sm active:scale-95 transition-transform">
+          <span class="material-symbols-outlined text-[15px]">restart_alt</span>
+          <span>รีเซ็ตตัวกรองทั้งหมด</span>
+        </button>
       </div>
 
     </main>
@@ -226,29 +338,34 @@
          หน้าต่างเลือกโหมดการสอบ (Centered 3D Tactile Popup Modal ลอยกลางจอ)
          ========================================================= -->
     <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.25)] border-2 border-white space-y-4 max-h-[88dvh] overflow-y-auto relative">
+      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.28)] border-2 border-white space-y-4 max-h-[88dvh] overflow-y-auto relative">
 
-        <!-- แสงออร่าสีทองตกแต่งมุมบนป๊อปอัป -->
-        <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-24 rounded-full bg-amber-400/20 blur-xl pointer-events-none"></div>
+        <!-- แสงออร่าตกแต่งมุมบนป๊อปอัป -->
+        <div id="modalHeaderGlow" class="absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-24 rounded-full bg-amber-400/25 blur-2xl pointer-events-none"></div>
 
-        <!-- ส่วนหัว Modal -->
-        <div class="flex items-start justify-between border-b border-slate-100 pb-3 relative z-10">
-          <div class="pr-2">
-            <div class="flex items-center gap-1.5">
-              <span id="modalPartTag" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">ภาค ก</span>
-              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> พร้อมสอบ
-              </span>
+        <!-- ส่วนหัว Modal พร้อมกล่องไอคอนสีประจำวิชา -->
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3.5 relative z-10 gap-2.5">
+          <div class="flex items-start gap-3 min-w-0">
+            <div id="modalTopicIconBox" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md shrink-0 mt-0.5">
+              <span id="modalTopicIcon" class="material-symbols-outlined text-[24px]">menu_book</span>
             </div>
-            <h3 id="modalSubjectTitle" class="text-base font-extrabold text-slate-800 mt-1 leading-snug">ชื่อหัวข้อย่อย</h3>
-            <p id="modalCategorySubtitle" class="text-[11px] text-slate-400 font-medium mt-0.5">หมวดวิชา</p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span id="modalPartTag" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg">ภาค ก</span>
+                <span id="modalQuestionCountTag" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> พร้อมสอบ
+                </span>
+              </div>
+              <h3 id="modalSubjectTitle" class="text-base font-extrabold text-slate-800 mt-1 leading-snug">ชื่อหัวข้อย่อย</h3>
+              <p id="modalCategorySubtitle" class="text-[11px] text-slate-400 font-medium mt-0.5 truncate">หมวดวิชา</p>
+            </div>
           </div>
-          <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center active:scale-90 transition-all shrink-0">
+          <button type="button" onclick="closeModeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center active:scale-90 transition-all shrink-0">
             <i class="fa-solid fa-xmark text-xs"></i>
           </button>
         </div>
 
-        <!-- 1. เลือกโหมดการฝึกซ้อม (ครบ 3 โหมด พร้อมไอคอนและแอนิเมชันเด้งดึ๋ง) -->
+        <!-- 1. เลือกโหมดการฝึกซ้อม (3 โหมด กล่องสีแยกชัดเจน) -->
         <div class="space-y-2 relative z-10">
           <label class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[17px] text-[#755634]">tune</span>
@@ -256,17 +373,17 @@
           </label>
           <div class="grid grid-cols-3 gap-2">
             <!-- โหมดฝึกซ้อม -->
-            <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs">
-              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-[#755634] group-hover:scale-110 transition-transform">
+            <button type="button" onclick="selectModalMode('practice')" id="optModePractice" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-b from-emerald-50 to-teal-50/70 text-center transition-all active:scale-95 shadow-sm">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xs flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">edit_note</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">ฝึกซ้อม</span>
-              <span class="text-[10px] text-slate-500 font-medium block">เฉลยทีละข้อ</span>
+              <span class="text-[10px] text-emerald-700 font-bold block">เฉลยทีละข้อ</span>
             </button>
 
             <!-- โหมดแข่งขัน -->
-            <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
-              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-amber-500 group-hover:scale-110 group-hover:rotate-12 transition-transform">
+            <button type="button" onclick="selectModalMode('competition')" id="optModeCompetition" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 hover:bg-amber-50/40 text-center transition-all active:scale-95">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-xs flex items-center justify-center mx-auto group-hover:scale-110 group-hover:rotate-12 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">bolt</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">แข่งขัน</span>
@@ -274,8 +391,8 @@
             </button>
 
             <!-- โหมดจำลองจริง -->
-            <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95">
-              <div class="w-8 h-8 rounded-xl bg-white shadow-2xs flex items-center justify-center mx-auto text-purple-600 group-hover:scale-110 transition-transform">
+            <button type="button" onclick="selectModalMode('mock')" id="optModeMock" class="mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 hover:bg-purple-50/40 text-center transition-all active:scale-95">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white shadow-xs flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
               </div>
               <span class="text-xs font-extrabold text-slate-800 block mt-1.5">จำลองจริง</span>
@@ -284,30 +401,30 @@
           </div>
         </div>
 
-        <!-- 2. เลือกจำนวนข้อ (คืนคำบรรยายย่อย ไวๆ 10 นาที / แนะนำ / จัดเต็มชุดใหญ่) -->
+        <!-- 2. เลือกจำนวนข้อ -->
         <div class="space-y-2 relative z-10" id="questionCountGroup">
           <label class="text-xs font-extrabold text-slate-700 flex justify-between items-center">
             <span class="flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[17px] text-[#755634]">format_list_numbered</span>
               <span>2. จำนวนข้อสอบ</span>
             </span>
-            <span id="mockNotice" class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full hidden font-bold">* โหมดจำลองล็อก 20 ข้อ</span>
+            <span id="mockNotice" class="text-[10px] text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full hidden font-bold">* โหมดจำลองล็อก 20 ข้อ</span>
           </label>
           <div class="grid grid-cols-3 gap-2">
-            <button type="button" onclick="selectModalCount(10)" id="optCount10" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
+            <button type="button" onclick="selectModalCount(10)" id="optCount10" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
               10 ข้อ <span class="block text-[9px] font-normal text-slate-400 mt-0.5">ไวๆ 10 นาที</span>
             </button>
-            <button type="button" onclick="selectModalCount(20)" id="optCount20" class="count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95">
-              20 ข้อ <span class="block text-[9px] font-bold text-amber-700/80 mt-0.5">แนะนำ 🔥</span>
+            <button type="button" onclick="selectModalCount(20)" id="optCount20" class="count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-gradient-to-b from-amber-50 to-orange-50/70 text-xs font-extrabold text-[#755634] shadow-sm transition-all active:scale-95">
+              20 ข้อ <span class="block text-[9px] font-bold text-amber-700 mt-0.5">แนะนำ 🔥</span>
             </button>
-            <button type="button" onclick="selectModalCount(50)" id="optCount50" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
+            <button type="button" onclick="selectModalCount(50)" id="optCount50" class="count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95">
               50 ข้อ <span class="block text-[9px] font-normal text-slate-400 mt-0.5">จัดเต็มชุดใหญ่</span>
             </button>
           </div>
         </div>
 
         <!-- ปุ่มเข้าสู่ห้องสอบแบบ 3D Tactile + แสงวิ่ง Shimmer Sweep -->
-        <button type="button" onclick="startSelectedQuiz()" class="shimmer-effect relative overflow-hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] text-white font-extrabold text-xs shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 group relative z-10">
+        <button type="button" onclick="startSelectedQuiz()" class="shimmer-effect relative overflow-hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#755634] via-[#946C40] to-[#634729] text-white font-extrabold text-xs shadow-lg shadow-amber-900/25 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 group z-10">
           <span>เข้าสู่ห้องสอบทันที</span>
           <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
         </button>
@@ -316,66 +433,168 @@
     </div>
 
 <script>
-  // TOPIC PRESETS สำหรับจับคู่ไอคอนและคำอธิบาย
+  // =========================================================================
+  // 1. TOPIC PRESETS สำหรับจับคู่ไอคอน คำอธิบาย และข้อมูลตัวอย่างกรณีรัน Preview
+  // =========================================================================
   const TOPIC_PRESETS = {
-    'อนุกรมตัวเลข': { desc: 'อนุกรมเดี่ยว ซ้อนสองชั้น และอนุกรมผสม', icon: 'calculate' },
-    'คณิตศาสตร์ทั่วไปและร้อยละ': { desc: 'อัตราส่วน กำไร-ขาดทุน และสมการทั่วไป', icon: 'percent' },
-    'สถิติและข้อมูลเชิงตัวเลข': { desc: 'ค่าเฉลี่ย ฐานนิยม มัธยฐาน และความน่าจะเป็น', icon: 'query_stats' },
-    'การวิเคราะห์ตารางและกราฟ': { desc: 'ตีความแผนภูมิแท่ง แผนภูมิวงกลม และตารางสถิติ', icon: 'bar_chart' },
-    'การอ่านจับใจความและสรุปความ': { desc: 'จับประเด็นสำคัญ สรุปความ และเจตนาผู้เขียน', icon: 'menu_book' },
-    'ความเข้าใจภาษาและการตีความ': { desc: 'อนุมาน ตีความบทความ และความหมายแฝง', icon: 'find_in_page' },
-    'การใช้คำและกลุ่มคำ': { desc: 'คำราชาศัพท์ คำสะกดถูก-ผิด และสำนวนไทย', icon: 'spellcheck' },
-    'การเรียงลำดับข้อความ': { desc: 'ตรรกะการจัดลำดับประโยคและข้อความต่อเนื่อง', icon: 'format_list_numbered' },
-    'อุปมาอุปไมย': { desc: 'ความสัมพันธ์เชิงเปรียบเทียบคู่คำและมโนทัศน์', icon: 'compare_arrows' },
-    'ตรรกศาสตร์และเหตุผล': { desc: 'การสรุปความสมเหตุสมผล เงื่อนไขสัญลักษณ์', icon: 'schema' },
-    'มิติสัมพันธ์และอนุกรมภาพ': { desc: 'รูปทรงเรขาคณิต ภาพหมุน และความสัมพันธ์ภาพ', icon: 'polyline' },
-    'Grammar & Structure': { desc: 'ไวยากรณ์ Tenses Part of Speech และประโยค', icon: 'text_fields' },
-    'Vocabulary & Context': { desc: 'คำศัพท์และบริบทความหมายในชีวิตประจำวัน', icon: 'translate' },
-    'Reading Comprehension': { desc: 'อ่านจับใจความบทความ ป้ายประกาศ และอีเมล', icon: 'chrome_reader_mode' },
-    'Conversation': { desc: 'บทสนทนาสถานการณ์จริงและสำนวนภาษา', icon: 'forum' },
-    'พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน': { desc: 'โครงสร้างราชการส่วนกลาง ส่วนภูมิภาค ท้องถิ่น', icon: 'account_balance' },
-    'พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง': { desc: 'คำสั่งทางปกครอง อำนาจหน้าที่ และการอุทธรณ์', icon: 'gavel' },
-    'หลักกิจการบ้านเมืองที่ดี (ธรรมาภิบาล)': { desc: 'การบริหารราชการเพื่อประโยชน์สุขของประชาชน', icon: 'policy' },
-    'มาตรฐานทางจริยธรรมและวินัย': { desc: 'ประมวลจริยธรรม ข้อห้าม วินัยและการลงโทษ', icon: 'verified_user' },
-    'หลักสูตรแกนกลางและการพัฒนาหลักสูตร': { desc: 'หลักสูตร 51/ปรับปรุง มาตรฐานและตัวชี้วัด', icon: 'school' },
-    'การจัดการเรียนรู้เชิงรุก (Active Learning)': { desc: 'เทคนิคการสอน แผนการสอน และสมรรถนะผู้เรียน', icon: 'local_library' },
-    'จิตวิทยาพัฒนาการและการแนะแนว': { desc: 'ธรรมชาติผู้เรียน พฤติกรรม และระบบดูแลช่วยเหลือ', icon: 'psychology' },
-    'การวัดและประเมินผลการเรียนรู้': { desc: 'เครื่องมือวัดผล รูบริกส์ และการวิจัยในชั้นเรียน', icon: 'analytics' },
-    'การบริหารจัดการชั้นเรียน': { desc: 'บรรยากาศชั้นเรียน วินัยเชิงบวก และความปลอดภัย', icon: 'meeting_room' },
-    'การประกันคุณภาพการศึกษา': { desc: 'ระบบประกันคุณภาพภายใน-ภายนอก และมาตรฐาน รร.', icon: 'workspace_premium' },
-    'วิทยาการคำนวณและขั้นตอนวิธี': { desc: 'อัลกอริทึม การเขียนโปรแกรม และ Computational Thinking', icon: 'terminal' },
-    'ฮาร์ดแวร์และระบบเครือข่าย': { desc: 'สถาปัตยกรรมคอมพิวเตอร์ LAN, IP และ Network', icon: 'dns' },
-    'ความมั่นคงปลอดภัยและกฎหมายดิจิทัล': { desc: 'Cybersecurity, PDPA และ พ.ร.บ.คอมพิวเตอร์', icon: 'security' }
+    'อนุกรมตัวเลข': { desc: 'อนุกรมเดี่ยว ซ้อนสองชั้น และอนุกรมผสม', icon: 'calculate', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงปริมาณ', sampleCount: 45 },
+    'คณิตศาสตร์ทั่วไปและร้อยละ': { desc: 'อัตราส่วน กำไร-ขาดทุน และสมการทั่วไป', icon: 'percent', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงปริมาณ', sampleCount: 60 },
+    'สถิติและข้อมูลเชิงตัวเลข': { desc: 'ค่าเฉลี่ย ฐานนิยม มัธยฐาน และความน่าจะเป็น', icon: 'query_stats', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงปริมาณ', sampleCount: 35 },
+    'การวิเคราะห์ตารางและกราฟ': { desc: 'ตีความแผนภูมิแท่ง แผนภูมิวงกลม และตารางสถิติ', icon: 'bar_chart', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงปริมาณ', sampleCount: 40 },
+    'อุปมาอุปไมย': { desc: 'ความสัมพันธ์เชิงเปรียบเทียบคู่คำและมโนทัศน์', icon: 'compare_arrows', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงนามธรรม', sampleCount: 50 },
+    'ตรรกศาสตร์และเหตุผล': { desc: 'การสรุปความสมเหตุสมผล เงื่อนไขสัญลักษณ์', icon: 'schema', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงนามธรรม', sampleCount: 55 },
+    'มิติสัมพันธ์และอนุกรมภาพ': { desc: 'รูปทรงเรขาคณิต ภาพหมุน และความสัมพันธ์ภาพ', icon: 'polyline', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงนามธรรม', sampleCount: 30 },
+    'การอ่านจับใจความและสรุปความ': { desc: 'จับประเด็นสำคัญ สรุปความ และเจตนาผู้เขียน', icon: 'menu_book', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงภาษา', sampleCount: 65 },
+    'ความเข้าใจภาษาและการตีความ': { desc: 'อนุมาน ตีความบทความ และความหมายแฝง', icon: 'find_in_page', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงภาษา', sampleCount: 48 },
+    'การใช้คำและกลุ่มคำ': { desc: 'คำราชาศัพท์ คำสะกดถูก-ผิด และสำนวนไทย', icon: 'spellcheck', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงภาษา', sampleCount: 70 },
+    'การเรียงลำดับข้อความ': { desc: 'ตรรกะการจัดลำดับประโยคและข้อความต่อเนื่อง', icon: 'format_list_numbered', part: 'ภาค ก', category: 'ความสามารถในการคิดวิเคราะห์', subCategory: 'การคิดวิเคราะห์เชิงภาษา', sampleCount: 42 },
+    'Grammar & Structure': { desc: 'ไวยากรณ์ Tenses Part of Speech และประโยค', icon: 'text_fields', part: 'ภาค ก', category: 'ภาษาอังกฤษ', subCategory: 'โครงสร้างและไวยากรณ์', sampleCount: 80 },
+    'Vocabulary & Context': { desc: 'คำศัพท์และบริบทความหมายในชีวิตประจำวัน', icon: 'translate', part: 'ภาค ก', category: 'ภาษาอังกฤษ', subCategory: 'คำศัพท์และการใช้ภาษา', sampleCount: 75 },
+    'Reading Comprehension': { desc: 'อ่านจับใจความบทความ ป้ายประกาศ และอีเมล', icon: 'chrome_reader_mode', part: 'ภาค ก', category: 'ภาษาอังกฤษ', subCategory: 'การอ่านจับใจความ', sampleCount: 50 },
+    'Conversation': { desc: 'บทสนทนาสถานการณ์จริงและสำนวนภาษา', icon: 'forum', part: 'ภาค ก', category: 'ภาษาอังกฤษ', subCategory: 'บทสนทนา', sampleCount: 45 },
+    'พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน': { desc: 'โครงสร้างราชการส่วนกลาง ส่วนภูมิภาค ท้องถิ่น', icon: 'account_balance', part: 'ภาค ก', category: 'ความรู้และลักษณะการเป็นข้าราชการที่ดี', subCategory: 'กฎหมายระเบียบบริหารราชการ', sampleCount: 60 },
+    'พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง': { desc: 'คำสั่งทางปกครอง อำนาจหน้าที่ และการอุทธรณ์', icon: 'gavel', part: 'ภาค ก', category: 'ความรู้และลักษณะการเป็นข้าราชการที่ดี', subCategory: 'กฎหมายปกครองและธรรมาภิบาล', sampleCount: 55 },
+    'หลักกิจการบ้านเมืองที่ดี (ธรรมาภิบาล)': { desc: 'การบริหารราชการเพื่อประโยชน์สุขของประชาชน', icon: 'policy', part: 'ภาค ก', category: 'ความรู้และลักษณะการเป็นข้าราชการที่ดี', subCategory: 'กฎหมายปกครองและธรรมาภิบาล', sampleCount: 50 },
+    'มาตรฐานทางจริยธรรมและวินัย': { desc: 'ประมวลจริยธรรม ข้อห้าม วินัยและการลงโทษ', icon: 'verified_user', part: 'ภาค ก', category: 'ความรู้และลักษณะการเป็นข้าราชการที่ดี', subCategory: 'จริยธรรมและวินัยข้าราชการ', sampleCount: 45 },
+    'หลักสูตรแกนกลางและการพัฒนาหลักสูตร': { desc: 'หลักสูตร 51/ปรับปรุง มาตรฐานและตัวชี้วัด', icon: 'school', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'การพัฒนาหลักสูตรและการสอน', sampleCount: 85 },
+    'การจัดการเรียนรู้เชิงรุก (Active Learning)': { desc: 'เทคนิคการสอน แผนการสอน และสมรรถนะผู้เรียน', icon: 'local_library', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'การพัฒนาหลักสูตรและการสอน', sampleCount: 90 },
+    'จิตวิทยาพัฒนาการและการแนะแนว': { desc: 'ธรรมชาติผู้เรียน พฤติกรรม และระบบดูแลช่วยเหลือ', icon: 'psychology', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'จิตวิทยาและการบริหารชั้นเรียน', sampleCount: 70 },
+    'การวัดและประเมินผลการเรียนรู้': { desc: 'เครื่องมือวัดผล รูบริกส์ และการวิจัยในชั้นเรียน', icon: 'analytics', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'การวัดผลและวิจัยทางการศึกษา', sampleCount: 65 },
+    'การบริหารจัดการชั้นเรียน': { desc: 'บรรยากาศชั้นเรียน วินัยเชิงบวก และความปลอดภัย', icon: 'meeting_room', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'จิตวิทยาและการบริหารชั้นเรียน', sampleCount: 55 },
+    'การประกันคุณภาพการศึกษา': { desc: 'ระบบประกันคุณภาพภายใน-ภายนอก และมาตรฐาน รร.', icon: 'workspace_premium', part: 'ภาค ข', category: 'มาตรฐานความรู้และประสบการณ์วิชาชีพครู', subCategory: 'การประกันคุณภาพการศึกษา', sampleCount: 50 },
+    'วิทยาการคำนวณและขั้นตอนวิธี': { desc: 'อัลกอริทึม การเขียนโปรแกรม และ Computational Thinking', icon: 'terminal', part: 'ภาค ข', category: 'วิชาเอกคอมพิวเตอร์', subCategory: 'วิทยาการคำนวณและโปรแกรมมิ่ง', sampleCount: 60 },
+    'ฮาร์ดแวร์และระบบเครือข่าย': { desc: 'สถาปัตยกรรมคอมพิวเตอร์ LAN, IP และ Network', icon: 'dns', part: 'ภาค ข', category: 'วิชาเอกคอมพิวเตอร์', subCategory: 'ระบบเครือข่ายและฮาร์ดแวร์', sampleCount: 55 },
+    'ความมั่นคงปลอดภัยและกฎหมายดิจิทัล': { desc: 'Cybersecurity, PDPA และ พ.ร.บ.คอมพิวเตอร์', icon: 'security', part: 'ภาค ข', category: 'วิชาเอกคอมพิวเตอร์', subCategory: 'ความปลอดภัยและเทคโนโลยีดิจิทัล', sampleCount: 45 }
   };
 
-  // 🎨 ฟังก์ชันกำหนดโทนสีการ์ดแยกตามหมวดวิชา (Color-Coded Visuals)
-  function getCategoryTheme(category = '', subCategory = '') {
-    const text = `${category} ${subCategory}`.toLowerCase();
-    if (text.includes('ปริมาณ') || text.includes('คณิต') || text.includes('นามธรรม')) {
-      return { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700', accent: 'group-hover:border-indigo-300', dot: 'bg-indigo-500' };
+  // =========================================================================
+  // 2. ฟังก์ชันกำหนดโทนสีกล่องการ์ดแบบพาสเทลสดใส (8 เฉดสีแยกตามวิชา/หัวข้อ)
+  // =========================================================================
+  function getCategoryTheme(category = '', subCategory = '', topic = '') {
+    const text = `${category} ${subCategory} ${topic}`.toLowerCase();
+
+    // 1. ตรรกศาสตร์ / นามธรรม / มิติสัมพันธ์ -> โทนส้มคอรัล-พีช (Coral-Orange)
+    if (text.includes('นามธรรม') || text.includes('ตรรก') || text.includes('อุปมา') || text.includes('มิติสัมพันธ์')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-orange-50/95 via-amber-50/85 to-rose-100/80 border-orange-200/80 hover:border-orange-300',
+        topBar: 'bg-gradient-to-r from-orange-400 via-rose-400 to-amber-500',
+        iconBox: 'bg-gradient-to-br from-orange-500 to-rose-500 text-white shadow-orange-500/25',
+        badge: 'bg-white/90 text-orange-700 border border-orange-200/80',
+        dot: 'bg-orange-500',
+        subText: 'text-orange-900/70',
+        watermark: 'text-orange-500/10',
+        actionBtn: 'bg-white/90 text-orange-700 border border-orange-200/70 group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-rose-500 group-hover:text-white group-hover:border-transparent'
+      };
     }
-    if (text.includes('ภาษาไทย') || text.includes('เชิงภาษา')) {
-      return { iconBg: 'bg-amber-50 text-amber-700 border-amber-100', badge: 'bg-amber-50 text-amber-800', accent: 'group-hover:border-amber-300', dot: 'bg-amber-500' };
+
+    // 2. คณิตศาสตร์ / ปริมาณ / สถิติ / อนุกรม -> โทนคราม-ไวโอเล็ต (Indigo-Violet)
+    if (text.includes('ปริมาณ') || text.includes('คณิต') || text.includes('อนุกรม') || text.includes('สถิติ') || text.includes('ตาราง')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-indigo-50/95 via-blue-50/85 to-violet-100/85 border-indigo-200/80 hover:border-indigo-300',
+        topBar: 'bg-gradient-to-r from-indigo-500 via-blue-500 to-violet-500',
+        iconBox: 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-indigo-500/25',
+        badge: 'bg-white/90 text-indigo-700 border border-indigo-200/80',
+        dot: 'bg-indigo-500',
+        subText: 'text-indigo-900/70',
+        watermark: 'text-indigo-500/10',
+        actionBtn: 'bg-white/90 text-indigo-700 border border-indigo-200/70 group-hover:bg-gradient-to-r group-hover:from-indigo-500 group-hover:to-violet-600 group-hover:text-white group-hover:border-transparent'
+      };
     }
-    if (text.includes('อังกฤษ') || text.includes('english')) {
-      return { iconBg: 'bg-rose-50 text-rose-600 border-rose-100', badge: 'bg-rose-50 text-rose-700', accent: 'group-hover:border-rose-300', dot: 'bg-rose-500' };
+
+    // 3. ภาษาไทย / เชิงภาษา -> โทนเหลืองอำพัน-ทองอบอุ่น (Amber-Gold)
+    if (text.includes('ภาษาไทย') || text.includes('เชิงภาษา') || text.includes('จับใจความ') || text.includes('การใช้คำ') || text.includes('เรียงลำดับ')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-amber-50/95 via-yellow-50/85 to-orange-100/80 border-amber-200/80 hover:border-amber-300',
+        topBar: 'bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-500',
+        iconBox: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-amber-500/25',
+        badge: 'bg-white/90 text-amber-800 border border-amber-200/80',
+        dot: 'bg-amber-500',
+        subText: 'text-amber-900/70',
+        watermark: 'text-amber-500/10',
+        actionBtn: 'bg-white/90 text-amber-800 border border-amber-200/70 group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-orange-500 group-hover:text-white group-hover:border-transparent'
+      };
     }
-    if (text.includes('ราชการ') || text.includes('กฎหมาย') || text.includes('จริยธรรม')) {
-      return { iconBg: 'bg-purple-50 text-purple-600 border-purple-100', badge: 'bg-purple-50 text-purple-700', accent: 'group-hover:border-purple-300', dot: 'bg-purple-500' };
+
+    // 4. ภาษาอังกฤษ / English -> โทนชมพูโรส-พิงค์ (Rose-Pink)
+    if (text.includes('อังกฤษ') || text.includes('english') || text.includes('grammar') || text.includes('vocab') || text.includes('reading') || text.includes('conversation')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-rose-50/95 via-pink-50/85 to-fuchsia-100/80 border-rose-200/80 hover:border-rose-300',
+        topBar: 'bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500',
+        iconBox: 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-rose-500/25',
+        badge: 'bg-white/90 text-rose-700 border border-rose-200/80',
+        dot: 'bg-rose-500',
+        subText: 'text-rose-900/70',
+        watermark: 'text-rose-500/10',
+        actionBtn: 'bg-white/90 text-rose-700 border border-rose-200/70 group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-pink-600 group-hover:text-white group-hover:border-transparent'
+      };
     }
-    if (text.includes('คอมพิวเตอร์') || text.includes('เอก')) {
-      return { iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-100', badge: 'bg-cyan-50 text-cyan-700', accent: 'group-hover:border-cyan-300', dot: 'bg-cyan-500' };
+
+    // 5. กฎหมาย / ข้าราชการที่ดี / พ.ร.บ. -> โทนม่วงลาเวนเดอร์-ฟิวเชีย (Purple-Fuchsia)
+    if (text.includes('ราชการ') || text.includes('กฎหมาย') || text.includes('จริยธรรม') || text.includes('พ.ร.บ.') || text.includes('ธรรมาภิบาล')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-purple-50/95 via-fuchsia-50/85 to-violet-100/85 border-purple-200/80 hover:border-purple-300',
+        topBar: 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-violet-500',
+        iconBox: 'bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white shadow-purple-500/25',
+        badge: 'bg-white/90 text-purple-700 border border-purple-200/80',
+        dot: 'bg-purple-500',
+        subText: 'text-purple-900/70',
+        watermark: 'text-purple-500/10',
+        actionBtn: 'bg-white/90 text-purple-700 border border-purple-200/70 group-hover:bg-gradient-to-r group-hover:from-purple-500 group-hover:to-fuchsia-600 group-hover:text-white group-hover:border-transparent'
+      };
     }
-    // ค่าเริ่มต้น (มาตรฐานวิชาชีพครู / ทั่วไป) -> เขียวมรกตสดใส
-    return { iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', badge: 'bg-emerald-50 text-emerald-700', accent: 'group-hover:border-emerald-300', dot: 'bg-emerald-500' };
+
+    // 6. คอมพิวเตอร์ / วิชาเอก / ดิจิทัล -> โทนฟ้าไซแอน-อความารีน (Cyan-Blue)
+    if (text.includes('คอมพิวเตอร์') || text.includes('เอก') || text.includes('คำนวณ') || text.includes('เครือข่าย') || text.includes('ดิจิทัล')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-cyan-50/95 via-sky-50/85 to-blue-100/85 border-cyan-200/80 hover:border-cyan-300',
+        topBar: 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500',
+        iconBox: 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-cyan-500/25',
+        badge: 'bg-white/90 text-cyan-800 border border-cyan-200/80',
+        dot: 'bg-cyan-500',
+        subText: 'text-cyan-900/70',
+        watermark: 'text-cyan-500/10',
+        actionBtn: 'bg-white/90 text-cyan-800 border border-cyan-200/70 group-hover:bg-gradient-to-r group-hover:from-cyan-500 group-hover:to-blue-600 group-hover:text-white group-hover:border-transparent'
+      };
+    }
+
+    // 7. จิตวิทยา / วัดผลประเมินผล / ชั้นเรียน -> โทนฟ้าสกายบลู (Sky-Indigo)
+    if (text.includes('จิตวิทยา') || text.includes('วัดและประเมิน') || text.includes('ชั้นเรียน')) {
+      return {
+        cardBg: 'bg-gradient-to-br from-sky-50/95 via-blue-50/85 to-indigo-100/80 border-sky-200/80 hover:border-sky-300',
+        topBar: 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500',
+        iconBox: 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sky-500/25',
+        badge: 'bg-white/90 text-sky-800 border border-sky-200/80',
+        dot: 'bg-sky-500',
+        subText: 'text-sky-900/70',
+        watermark: 'text-sky-500/10',
+        actionBtn: 'bg-white/90 text-sky-800 border border-sky-200/70 group-hover:bg-gradient-to-r group-hover:from-sky-500 group-hover:to-blue-600 group-hover:text-white group-hover:border-transparent'
+      };
+    }
+
+    // 8. ค่าเริ่มต้น: มาตรฐานวิชาชีพครู / หลักสูตร / Active Learning -> โทนเขียวมรกต-มิ้นต์ (Emerald-Teal)
+    return {
+      cardBg: 'bg-gradient-to-br from-emerald-50/95 via-teal-50/85 to-green-100/85 border-emerald-200/80 hover:border-emerald-300',
+      topBar: 'bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500',
+      iconBox: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-500/25',
+      badge: 'bg-white/90 text-emerald-800 border border-emerald-200/80',
+      dot: 'bg-emerald-500',
+      subText: 'text-emerald-900/70',
+      watermark: 'text-emerald-500/10',
+      actionBtn: 'bg-white/90 text-emerald-800 border border-emerald-200/70 group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:to-teal-600 group-hover:text-white group-hover:border-transparent'
+    };
   }
 
+  // =========================================================================
+  // 3. STATE & BOOKMARK MANAGEMENT
+  // =========================================================================
   let EXAM_TOPIC_DATABASE = [];
   let currentPart = 'ภาค ก';
   let currentCategory = 'all';
   let currentSubCategory = 'all';
   let currentSearchQuery = '';
   let currentViewMode = 'grid';
+  let showOnlyFavorites = false;
+  let bookmarkedTopics = [];
 
   let activeExamConfig = {
     part: 'ภาค ก',
@@ -386,15 +605,132 @@
     count: 20
   };
 
-  // ดึงหัวข้อที่มีข้อสอบจริงจาก Supabase
+  function loadBookmarks() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('kru_bookmarked_topics') || '[]');
+      if (Array.isArray(saved)) bookmarkedTopics = saved;
+    } catch (e) {
+      bookmarkedTopics = [];
+    }
+  }
+
+  function isTopicBookmarked(topicName) {
+    return bookmarkedTopics.includes(topicName);
+  }
+
+  function toggleBookmarkTopic(event, topicName) {
+    if (event) event.stopPropagation();
+    const idx = bookmarkedTopics.indexOf(topicName);
+    if (idx > -1) {
+      bookmarkedTopics.splice(idx, 1);
+      showMiniToast('เอาออกจากรายการปักหมุดแล้ว', '📌');
+    } else {
+      bookmarkedTopics.push(topicName);
+      showMiniToast(`ปักหมุด "${topicName}" แล้ว`, '⭐');
+    }
+    try {
+      localStorage.setItem('kru_bookmarked_topics', JSON.stringify(bookmarkedTopics));
+    } catch (e) {}
+
+    updateTopStats();
+    renderCardsLevel4();
+  }
+
+  function toggleFavoriteFilter() {
+    showOnlyFavorites = !showOnlyFavorites;
+    const favCard = document.getElementById('favStatCard');
+    const favDot = document.getElementById('favFilterActiveDot');
+    const favHint = document.getElementById('favStatHint');
+    const clearFavBtn = document.getElementById('clearFavFilterBtn');
+
+    if (showOnlyFavorites) {
+      favCard.classList.add('ring-2', 'ring-rose-400', 'scale-[1.02]');
+      favDot.classList.remove('hidden');
+      favHint.innerText = 'กำลังกรอง';
+      favHint.className = 'text-[9px] font-extrabold text-white bg-rose-500 px-1.5 py-0.5 rounded-md';
+      clearFavBtn.classList.remove('hidden');
+      clearFavBtn.classList.add('inline-flex');
+      showMiniToast('แสดงเฉพาะหัวข้อที่ปักหมุด ⭐', '💖');
+    } else {
+      favCard.classList.remove('ring-2', 'ring-rose-400', 'scale-[1.02]');
+      favDot.classList.add('hidden');
+      favHint.innerText = 'ดูทั้งหมด';
+      favHint.className = 'text-[9px] font-extrabold text-rose-600 bg-white/80 px-1.5 py-0.5 rounded-md';
+      clearFavBtn.classList.add('hidden');
+      clearFavBtn.classList.remove('inline-flex');
+    }
+    renderCardsLevel4();
+  }
+
+  function resetAllFilters() {
+    showOnlyFavorites = false;
+    currentCategory = 'all';
+    currentSubCategory = 'all';
+    clearSearchInput();
+    const favCard = document.getElementById('favStatCard');
+    const favDot = document.getElementById('favFilterActiveDot');
+    const favHint = document.getElementById('favStatHint');
+    const clearFavBtn = document.getElementById('clearFavFilterBtn');
+    if (favCard) favCard.classList.remove('ring-2', 'ring-rose-400', 'scale-[1.02]');
+    if (favDot) favDot.classList.add('hidden');
+    if (favHint) {
+      favHint.innerText = 'ดูทั้งหมด';
+      favHint.className = 'text-[9px] font-extrabold text-rose-600 bg-white/80 px-1.5 py-0.5 rounded-md';
+    }
+    if (clearFavBtn) {
+      clearFavBtn.classList.add('hidden');
+      clearFavBtn.classList.remove('inline-flex');
+    }
+    renderCategoryLevel2();
+  }
+
+  let toastTimer = null;
+  function showMiniToast(message, icon = '✨') {
+    const toast = document.getElementById('miniToast');
+    const iconEl = document.getElementById('miniToastIcon');
+    const textEl = document.getElementById('miniToastText');
+    if (!toast) return;
+    iconEl.innerText = icon;
+    textEl.innerText = message;
+    toast.classList.remove('opacity-0', '-translate-y-3');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add('opacity-0', '-translate-y-3');
+      toast.classList.remove('opacity-100', 'translate-y-0');
+    }, 2100);
+  }
+
+  // =========================================================================
+  // 4. ดึงหัวข้อที่มีข้อสอบจริงจาก Supabase (พร้อม Fallback อัตโนมัติสำหรับ Preview)
+  // =========================================================================
+  function loadPresetFallbackDatabase() {
+    EXAM_TOPIC_DATABASE = Object.entries(TOPIC_PRESETS).map(([topicName, info]) => ({
+      part: info.part || 'ภาค ก',
+      category: info.category || 'วิชาทั่วไป',
+      realCategory: info.category || 'วิชาทั่วไป',
+      subCategory: info.subCategory || '',
+      topic: topicName,
+      desc: info.desc,
+      icon: info.icon,
+      count: info.sampleCount || 30
+    }));
+  }
+
   async function fetchRealtimeTopics() {
     try {
-      if (!window.supabase) return;
+      if (!window.supabase || typeof supabase.from !== 'function') {
+        loadPresetFallbackDatabase();
+        return;
+      }
       const { data, error } = await supabase
         .from('questions')
         .select('exam_part, exam_category, exam_sub_category, exam_topic');
 
-      if (error || !data) throw error;
+      if (error || !data || data.length === 0) {
+        loadPresetFallbackDatabase();
+        return;
+      }
 
       const topicMap = {};
       data.forEach(q => {
@@ -411,7 +747,7 @@
           topicMap[uniqueKey] = {
             part, 
             category: cat || 'วิชาทั่วไป', 
-            realCategory: cat, // เก็บค่าจริงในฐานข้อมูลสำหรับส่งต่อ
+            realCategory: cat,
             subCategory: sub, 
             topic: top,
             desc: preset.desc, 
@@ -423,12 +759,34 @@
       });
 
       EXAM_TOPIC_DATABASE = Object.values(topicMap);
+      if (EXAM_TOPIC_DATABASE.length === 0) {
+        loadPresetFallbackDatabase();
+      }
     } catch (err) {
-      console.warn("ไม่สามารถโหลดหัวข้อได้:", err);
+      console.warn("ไม่สามารถโหลดหัวข้อจากฐานข้อมูลได้ ใช้ชุดข้อมูลมาตรฐานแทน:", err);
+      loadPresetFallbackDatabase();
     }
   }
 
-  // เลือกระดับที่ 1: ภาค ก หรือ ข (พร้อมสไลด์ Pill)
+  // อัปเดตตัวเลขกล่องสรุป 3 กล่องด้านบน
+  function updateTopStats() {
+    const partItems = EXAM_TOPIC_DATABASE.filter(item => item.part === currentPart);
+    const totalTopics = partItems.length;
+    const totalQuestions = partItems.reduce((sum, item) => sum + (item.count || 0), 0);
+    const favCount = EXAM_TOPIC_DATABASE.filter(item => isTopicBookmarked(item.topic)).length;
+
+    const elTopic = document.getElementById('statTopicCount');
+    const elQuest = document.getElementById('statQuestionCount');
+    const elFav = document.getElementById('statFavCount');
+
+    if (elTopic) elTopic.innerText = totalTopics.toLocaleString();
+    if (elQuest) elQuest.innerText = totalQuestions.toLocaleString();
+    if (elFav) elFav.innerText = favCount.toLocaleString();
+  }
+
+  // =========================================================================
+  // 5. การกรองลำดับขั้น (ภาค -> หมวดหลัก -> กลุ่มย่อย -> การ์ดสีพาสเทล)
+  // =========================================================================
   function selectMainPart(part) {
     currentPart = part;
     currentCategory = 'all';
@@ -448,11 +806,11 @@
       tabA.className = 'relative z-10 py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-800 text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200';
     }
 
+    updateTopStats();
     updateScopeBannerText();
     renderCategoryLevel2();
   }
 
-  // อัปเดตข้อความบนแบนเนอร์สุ่มสอบรวม
   function updateScopeBannerText() {
     const titleEl = document.getElementById('scopeBannerTitle');
     if (!titleEl) return;
@@ -465,7 +823,6 @@
     }
   }
 
-  // เลือกระดับที่ 2: หมวดวิชาหลัก
   function renderCategoryLevel2() {
     const container = document.getElementById('categoryContainer');
     const partData = EXAM_TOPIC_DATABASE.filter(item => item.part === currentPart);
@@ -473,14 +830,14 @@
 
     container.innerHTML = categories.map(cat => {
       const isSelected = (currentCategory === cat);
-      const title = cat === 'all' ? '✨ ทั้งหมดทุกหมวด' : cat;
+      const title = cat === 'all' ? '🌈 ทั้งหมดทุกหมวด' : cat;
       const btnStyle = isSelected 
-        ? 'bg-[#755634] text-white border-[#755634] shadow-sm scale-[1.02]' 
-        : 'bg-white/80 backdrop-blur-xs text-slate-600 border-white hover:bg-white';
+        ? 'bg-gradient-to-r from-[#755634] to-[#946C40] text-white border-[#755634] shadow-sm scale-[1.02]' 
+        : 'bg-white/85 backdrop-blur-xs text-slate-600 border-white hover:bg-white';
 
       return `
         <button onclick="selectCategoryLevel2('${cat.replace(/'/g, "\\'")}')" 
-                class="px-3.5 py-1.5 rounded-2xl border text-xs font-bold whitespace-nowrap shrink-0 transition-all active:scale-95 ${btnStyle}">
+                class="px-3.5 py-1.5 rounded-2xl border-2 text-xs font-extrabold whitespace-nowrap shrink-0 transition-all active:scale-95 ${btnStyle}">
           ${title}
         </button>
       `;
@@ -496,7 +853,6 @@
     renderCategoryLevel2();
   }
 
-  // เลือกระดับที่ 3: กลุ่มวิชาย่อย
   function renderSubCategoryLevel3() {
     const container = document.getElementById('subCategoryContainer');
     let filtered = EXAM_TOPIC_DATABASE.filter(item => item.part === currentPart);
@@ -504,7 +860,7 @@
       filtered = filtered.filter(item => item.category === currentCategory);
     }
 
-    const subCats = ['all', ...new Set(filtered.map(item => item.subCategory))];
+    const subCats = ['all', ...new Set(filtered.map(item => item.subCategory).filter(Boolean))];
     if (subCats.length <= 2 && subCats.includes('all')) {
       container.classList.add('hidden');
     } else {
@@ -513,10 +869,10 @@
 
     container.innerHTML = subCats.map(sub => {
       const isSelected = (currentSubCategory === sub);
-      const title = sub === 'all' ? '• ทุกกลุ่มย่อย' : sub;
+      const title = sub === 'all' ? '• ทุกกลุ่มวิชาย่อย' : sub;
       const btnStyle = isSelected 
-        ? 'bg-amber-100/90 text-[#755634] border-amber-300 font-extrabold shadow-2xs' 
-        : 'bg-white/60 text-slate-500 border-white hover:bg-white hover:text-slate-800';
+        ? 'bg-amber-100 text-[#755634] border-amber-300 font-extrabold shadow-2xs' 
+        : 'bg-white/75 text-slate-500 border-white hover:bg-white hover:text-slate-800';
 
       return `
         <button onclick="selectSubCategoryLevel3('${sub.replace(/'/g, "\\'")}')" 
@@ -535,7 +891,22 @@
     renderSubCategoryLevel3();
   }
 
-  // เลือกระดับที่ 4: การ์ดเรื่องย่อย (Bento Color-Coded + Staggered Animation)
+  // เรนเดอร์การ์ดระดับที่ 4 (กล่องสีพาสเทลสดใส + Watermark Icon + ปุ่มปักหมุดดาว)
+  function getFilteredTopics() {
+    return EXAM_TOPIC_DATABASE.filter(item => {
+      const matchPart = (item.part === currentPart);
+      const matchCat = (currentCategory === 'all' || item.category === currentCategory);
+      const matchSub = (currentSubCategory === 'all' || item.subCategory === currentSubCategory);
+      const matchFav = (!showOnlyFavorites || isTopicBookmarked(item.topic));
+      const matchSearch = (!currentSearchQuery || 
+        (item.topic && item.topic.toLowerCase().includes(currentSearchQuery)) || 
+        (item.desc && item.desc.toLowerCase().includes(currentSearchQuery)) ||
+        (item.subCategory && item.subCategory.toLowerCase().includes(currentSearchQuery)));
+
+      return matchPart && matchCat && matchSub && matchFav && matchSearch;
+    });
+  }
+
   function renderCardsLevel4() {
     const container = document.getElementById('cardsDisplayContainer');
     const badgeCount = document.getElementById('topicCountBadge');
@@ -545,17 +916,7 @@
     const isGrid = (currentViewMode === 'grid');
     container.className = isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
 
-    const results = EXAM_TOPIC_DATABASE.filter(item => {
-      const matchPart = (item.part === currentPart);
-      const matchCat = (currentCategory === 'all' || item.category === currentCategory);
-      const matchSub = (currentSubCategory === 'all' || item.subCategory === currentSubCategory);
-      const matchSearch = (!currentSearchQuery || 
-        (item.topic && item.topic.toLowerCase().includes(currentSearchQuery)) || 
-        (item.desc && item.desc.toLowerCase().includes(currentSearchQuery)) ||
-        (item.subCategory && item.subCategory.toLowerCase().includes(currentSearchQuery)));
-
-      return matchPart && matchCat && matchSub && matchSearch;
-    });
+    const results = getFilteredTopics();
 
     if (badgeCount) badgeCount.innerText = `${results.length} เรื่อง`;
 
@@ -576,54 +937,92 @@
       const iconName = item.icon || 'menu_book';
       const questionCountText = item.count ? `${item.count} ข้อ` : item.part;
       const shortSub = item.subCategory ? item.subCategory.split(' ')[0] : (item.category || '');
+      const isFav = isTopicBookmarked(item.topic);
       
-      const theme = getCategoryTheme(item.category, item.subCategory);
-      const delayMs = Math.min(idx * 40, 400); // Staggered animation delay
+      const theme = getCategoryTheme(item.category, item.subCategory, item.topic);
+      const delayMs = Math.min(idx * 35, 360);
 
       if (isGrid) {
         return `
-          <div onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
+          <div data-topic-card="${idx}"
+               onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
                style="animation-delay: ${delayMs}ms;"
-               class="animate-card-in group bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border-2 border-white ${theme.accent} shadow-[0_8px_25px_rgba(117,86,52,0.06)] hover:shadow-[0_12px_30px_rgba(117,86,52,0.12)] hover:-translate-y-1 flex flex-col justify-between transition-all duration-200 cursor-pointer active:scale-95">
-            <div class="space-y-1.5">
+               class="animate-card-in group relative overflow-hidden ${theme.cardBg} backdrop-blur-md rounded-[26px] p-3.5 border-2 shadow-[0_8px_22px_rgba(117,86,52,0.06)] hover:shadow-[0_14px_30px_rgba(117,86,52,0.13)] hover:-translate-y-1 flex flex-col justify-between transition-all duration-200 cursor-pointer active:scale-95">
+            
+            <!-- แถบสีด้านบนสุดของการ์ด -->
+            <div class="absolute top-0 inset-x-0 h-1.5 ${theme.topBar}"></div>
+
+            <!-- ไอคอนลายน้ำขนาดใหญ่ด้านหลัง (ขยับเมื่อ Hover) -->
+            <span class="material-symbols-outlined text-[72px] absolute -right-3 -bottom-3 ${theme.watermark} pointer-events-none select-none group-hover:scale-115 group-hover:-rotate-12 transition-transform duration-300">
+              ${iconName}
+            </span>
+
+            <div class="space-y-1.5 relative z-10 pt-0.5">
               <div class="flex items-center justify-between">
-                <div class="w-9 h-9 rounded-2xl border ${theme.iconBg} flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200 shadow-2xs">
-                  <span class="material-symbols-outlined text-[20px]">${iconName}</span>
+                <!-- กล่องไอคอน 3 มิติสีสดใส -->
+                <div class="w-10 h-10 rounded-2xl ${theme.iconBox} shadow-md flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200">
+                  <span class="material-symbols-outlined text-[21px]">${iconName}</span>
                 </div>
-                <span class="text-[10px] font-extrabold ${theme.badge} px-2 py-0.5 rounded-full">${questionCountText}</span>
+
+                <!-- ป้ายจำนวนข้อ + ปุ่มดาวปักหมุด -->
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] font-extrabold ${theme.badge} px-2 py-0.5 rounded-full shadow-2xs">${questionCountText}</span>
+                  <button type="button" onclick="toggleBookmarkTopic(event, '${safeTopic}')" title="ปักหมุดหัวข้อนี้"
+                          class="w-6 h-6 rounded-full bg-white/85 hover:bg-white border border-white flex items-center justify-center shadow-2xs transition-transform active:scale-125">
+                    <i class="${isFav ? 'fa-solid text-amber-400 animate-star-pop' : 'fa-regular text-slate-400'} fa-star text-[11px]"></i>
+                  </button>
+                </div>
               </div>
-              <h4 class="text-xs font-extrabold text-slate-800 leading-snug line-clamp-2 pt-1 min-h-[2.25rem]" title="${item.topic || ''}">${item.topic || '-'}</h4>
-              <p class="text-[10px] text-slate-400 line-clamp-1 leading-tight">${item.desc || ''}</p>
+
+              <h4 class="text-xs font-extrabold text-slate-800 leading-snug line-clamp-2 pt-1.5 min-h-[2.3rem]" title="${item.topic || ''}">${item.topic || '-'}</h4>
+              <p class="text-[10px] text-slate-600/80 line-clamp-1 leading-tight font-medium">${item.desc || ''}</p>
             </div>
-            <div class="pt-2.5 mt-2 border-t border-slate-100/80 flex items-center justify-between">
-              <div class="flex items-center gap-1 min-w-0">
-                <span class="w-1.5 h-1.5 rounded-full ${theme.dot} shrink-0"></span>
-                <span class="text-[10px] text-slate-500 font-semibold truncate max-w-[85px]">${shortSub}</span>
+
+            <!-- แถบด้านล่างของการ์ด -->
+            <div class="pt-2.5 mt-2.5 border-t border-white/70 flex items-center justify-between relative z-10">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full ${theme.dot} shrink-0 shadow-2xs"></span>
+                <span class="text-[10px] ${theme.subText} font-bold truncate max-w-[82px]">${shortSub}</span>
               </div>
-              <span class="text-[10px] font-extrabold text-[#755634] bg-amber-50 group-hover:bg-[#755634] group-hover:text-white px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors">
-                <span>ลุย</span><i class="fa-solid fa-arrow-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
+              <span class="text-[10px] font-extrabold ${theme.actionBtn} px-2.5 py-0.5 rounded-xl flex items-center gap-1 shadow-2xs transition-all duration-200">
+                <span>เริ่มลุย</span>
+                <i class="fa-solid fa-arrow-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
               </span>
             </div>
           </div>
         `;
       } else {
+        // โหมดแสดงผลแบบรายการยาว (List View) พร้อมกล่องสีพาสเทล
         return `
-          <div onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
+          <div data-topic-card="${idx}"
+               onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
                style="animation-delay: ${delayMs}ms;"
-               class="animate-card-in group bg-white/90 backdrop-blur-md rounded-2xl p-3 border-2 border-white ${theme.accent} shadow-[0_6px_20px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.98]">
-            <div class="w-10 h-10 rounded-2xl border ${theme.iconBg} flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">${iconName}</span>
+               class="animate-card-in group relative overflow-hidden ${theme.cardBg} backdrop-blur-md rounded-2xl p-3 border-2 shadow-[0_6px_18px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.98]">
+            
+            <!-- แถบสีด้านซ้าย -->
+            <div class="absolute left-0 inset-y-0 w-1.5 ${theme.topBar}"></div>
+
+            <div class="w-11 h-11 rounded-2xl ${theme.iconBox} shadow-md flex items-center justify-center font-bold shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform ml-1">
+              <span class="material-symbols-outlined text-[22px]">${iconName}</span>
             </div>
+
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 mb-0.5">
-                <span class="text-[9px] font-extrabold ${theme.badge} px-1.5 py-0.2 rounded-md">${questionCountText}</span>
-                <span class="text-[10px] text-slate-400 font-medium truncate">${item.subCategory || item.category || ''}</span>
+                <span class="text-[9px] font-extrabold ${theme.badge} px-2 py-0.2 rounded-full">${questionCountText}</span>
+                <span class="text-[10px] ${theme.subText} font-bold truncate">${item.subCategory || item.category || ''}</span>
               </div>
               <h4 class="text-xs font-extrabold text-slate-800 truncate">${item.topic || '-'}</h4>
-              <p class="text-[10px] text-slate-400 truncate">${item.desc || ''}</p>
+              <p class="text-[10px] text-slate-600/80 truncate font-medium">${item.desc || ''}</p>
             </div>
-            <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-amber-50 text-[#755634] group-hover:bg-[#755634] group-hover:text-white transition-colors">
-              <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+
+            <div class="shrink-0 flex items-center gap-1.5">
+              <button type="button" onclick="toggleBookmarkTopic(event, '${safeTopic}')" title="ปักหมุดหัวข้อนี้"
+                      class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white border border-white flex items-center justify-center shadow-2xs transition-transform active:scale-125">
+                <i class="${isFav ? 'fa-solid text-amber-400 animate-star-pop' : 'fa-regular text-slate-400'} fa-star text-xs"></i>
+              </button>
+              <div class="flex items-center justify-center w-8 h-8 rounded-xl ${theme.actionBtn} shadow-2xs transition-all">
+                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+              </div>
             </div>
           </div>
         `;
@@ -631,6 +1030,65 @@
     }).join('');
   }
 
+  // =========================================================================
+  // 6. ลูกเล่นสุ่มการ์ดนำโชค (Lucky Roulette Picker)
+  // =========================================================================
+  let isRouletteSpinning = false;
+  function spinLuckyTopic() {
+    if (isRouletteSpinning) return;
+    const visibleTopics = getFilteredTopics();
+    if (visibleTopics.length === 0) {
+      showMiniToast('ไม่มีการ์ดข้อสอบในหมวดที่เลือก', '⚠️');
+      return;
+    }
+
+    const cards = Array.from(document.querySelectorAll('[data-topic-card]'));
+    if (cards.length === 0) return;
+
+    isRouletteSpinning = true;
+    showMiniToast('กำลังสุ่มการ์ดข้อสอบนำโชค...', '🎲');
+
+    const winnerIdx = Math.floor(Math.random() * visibleTopics.length);
+    const totalSteps = Math.min(14, Math.max(8, cards.length * 2));
+    let step = 0;
+    let currentHighlight = -1;
+
+    const interval = setInterval(() => {
+      cards.forEach(c => c.classList.remove('roulette-active'));
+      currentHighlight = ( step < totalSteps - 1 )
+        ? Math.floor(Math.random() * cards.length)
+        : winnerIdx;
+
+      const targetCard = cards[currentHighlight];
+      if (targetCard) {
+        targetCard.classList.add('roulette-active');
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      step++;
+      if (step >= totalSteps) {
+        clearInterval(interval);
+        const chosen = visibleTopics[winnerIdx];
+        setTimeout(() => {
+          cards.forEach(c => c.classList.remove('roulette-active'));
+          isRouletteSpinning = false;
+          if (chosen) {
+            showMiniToast(`ได้เรื่อง "${chosen.topic}" ลุยเลย!`, '🎉');
+            openExamSetup(
+              chosen.part,
+              chosen.realCategory !== undefined ? chosen.realCategory : chosen.category,
+              chosen.topic,
+              chosen.subCategory
+            );
+          }
+        }, 450);
+      }
+    }, 95);
+  }
+
+  // =========================================================================
+  // 7. ค้นหา สลับมุมมอง และตั้งค่า Modal ก่อนเข้าห้องสอบ
+  // =========================================================================
   function handleSearch(val) {
     currentSearchQuery = (val || '').trim().toLowerCase();
     const clearBtn = document.getElementById('clearSearchBtn');
@@ -658,10 +1116,10 @@
     const btnList = document.getElementById('btnViewList');
 
     if (mode === 'grid') {
-      btnGrid.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90';
+      btnGrid.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100 shadow-2xs transition-all active:scale-90';
       btnList.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90';
     } else {
-      btnList.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100/80 shadow-2xs transition-all active:scale-90';
+      btnList.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100 shadow-2xs transition-all active:scale-90';
       btnGrid.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all active:scale-90';
     }
     renderCardsLevel4();
@@ -673,9 +1131,23 @@
     activeExamConfig.subCategory = subCategory;
     activeExamConfig.topic = topic;
 
+    const foundItem = EXAM_TOPIC_DATABASE.find(i => i.topic === topic && i.part === part);
+    const theme = getCategoryTheme(category, subCategory, topic);
+    const iconName = (foundItem && foundItem.icon) || (TOPIC_PRESETS[topic] && TOPIC_PRESETS[topic].icon) || 'menu_book';
+
     document.getElementById('modalPartTag').innerText = part;
     document.getElementById('modalSubjectTitle').innerText = topic;
-    document.getElementById('modalCategorySubtitle').innerText = `${category} ${subCategory ? '• ' + subCategory : ''}`;
+    document.getElementById('modalCategorySubtitle').innerText = `${category || 'วิชาทั่วไป'} ${subCategory ? '• ' + subCategory : ''}`;
+
+    const iconBox = document.getElementById('modalTopicIconBox');
+    const iconEl = document.getElementById('modalTopicIcon');
+    const countTag = document.getElementById('modalQuestionCountTag');
+
+    if (iconBox) iconBox.className = `w-12 h-12 rounded-2xl ${theme.iconBox} flex items-center justify-center shadow-md shrink-0 mt-0.5`;
+    if (iconEl) iconEl.innerText = iconName;
+    if (countTag && foundItem && foundItem.count) {
+      countTag.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> คลัง ${foundItem.count} ข้อ`;
+    }
 
     selectModalMode('practice');
     selectModalCount(20);
@@ -688,12 +1160,26 @@
 
   function selectModalMode(mode) {
     activeExamConfig.mode = mode;
+
+    const styles = {
+      practice: {
+        active: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-b from-emerald-50 to-teal-50/80 text-center transition-all active:scale-95 shadow-sm scale-[1.02]',
+        inactive: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 hover:bg-emerald-50/40 text-center transition-all active:scale-95'
+      },
+      competition: {
+        active: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-amber-500 bg-gradient-to-b from-amber-50 to-orange-50/80 text-center transition-all active:scale-95 shadow-sm scale-[1.02]',
+        inactive: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 hover:bg-amber-50/40 text-center transition-all active:scale-95'
+      },
+      mock: {
+        active: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-purple-500 bg-gradient-to-b from-purple-50 to-fuchsia-50/80 text-center transition-all active:scale-95 shadow-sm scale-[1.02]',
+        inactive: 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 hover:bg-purple-50/40 text-center transition-all active:scale-95'
+      }
+    };
+
     ['practice', 'competition', 'mock'].forEach(m => {
       const btn = document.getElementById(m === 'practice' ? 'optModePractice' : m === 'competition' ? 'optModeCompetition' : 'optModeMock');
       if (btn) {
-        btn.className = (m === mode) 
-          ? 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-center transition-all active:scale-95 shadow-2xs'
-          : 'mode-opt-btn group p-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 hover:bg-white text-center transition-all active:scale-95';
+        btn.className = (m === mode) ? styles[m].active : styles[m].inactive;
       }
     });
 
@@ -714,8 +1200,8 @@
       const btn = document.getElementById(`optCount${cnt}`);
       if (btn) {
         btn.className = (cnt === count)
-          ? 'count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-amber-50/70 text-xs font-extrabold text-[#755634] shadow-2xs transition-all active:scale-95'
-          : 'count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/60 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95';
+          ? 'count-opt-btn py-2.5 rounded-2xl border-2 border-[#755634] bg-gradient-to-b from-amber-50 to-orange-50/80 text-xs font-extrabold text-[#755634] shadow-sm scale-[1.02] transition-all active:scale-95'
+          : 'count-opt-btn py-2.5 rounded-2xl border-2 border-slate-100 bg-slate-50/70 text-xs font-extrabold text-slate-600 hover:bg-white transition-all active:scale-95';
       }
     });
   }
@@ -751,6 +1237,7 @@
       }
     } catch (e) {}
 
+    loadBookmarks();
     await fetchRealtimeTopics();
     selectMainPart('ภาค ก');
   });
