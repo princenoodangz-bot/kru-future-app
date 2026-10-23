@@ -719,46 +719,36 @@
 
   async function fetchRealtimeTopics() {
     try {
-      if (!window.supabase || typeof supabase.from !== 'function') {
+      if (!window.supabase) {
         loadPresetFallbackDatabase();
         return;
       }
-      const { data, error } = await supabase
-        .from('questions')
-        .select('exam_part, exam_category, exam_sub_category, exam_topic');
+
+      // 🌟 เรียกฟังก์ชันสรุปข้อมูลจากหลังบ้าน (นับยอดเสร็จจากเซิร์ฟเวอร์ ไม่กินแรงมือถือ)
+      const { data, error } = await supabase.rpc('get_topic_summaries');
 
       if (error || !data || data.length === 0) {
         loadPresetFallbackDatabase();
         return;
       }
 
-      const topicMap = {};
-      data.forEach(q => {
-        const part = (q.exam_part || 'ภาค ก').trim();
-        const cat = (q.exam_category || '').trim();
-        const sub = (q.exam_sub_category || '').trim();
-        const top = (q.exam_topic || '').trim();
-
-        if (!top) return;
-
-        const uniqueKey = `${part}_${cat}_${sub}_${top}`;
-        if (!topicMap[uniqueKey]) {
-          const preset = TOPIC_PRESETS[top] || { desc: `แบบฝึกหัดข้อสอบเรื่อง ${top}`, icon: 'menu_book' };
-          topicMap[uniqueKey] = {
-            part, 
-            category: cat || 'วิชาทั่วไป', 
-            realCategory: cat,
-            subCategory: sub, 
-            topic: top,
-            desc: preset.desc, 
-            icon: preset.icon, 
-            count: 0
-          };
-        }
-        topicMap[uniqueKey].count++;
+      // นำผลสรุปมาจับคู่กับ Preset สีและไอคอน พร้อมแสดงผลทันที
+      EXAM_TOPIC_DATABASE = data.map(item => {
+        const top = (item.exam_topic || '').trim();
+        const preset = TOPIC_PRESETS[top] || { desc: `แบบฝึกหัดข้อสอบเรื่อง ${top}`, icon: 'menu_book' };
+        
+        return {
+          part: (item.exam_part || 'ภาค ก').trim(),
+          category: (item.exam_category || 'วิชาทั่วไป').trim(),
+          realCategory: item.exam_category || '',
+          subCategory: (item.exam_sub_category || '').trim(),
+          topic: top,
+          desc: preset.desc,
+          icon: preset.icon,
+          count: parseInt(item.question_count || 0, 10)
+        };
       });
 
-      EXAM_TOPIC_DATABASE = Object.values(topicMap);
       if (EXAM_TOPIC_DATABASE.length === 0) {
         loadPresetFallbackDatabase();
       }
