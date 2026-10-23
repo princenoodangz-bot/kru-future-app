@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>ครูในอนาคต - รวมข้อสอบและคอร์สเรียน</title>
 
   <!-- สคริปต์เชื่อมต่อ Supabase, Auth และ Theme Manager เดิม -->
@@ -117,7 +119,7 @@
   </div>
 
   <!-- Toast แจ้งเตือนเล็กๆ ด้านบนเมื่อปักหมุดหรือสุ่มข้อสอบ -->
-  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15">
+  <div id="miniToast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300 bg-slate-900/90 sm:backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/15">
     <span id="miniToastIcon" class="text-amber-400">✨</span>
     <span id="miniToastText">บันทึกเรียบร้อย</span>
   </div>
@@ -125,8 +127,8 @@
   <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
   <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
 
-    <!-- แถบด้านบน (Sticky Glass Header) -->
-    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between">
+    <!-- แถบด้านบน (Sticky Glass Header - ปลดเบลอบนมือถือ) -->
+    <header class="sticky top-0 z-30 bg-white/95 sm:bg-white/80 sm:backdrop-blur-xl border-b border-white/90 shadow-[0_4px_20px_rgba(117,86,52,0.06)] px-4 pt-3.5 pb-3 flex items-center justify-between transition-all">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8B653B] via-[#755634] to-[#4E3820] flex items-center justify-center text-white shadow-md shadow-amber-900/20 shrink-0 relative overflow-hidden">
           <div class="absolute -top-2 -right-2 w-5 h-5 bg-amber-300/30 rounded-full blur-xs"></div>
@@ -215,7 +217,7 @@
           <span class="material-symbols-outlined text-[17px]">search</span>
         </div>
         <input id="searchInput" oninput="handleSearch(this.value)" 
-               class="w-full pl-11 pr-9 py-2.5 bg-white/90 backdrop-blur-md rounded-2xl border-2 border-white focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs font-semibold text-slate-800 placeholder-slate-400 outline-none shadow-[0_6px_20px_rgba(117,86,52,0.05)] transition-all" 
+               class="w-full pl-11 pr-9 py-2.5 bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-2xl border-2 border-white focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs font-semibold text-slate-800 placeholder-slate-400 outline-none shadow-[0_6px_20px_rgba(117,86,52,0.05)] transition-all" 
                placeholder="ค้นหาชื่อเรื่อง เช่น อนุกรม, พ.ร.บ., จิตวิทยา..." type="text">
         <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-3 w-5 h-5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 items-center justify-center text-[10px] transition-colors">
           <i class="fa-solid fa-xmark"></i>
@@ -225,7 +227,7 @@
       <!-- 2. แถบเลือกระดับที่ 1 (ภาค ก / ภาค ข แบบ Sliding Pill) + ปุ่มสลับ Grid/List -->
       <div class="flex items-center justify-between gap-2">
         <!-- Sliding Pill Container -->
-        <div class="relative grid grid-cols-2 p-1 bg-white/80 backdrop-blur-md border-2 border-white rounded-2xl flex-1 shadow-sm">
+        <div class="relative grid grid-cols-2 p-1 bg-white/95 sm:bg-white/80 sm:backdrop-blur-md border-2 border-white rounded-2xl flex-1 shadow-sm">
           <div id="partSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#A47846] rounded-xl shadow-md shadow-amber-900/20 transition-transform duration-300 ease-out"></div>
           
           <button id="tabPartA" onclick="selectMainPart('ภาค ก')" class="relative z-10 py-1.5 px-2 rounded-xl text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors duration-200">
@@ -239,7 +241,7 @@
         </div>
 
         <!-- ปุ่มสลับ Grid / List -->
-        <div class="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl border-2 border-white shrink-0 shadow-sm">
+        <div class="flex items-center bg-white/95 sm:bg-white/85 sm:backdrop-blur-md p-1 rounded-2xl border-2 border-white shrink-0 shadow-sm">
           <button id="btnViewGrid" onclick="setViewMode('grid')" title="แสดงแบบการ์ดตาราง" class="w-8 h-8 rounded-xl flex items-center justify-center text-[#755634] bg-amber-100 shadow-2xs transition-all active:scale-90">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
           </button>
@@ -320,7 +322,7 @@
       </div>
 
       <!-- กล่องแจ้งเตือนเมื่อค้นหาไม่พบ -->
-      <div id="noResultsNotice" class="hidden bg-white/80 backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-sm space-y-2.5 my-4">
+      <div id="noResultsNotice" class="hidden bg-white/95 sm:bg-white/80 sm:backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-sm space-y-2.5 my-4">
         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 flex items-center justify-center mx-auto mb-1 shadow-inner">
           <span class="material-symbols-outlined text-[30px]">search_off</span>
         </div>
@@ -337,8 +339,8 @@
     <!-- =========================================================
          หน้าต่างเลือกโหมดการสอบ (Centered 3D Tactile Popup Modal ลอยกลางจอ)
          ========================================================= -->
-    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="animate-card-in bg-white/95 backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.28)] border-2 border-white space-y-4 max-h-[88dvh] overflow-y-auto relative">
+    <div id="examModeModal" onclick="if(event.target === this) closeModeModal()" class="fixed inset-0 z-[100] bg-slate-900/70 sm:bg-slate-900/60 sm:backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="animate-card-in bg-white/98 sm:bg-white/95 sm:backdrop-blur-2xl w-full max-w-sm rounded-[32px] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.28)] border-2 border-white space-y-4 max-h-[88dvh] overflow-y-auto relative">
 
         <!-- แสงออร่าตกแต่งมุมบนป๊อปอัป -->
         <div id="modalHeaderGlow" class="absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-24 rounded-full bg-amber-400/25 blur-2xl pointer-events-none"></div>
@@ -702,7 +704,7 @@
   }
 
   // =========================================================================
-  // 4. ดึงหัวข้อที่มีข้อสอบจริงจาก Supabase (พร้อม Fallback อัตโนมัติสำหรับ Preview)
+  // 4. ดึงหัวข้อที่มีข้อสอบจริงจาก Supabase (ปรับเป็น LocalStorage Cache 0.00s)
   // =========================================================================
   function loadPresetFallbackDatabase() {
     EXAM_TOPIC_DATABASE = Object.entries(TOPIC_PRESETS).map(([topicName, info]) => ({
@@ -719,12 +721,26 @@
 
   async function fetchRealtimeTopics() {
     try {
+      // 🌟 ระบบ Cache: เช็กข้อมูลในเครื่องก่อนวิ่งไปโหลดใหม่ เพื่อให้เว็บเปิดปุ๊บติดปั๊บ
+      const CACHE_KEY = 'kru_exam_topics_cache';
+      const CACHE_TTL = 60 * 60 * 1000; // อายุแคช 1 ชั่วโมง
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        // ถ้าเวลายังไม่เกิน 1 ชั่วโมง หยิบมาแสดงหน้าจอเลยทันที
+        if (Date.now() - timestamp < CACHE_TTL) {
+          EXAM_TOPIC_DATABASE = data;
+          if (EXAM_TOPIC_DATABASE.length > 0) return;
+        }
+      }
+
       if (!window.supabase) {
         loadPresetFallbackDatabase();
         return;
       }
 
-      // 🌟 เรียกฟังก์ชันสรุปข้อมูลจากหลังบ้าน (นับยอดเสร็จจากเซิร์ฟเวอร์ ไม่กินแรงมือถือ)
+      // ดึงจากหลังบ้าน
       const { data, error } = await supabase.rpc('get_topic_summaries');
 
       if (error || !data || data.length === 0) {
@@ -732,7 +748,6 @@
         return;
       }
 
-      // นำผลสรุปมาจับคู่กับ Preset สีและไอคอน พร้อมแสดงผลทันที
       EXAM_TOPIC_DATABASE = data.map(item => {
         const top = (item.exam_topic || '').trim();
         const preset = TOPIC_PRESETS[top] || { desc: `แบบฝึกหัดข้อสอบเรื่อง ${top}`, icon: 'menu_book' };
@@ -751,6 +766,12 @@
 
       if (EXAM_TOPIC_DATABASE.length === 0) {
         loadPresetFallbackDatabase();
+      } else {
+        // บันทึกเก็บลงแคชเครื่องมือถือ
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: EXAM_TOPIC_DATABASE,
+          timestamp: Date.now()
+        }));
       }
     } catch (err) {
       console.warn("ไม่สามารถโหลดหัวข้อจากฐานข้อมูลได้ ใช้ชุดข้อมูลมาตรฐานแทน:", err);
@@ -823,7 +844,7 @@
       const title = cat === 'all' ? '🌈 ทั้งหมดทุกหมวด' : cat;
       const btnStyle = isSelected 
         ? 'bg-gradient-to-r from-[#755634] to-[#946C40] text-white border-[#755634] shadow-sm scale-[1.02]' 
-        : 'bg-white/85 backdrop-blur-xs text-slate-600 border-white hover:bg-white';
+        : 'bg-white/95 sm:bg-white/85 sm:backdrop-blur-xs text-slate-600 border-white hover:bg-white';
 
       return `
         <button onclick="selectCategoryLevel2('${cat.replace(/'/g, "\\'")}')" 
