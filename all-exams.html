@@ -108,12 +108,12 @@
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (Grid + แสงออร่าพาสเทล) -->
+  <!-- ฉากหลัง Multi-Layer (บนมือถือแสดงพื้นหลังนิ่ง บนคอมแสดงลูกแก้วเคลื่อนไหว) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
-    <div class="absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
+    <div class="hidden sm:block absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-300/35 blur-3xl animate-blob"></div>
+    <div class="hidden sm:block absolute top-1/3 -left-28 w-72 h-72 rounded-full bg-rose-300/25 blur-3xl animate-blob" style="animation-delay: -4s;"></div>
+    <div class="hidden sm:block absolute -bottom-24 right-10 w-80 h-80 rounded-full bg-indigo-300/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
   </div>
 
   <!-- Toast แจ้งเตือนเล็กๆ ด้านบนเมื่อปักหมุดหรือสุ่มข้อสอบ -->
@@ -937,7 +937,7 @@
           <div data-topic-card="${idx}"
                onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
                style="animation-delay: ${delayMs}ms;"
-               class="animate-card-in group relative overflow-hidden ${theme.cardBg} backdrop-blur-md rounded-[26px] p-3.5 border-2 shadow-[0_8px_22px_rgba(117,86,52,0.06)] hover:shadow-[0_14px_30px_rgba(117,86,52,0.13)] hover:-translate-y-1 flex flex-col justify-between transition-all duration-200 cursor-pointer active:scale-95">
+               class="animate-card-in group relative overflow-hidden ${theme.cardBg} sm:backdrop-blur-md bg-white rounded-[26px] p-3.5 border-2 shadow-[0_8px_22px_rgba(117,86,52,0.06)] hover:shadow-[0_14px_30px_rgba(117,86,52,0.13)] hover:-translate-y-1 flex flex-col justify-between transition-all duration-200 cursor-pointer active:scale-95">
             
             <!-- แถบสีด้านบนสุดของการ์ด -->
             <div class="absolute top-0 inset-x-0 h-1.5 ${theme.topBar}"></div>
@@ -987,7 +987,7 @@
           <div data-topic-card="${idx}"
                onclick="openExamSetup('${safePart}', '${safeCat}', '${safeTopic}', '${safeSub}')" 
                style="animation-delay: ${delayMs}ms;"
-               class="animate-card-in group relative overflow-hidden ${theme.cardBg} backdrop-blur-md rounded-2xl p-3 border-2 shadow-[0_6px_18px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.98]">
+               class="animate-card-in group relative overflow-hidden ${theme.cardBg} sm:backdrop-blur-md bg-white rounded-2xl p-3 border-2 shadow-[0_6px_18px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.98]">
             
             <!-- แถบสีด้านซ้าย -->
             <div class="absolute left-0 inset-y-0 w-1.5 ${theme.topBar}"></div>
