@@ -3,7 +3,7 @@
 // =========================================================
 
 // ชุดสีมาตรฐานสำหรับสลับธีมของแอป
-const THEME_PALETTES = {
+var THEME_PALETTES = window.THEME_PALETTES || {
   brown:  { primary: '#755634', dark: '#583f2b', light: '#fff8f6', accent: 'linear-gradient(135deg, #8B653B, #5E4325)' },
   blue:   { primary: '#1e40af', dark: '#172554', light: '#f0f7ff', accent: 'linear-gradient(135deg, #2563eb, #1e40af)' },
   green:  { primary: '#166534', dark: '#14532d', light: '#f0fdf4', accent: 'linear-gradient(135deg, #16a34a, #166534)' },

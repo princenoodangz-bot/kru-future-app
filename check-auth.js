@@ -19,20 +19,24 @@
       return;
     }
 
-    // สำหรับสมาชิกทั่วไป ตรวจสอบ Token กับ Supabase
-    if (window.supabase) {
-      const { data, error } = await supabase
-        .from('users')
-        .select('active_session_token')
-        .eq('id', userInfo.id)
-        .single();
-        
-      if (error || !data || data.active_session_token !== token) {
-        alert("เซสชันหมดอายุ หรือมีการเข้าสู่ระบบจากอุปกรณ์อื่น");
-        localStorage.clear();
-        window.location.href = 'login.html';
-      }
-    }
+    // สำหรับสมาชิกทั่วไป ตรวจสอบ Token กับ Supabase (ตรวจสอบเบื้องหลัง ไม่บล็อกหน้าจอ)
+  if (window.supabase) {
+    supabase
+      .from('users')
+      .select('active_session_token')
+      .eq('id', userInfo.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data || data.active_session_token !== token) {
+          alert("เซสชันหมดอายุ หรือมีการเข้าสู่ระบบจากอุปกรณ์อื่น");
+          localStorage.clear();
+          window.location.href = 'login.html';
+        }
+      })
+      .catch(err => {
+        console.warn("ตรวจสอบ session เบื้องหลังล้มเหลว:", err);
+      });
+  }
   } catch (e) {
     console.warn("Session check error:", e);
   }

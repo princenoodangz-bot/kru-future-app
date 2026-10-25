@@ -3,19 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Admin - ครูในอนาคต</title>
-  
-  <!-- 1. ดึง Supabase CDN และไฟล์ Config + Check Auth -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="supabase-config.js"></script>
-<script defer src="check-auth.js"></script>
-<script defer src="theme-manager.js"></script>
-  <!-- ไลบรารีแปลง HTML เป็นภาพ PNG (html2canvas) -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <!-- โหลดฟอนต์ภาษาไทย Anuphan เพื่อให้ html2canvas เรนเดอร์ข้อความคมชัดไม่เพี้ยน -->
-  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- 1. ผูกไอคอนแท็บเว็บเพื่อตัดปัญหา favicon.ico 404 (Not Found) -->
+  <link rel="icon" type="image/png" href="icon-192.png" />
+
+  <!-- 2. ดึง Supabase CDN และไฟล์ Config + Check Auth -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="check-auth.js"></script>
+  <script defer src="theme-manager.js"></script>
+
+  <!-- 3. ตรวจสอบสิทธิ์ Admin ทันที ถ้าไม่ใช่ admin ให้ส่งกลับหน้าแรก -->
   <script>
-    // ตรวจสอบสิทธิ์ Admin ทันที ถ้าไม่ใช่ admin ให้ส่งกลับหน้าแรก
     (function checkAdminRole() {
       try {
         const u = JSON.parse(localStorage.getItem('kru_user_info') || '{}');
@@ -28,14 +30,22 @@
       }
     })();
   </script>
-  <script src="theme-manager.js"></script>
-  <!-- ไลบรารีจัดการไฟล์ Excel (SheetJS) -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+  <!-- 4. ไลบรารีจัดการไฟล์ Excel (SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css">
+  <!-- 5. ไลบรารีแปลง HTML เป็นภาพ PNG (html-to-image) -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+
+  <!-- 6. Google Fonts & Icons (เติม preconnect และ crossorigin="anonymous" เพื่อแก้ SecurityError cssRules) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" crossorigin="anonymous" />
+
+  <!-- 7. ไฟล์สไตล์หลัก -->
+  <link rel="stylesheet" href="style.css" />
   <style>body { font-family: 'Manrope', sans-serif; }</style>
 </head>
 <body class="bg-[#f5ecea] antialiased text-[#1e1b1a] p-4 sm:p-8">
@@ -1076,17 +1086,16 @@
             ตัวอย่างภาพที่จะได้ (ขนาดสี่เหลี่ยมจัตุรัส 1:1 ปรับสัดส่วนไม่ให้เนื้อหาขาด)
           </span>
 
-          <!-- 🌟 ตัวการ์ดข้อสอบที่แก้ Layout ให้กระชับ ไม่ขาดตอนเฉลยยาว -->
-          <div id="socialCardWrapper" class="w-full max-w-[460px] aspect-square rounded-[32px] p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl border-4 border-white select-none transition-all duration-300">
+          <!-- 🌟 ตัวการ์ดข้อสอบ: ปรับให้ยืดขยายความสูงตามเนื้อหาจริง ไม่ทับซ้อนกัน -->
+          <div id="socialCardWrapper" class="w-full max-w-[460px] min-h-[460px] h-auto rounded-[32px] p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl border-4 border-white select-none transition-all duration-300">
             
-            <!-- ลายเส้นกริดพื้นหลัง (เปลี่ยนสีตามภาคอัตโนมัติ) -->
+            <!-- ลายเส้นกริดพื้นหลัง -->
             <div id="scGridOverlay" class="absolute inset-0 pointer-events-none opacity-30"></div>
 
             <!-- แสงตกแต่งมุมขวาบน -->
             <div id="scGlowCorner" class="absolute -top-16 -right-16 w-44 h-44 rounded-full blur-2xl pointer-events-none"></div>
 
-            <!-- 1. ส่วนหัวการ์ด (Header) - ล็อก shrink-0 ไม่ให้โดนบีบ -->
-            <!-- 1. ส่วนหัวการ์ด (Header) - ปรับพื้นที่ให้ป้ายหมวดไม่โดนตัด -->
+            <!-- 1. ส่วนหัวการ์ด (Header) -->
             <div class="relative z-10 flex items-center justify-between border-b border-black/10 pb-2.5 shrink-0 gap-2">
               <div class="flex items-center gap-2 shrink-0">
                 <div id="scHeaderIconBox" class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0">
@@ -1094,13 +1103,13 @@
                 </div>
                 <span id="scHeadTitle" class="text-xs font-black tracking-tight whitespace-nowrap">ครูในอนาคต • ข้อสอบครูผู้ช่วย</span>
               </div>
-              <span id="scCategoryBadge" class="text-[11px] font-extrabold px-3 py-1 rounded-full border border-black/10 shrink-0 text-center whitespace-nowrap bg-white/95 shadow-2xs leading-normal">
+              <span id="scCategoryBadge" class="text-[11px] font-extrabold px-3 py-1 rounded-full border border-black/10 shrink-0 text-center whitespace-nowrap bg-white/95 shadow-2xs leading-normal max-w-[210px] truncate">
                 ภาค ก • ทั่วไป
               </span>
             </div>
 
-            <!-- 2. ส่วนตัวโจทย์ (Question Area) - ย่อขนาดให้อยู่ในกรอบ 1:1 เสมอ -->
-            <div class="relative z-10 flex-1 flex flex-col justify-center my-1.5 space-y-2 min-h-0">
+            <!-- 2. ส่วนตัวโจทย์และคำตอบ (ปรับเป็น justify-start และปล่อยให้ยืดตามเนื้อหา) -->
+            <div class="relative z-10 flex-1 flex flex-col justify-start my-3 space-y-2.5">
               
               <div class="flex items-center gap-1.5">
                 <span id="scTagDot" class="w-2 h-2 rounded-full"></span>
@@ -1113,25 +1122,27 @@
 
               <!-- รูปภาพโจทย์ (ถ้ามี) -->
               <div id="scImageContainer" class="hidden text-center">
-                <img id="scQuestionImage" src="" alt="รูปโจทย์" class="max-h-24 mx-auto rounded-xl object-contain shadow-xs border bg-white" />
+                <img id="scQuestionImage" alt="รูปโจทย์" class="max-h-24 mx-auto rounded-xl object-contain shadow-xs border bg-white" />
               </div>
 
-              <!-- รายการตัวเลือก ก ข ค ง (ปรับ padding ให้กระชับ) -->
-              <div class="space-y-1 pt-0.5" id="scChoicesContainer"></div>
+              <!-- รายการตัวเลือก ก ข ค ง -->
+              <div class="space-y-1.5 pt-0.5" id="scChoicesContainer"></div>
 
-              <!-- กล่องคำอธิบายเฉลย (กระชับพอดี ไม่ล้นตกขอบ) -->
-              <div id="scExplanationBox" class="hidden p-2 rounded-xl text-[10px] sm:text-[11px] leading-snug shadow-xs border">
+              <!-- กล่องคำอธิบายเฉลย (แสดงครบทุกบรรทัด ไม่โดนตัดหรือทับ) -->
+              <div id="scExplanationBox" class="hidden p-2.5 rounded-xl text-[10px] sm:text-[11px] leading-relaxed shadow-xs border mt-1">
                 <span class="font-black block text-[11px] mb-0.5">💡 คำอธิบายเฉลย:</span>
-                <span id="scExplanationText" class="line-clamp-3">-</span>
+                <span id="scExplanationText">-</span>
               </div>
 
             </div>
-            <!-- 🌟 ตัวการ์ตูนคุณครูยืนมุมขวาล่าง (เท้าแตะขอบ Footer พอดี) -->
-            <img id="scMascotImg" src="" alt="คุณครูมาสคอต" 
-                 class="hidden absolute bottom-8 right-2 sm:right-3 h-28 sm:h-32 w-auto object-contain drop-shadow-lg z-20 pointer-events-none select-none transition-all" />
 
-            <!-- 3. ส่วนท้ายการ์ด (Footer) - ล็อก shrink-0 ไม่ให้หลุดเฟรม -->
-            <div class="relative z-10 flex items-center justify-between border-t border-black/10 pt-2 shrink-0 text-[10px] text-slate-500 font-bold">
+            <!-- 🌟 ตัวการ์ตูนคุณครู: ล็อกตำแหน่งมุมขวาล่างด้วย inline style เท้าแตะขอบ Footer พอดี -->
+            <img id="scMascotImg" src="" alt="คุณครูมาสคอต" 
+                 style="position: absolute; bottom: 40px; right: 14px; z-index: 20; pointer-events: none;"
+                 class="hidden h-28 sm:h-32 w-auto object-contain drop-shadow-lg select-none transition-all" />
+
+            <!-- 3. ส่วนท้ายการ์ด (Footer) -->
+            <div class="relative z-10 flex items-center justify-between border-t border-black/10 pt-2.5 mt-2 shrink-0 text-[10px] text-slate-500 font-bold">
               <span id="scFootText">เพจ: ครูในอนาคต CBT Online • #สอบครูผู้ช่วย</span>
               <span id="scFootBadge" class="font-extrabold">เพจครูผู้ช่วย ระบบครูในอนาคต • 🎯</span>
             </div>
@@ -3516,7 +3527,7 @@ function renderSocialCard() {
       imgBox.classList.remove('hidden');
     } else {
       imgBox.classList.add('hidden');
-      imgEl.src = '';
+      imgEl.removeAttribute('src'); // 👈 ใช้ removeAttribute แทน src = ''
     }
   }
 
@@ -3569,7 +3580,7 @@ function renderSocialCard() {
 async function downloadQuestionCardImage() {
   const card = document.getElementById('socialCardWrapper');
   const btn = document.getElementById('btnDownloadCard');
-  if (!card || !window.html2canvas) {
+  if (!card || !window.htmlToImage) {
     alert('ระบบแปลงภาพยังไม่พร้อม กรุณาลองใหม่อีกครั้ง');
     return;
   }
@@ -3579,22 +3590,26 @@ async function downloadQuestionCardImage() {
   btn.disabled = true;
 
   try {
-    // 🌟 รอให้เบราว์เซอร์คำนวณขนาดฟอนต์ภาษาไทยเสร็จสมบูรณ์ก่อนเรนเดอร์ภาพ
     if (document.fonts) {
       await document.fonts.ready;
     }
 
-    const canvas = await html2canvas(card, {
-      scale: 2.5,
-      useCORS: true,
-      allowTaint: true,
+    const dataUrl = await htmlToImage.toPng(card, {
+      pixelRatio: 2.5,
+      cacheBust: true,
       backgroundColor: null,
-      logging: false,
-      onclone: (clonedDoc) => {
-        const clonedCard = clonedDoc.getElementById('socialCardWrapper');
-        if (clonedCard) {
-          clonedCard.style.fontFamily = "'Anuphan', sans-serif";
+      skipFonts: true, // 👈 เพิ่มบรรทัดนี้: สั่งข้ามการแงะ CSS ฟอนต์ภายนอก เพื่อไม่ให้ขึ้น SecurityError
+      filter: (node) => {
+        if (node.classList && node.classList.contains('hidden')) {
+          return false;
         }
+        if (node.tagName === 'IMG') {
+          const src = node.getAttribute('src');
+          if (!src || src.trim() === '') {
+            return false;
+          }
+        }
+        return true;
       }
     });
 
@@ -3602,7 +3617,7 @@ async function downloadQuestionCardImage() {
     const safeTopic = (currentSocialQuestion?.exam_topic || 'ข้อสอบ').replace(/[/\\?%*:|"<>]/g, '-');
     const typeLabel = isSocialSolutionMode ? 'เฉลย' : 'โจทย์';
     link.download = `ข้อสอบ_${safeTopic}_(${typeLabel})_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = dataUrl;
     link.click();
 
     saveSocialExportRecord(currentSocialQuestion, isSocialSolutionMode);
@@ -3750,14 +3765,13 @@ function selectSocialMascot(index) {
     }
   }
 
-  // 2. แสดงหรือซ่อนรูปภาพบนการ์ด
   if (imgEl) {
     if (index !== null && MASCOT_PRESETS[index]) {
       imgEl.src = MASCOT_PRESETS[index];
       imgEl.classList.remove('hidden');
       if (badge) badge.innerText = `ครู ${index + 1}`;
     } else {
-      imgEl.src = '';
+      imgEl.removeAttribute('src'); // 👈 ใช้ removeAttribute แทน src = ''
       imgEl.classList.add('hidden');
       if (badge) badge.innerText = 'ไม่แสดง';
     }
