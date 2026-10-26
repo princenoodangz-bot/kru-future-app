@@ -17,6 +17,9 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <style>
     body {
@@ -34,10 +37,16 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    /* สีนิ่งบนมือถือ เพื่อประหยัดแบตเตอรี่ และให้ขยับเฉพาะบนจอคอมพิวเตอร์ */
     .bg-aurora {
-      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
-      background-size: 400% 400%;
-      animation: auroraBG 18s ease infinite;
+      background: #FFFBF5;
+    }
+    @media (min-width: 640px) {
+      .bg-aurora {
+        background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+        background-size: 400% 400%;
+        animation: auroraBG 18s ease infinite;
+      }
     }
 
     .bg-grid-pattern {
@@ -644,9 +653,10 @@ function resolveQuestionCorrectKey(q) {
     const progressBar = document.getElementById('quizProgressBar');
     if (progressBar) progressBar.style.width = `${progressPct}%`;
 
-    // กระตุ้นแอนิเมชันการ์ดโจทย์เวลาเปลี่ยนข้อ
+    // กระตุ้นแอนิเมชันเฉพาะตอนเปลี่ยนข้อสอบเท่านั้น (แตะเลือกช้อยส์ข้อเดิมจะไม่กระตุก)
     const qCard = document.getElementById('questionCardBox');
-    if (qCard) {
+    if (qCard && window.lastAnimatedQuestionIndex !== currentIndex) {
+      window.lastAnimatedQuestionIndex = currentIndex;
       qCard.classList.remove('animate-q-in');
       void qCard.offsetWidth;
       qCard.classList.add('animate-q-in');
@@ -696,10 +706,10 @@ function resolveQuestionCorrectKey(q) {
   }
 
   function selectChoice(key) {
+    consecutiveTimeouts = 0; // 👈 รีเซ็ตแต้มเตือนทันทีเมื่อผู้ใช้แตะเลือกคำตอบ
     userAnswers[currentIndex] = key;
     renderQuestion();
   }
-
   function nextQuestion() {
     if (currentIndex < questions.length - 1) {
       currentIndex++;
@@ -787,6 +797,7 @@ function resolveQuestionCorrectKey(q) {
     }
 
     isSubmittingExam = true;
+    isExamFinished = true;
 
     if (typeof recordQuestionsAsSeen === 'function' && questions && questions.length > 0) {
       recordQuestionsAsSeen(questions);
@@ -872,8 +883,8 @@ function resolveQuestionCorrectKey(q) {
               exam_topic: wq.exam_topic || ''
             }));
 
-          // ยิงคำขอเดียวจบ ฐานข้อมูลจัดการ atomic transaction เอง
-          await supabase.rpc('submit_exam_bundle', {
+          // พยายามยิงผ่าน RPC ก่อน ถ้าไม่มีฟังก์ชันให้บันทึกลงตารางโดยตรงทันที
+          const { error: rpcErr } = await supabase.rpc('submit_exam_bundle', {
             p_attempt_id: attemptId,
             p_user_id: currentUserId,
             p_exam_id: fullExamTitle,
@@ -885,6 +896,35 @@ function resolveQuestionCorrectKey(q) {
             p_time_spent_seconds: elapsedSec,
             p_wrong_questions: wrongListPayload
           });
+
+          if (rpcErr) {
+            console.warn("RPC ไม่พร้อมใช้งาน สลับไปบันทึกผ่าน Table ปกติ:", rpcErr.message);
+            // บันทึกผลสอบลง exam_attempts
+            await supabase.from('exam_attempts').insert([{
+              id: attemptId,
+              user_id: currentUserId,
+              exam_id: fullExamTitle,
+              exam_mode: currentMode,
+              target_questions: typeof targetQuestionCount !== 'undefined' ? targetQuestionCount : questions.length,
+              total_attempted: doneCount,
+              total_correct: correct,
+              score_percentage: percentage,
+              time_spent_seconds: elapsedSec,
+              completed_at: new Date().toISOString()
+            }]);
+
+            // บันทึกข้อที่ผิดลง wrong_answers (ถ้ามี)
+            if (wrongQuestionsToSave.length > 0 && currentUserId !== 'anonymous_user') {
+              const wrongRows = wrongQuestionsToSave.map(wq => ({
+                user_id: currentUserId,
+                question_id: String(wq.id),
+                exam_category: wq.exam_category || '',
+                exam_topic: wq.exam_topic || '',
+                updated_at: new Date().toISOString()
+              }));
+              await supabase.from('wrong_answers').upsert(wrongRows, { onConflict: 'user_id,question_id' });
+            }
+          }
         }
       } catch (err) {
         console.error("Background sync attempt error:", err);
@@ -929,6 +969,7 @@ function resolveQuestionCorrectKey(q) {
   const perQuestionLimit = examMode === 'competition' ? 60 : 120;
   let perQuestionLeft = perQuestionLimit;
   let perQuestionInterval = null;
+  let consecutiveTimeouts = 0; // 👈 นับจำนวนข้อที่หมดเวลาติดต่อกัน (Strike)
 
   function startTotalTimer() {
     clearInterval(totalTimerInterval); // 🌟 ล้างตัวนับเวลาเดิมก่อนเสมอ ป้องกันเวลาเดินเบิ้ล
@@ -1045,13 +1086,47 @@ function resolveQuestionCorrectKey(q) {
     }
   }
 
+  // 🔊 ตัวแปรและฟังก์ชันสร้างเสียงติ๊ดเตือนช่วงท้าย (ใช้ซ้ำตัวเดิม ไม่เปลืองแรม ไม่ติดลิมิตเบราว์เซอร์)
+  let sharedAudioCtx = null;
+  function playCountdownBeep(isUrgent = false) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new AudioCtx();
+      }
+      if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume();
+      }
+
+      const osc = sharedAudioCtx.createOscillator();
+      const gain = sharedAudioCtx.createGain();
+
+      osc.connect(gain);
+      gain.connect(sharedAudioCtx.destination);
+
+      // โทนเสียง: 3 วินาทีสุดท้ายใช้เสียงสูง (880Hz) / ช่วง 4-10 วินาทีใช้เสียงนุ่มนวล (587Hz)
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isUrgent ? 880 : 587.33, sharedAudioCtx.currentTime);
+
+      // คุมระดับเสียงเบาๆ พอดีหู (0.12) แล้วค่อยๆ เฟดดับ
+      gain.gain.setValueAtTime(0.12, sharedAudioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + (isUrgent ? 0.2 : 0.12));
+
+      osc.start();
+      osc.stop(sharedAudioCtx.currentTime + (isUrgent ? 0.2 : 0.12));
+    } catch (e) {
+      // ป้องกันกรณีเบราว์เซอร์บล็อกสิทธิ์เสียง
+    }
+  }
+
   function startPerQuestionTimer() {
     clearInterval(perQuestionInterval);
 
     // เช็กว่าผู้ใช้ปิดการจับเวลาไว้หรือไม่ หรือกำลังอยู่ในโหมดตรวจเฉลย
     const isTimerEnabled = localStorage.getItem('kru_pref_timer') !== 'false';
     if (!isTimerEnabled || (typeof isReviewMode !== 'undefined' && isReviewMode)) {
-      return; // ไม่ต้องเริ่มนับเวลาถอยหลัง
+      return;
     }
 
     perQuestionLeft = perQuestionLimit;
@@ -1061,14 +1136,38 @@ function resolveQuestionCorrectKey(q) {
       perQuestionLeft--;
       updatePerQuestionUI();
 
+      // 🔊 ส่งเสียงเตือนติ๊ดทุกวินาทีเมื่อเหลือ 10 วินาทีสุดท้าย
+      if (perQuestionLeft <= 10 && perQuestionLeft > 0) {
+        playCountdownBeep(perQuestionLeft <= 3); // 3 วินาทีสุดท้ายปรับโทนเร่ง
+      }
+
       if (perQuestionLeft <= 0) {
         clearInterval(perQuestionInterval);
-        // บังคับส่งข้อสอบเฉพาะในโหมดแข่งขัน (Competition) เท่านั้น โหมดอื่นให้เตือนเฉยๆ
-        if (examMode === 'competition') {
-          alert(`⏰ หมดเวลาในข้อนี้ (จำกัด 1 นาที/ข้อ)! ระบบจะส่งข้อสอบและสรุปผลคะแนนทันที`);
+        consecutiveTimeouts++; // สะสมแต้มหมดเวลา
+
+        // 1. กรณีหมดเวลาที่ข้อสุดท้ายพอดี (ไม่มีข้อถัดไปให้ข้ามแล้ว) -> บังคับส่งทันที
+        if (currentIndex >= questions.length - 1) {
+          alert(`⏰ หมดเวลาในข้อสุดท้าย! ระบบจะทำการส่งข้อสอบและสรุปผลคะแนนทันที`);
           submitExam(true);
-        } else {
-          perQuestionLeft = perQuestionLimit; // รีเซ็ตรอบใหม่สำหรับโหมดฝึกซ้อม
+          return;
+        }
+
+        // 2. หมดเวลาครั้งที่ 1 -> บังคับข้าม 1 ข้อ พร้อมขึ้นเตือน
+        if (consecutiveTimeouts === 1) {
+          alert(
+            `⚠️ หมดเวลาในข้อนี้ (${Math.floor(perQuestionLimit / 60)} นาที)!\n\n` +
+            `ระบบได้ข้ามไปข้อถัดไปให้อัตโนมัติ\n` +
+            `🔔 คำเตือน: หากข้อถัดไปคุณยังไม่ตอบและหมดเวลาอีกครั้ง ระบบจะถือว่าละทิ้งการสอบ และจะตัดจบส่งข้อสอบทันทีครับ`
+          );
+          nextQuestion(); // เลื่อนไปข้อถัดไปทันที
+        } 
+        // 3. หมดเวลาครั้งที่ 2 ติดต่อกัน -> บังคับส่งข้อสอบ ปิดชุดทันที
+        else if (consecutiveTimeouts >= 2) {
+          alert(
+            `⏰ คุณหมดเวลาติดต่อกันเป็นครั้งที่ 2 แล้ว!\n\n` +
+            `ระบบขออนุญาตตัดจบและส่งข้อสอบอัตโนมัติ เพื่อบันทึกคะแนนเท่าที่คุณทำเสร็จเรียบร้อยครับ`
+          );
+          submitExam(true); // สั่งส่งข้อสอบและคำนวณคะแนนทันที
         }
       }
     }, 1000);
@@ -1434,7 +1533,10 @@ function resolveQuestionCorrectKey(q) {
     startTotalTimer();
   }
 
-  function generateAndDownloadScoreCard() {
+  async function generateAndDownloadScoreCard() {
+    if (document.fonts) {
+      await document.fonts.ready; // 👈 สั่งรอให้ฟอนต์ภาษาไทยโหลดเข้าเครื่องครบ 100% ก่อนวาด Canvas
+    }
     const canvas = document.createElement('canvas');
     canvas.width = 600;
     canvas.height = 760;

@@ -8,10 +8,10 @@
   <title>ครูในอนาคต - ประวัติและสถิติการสอบ</title>
 
   <!-- สคริปต์เชื่อมต่อ Supabase, Auth, Theme Manager และ Chart.js -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="supabase-config.js"></script>
-<script defer src="check-auth.js"></script>
-<script defer src="theme-manager.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="check-auth.js"></script>
+  <script defer src="theme-manager.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Fonts & Icons: Plus Jakarta Sans + Anuphan -->
@@ -39,9 +39,14 @@
       100% { background-position: 0% 50%; }
     }
     .bg-aurora {
-      background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
-      background-size: 400% 400%;
-      animation: auroraBG 18s ease infinite;
+      background: #FFFBF5;
+    }
+    @media (min-width: 640px) {
+      .bg-aurora {
+        background: linear-gradient(-45deg, #FFFBF5, #FDECD2, #F5E6E8, #EBF3FA, #FAF3E3);
+        background-size: 400% 400%;
+        animation: auroraBG 18s ease infinite;
+      }
     }
 
     .bg-grid-pattern {
@@ -82,12 +87,619 @@
       animation: growWidthRight 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-150%) skewX(-20deg); }
+      50%, 100% { transform: translateX(250%) skewX(-20deg); }
+    }
+    .shimmer-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
+      animation: shimmerSweep 3.8s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes radarPulseRing {
+      0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.45; }
+      50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.15; }
+      100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.45; }
+    }
+
+    /* ซ่อนวงแหวนเรดาร์และ Sidebar บนมือถือ เพื่อรักษาดีไซน์เดิม 100% */
+    .desktop-radar-ring,
+    #desktopSidebar {
+      display: none;
+    }
+
+    /* =========================================================================
+       3. FULL-SCREEN DESKTOP EXAM WORKSPACE (เฉพาะจอคอมพิวเตอร์ >= 1024px)
+          * ขยายเต็มจอ 100% + ตัวหนังสือใหญ่ชัดเจน + รองรับโหมดฟอนต์ใหญ่พิเศษ *
+          * หน้าจอมือถือ (< 1024px) คงเดิมทุกประการ *
+       ========================================================================= */
+    @media (min-width: 1024px) {
+      :root {
+        --desk-scale: 1;
+      }
+      html[data-font-scale="medium"] {
+        --desk-scale: 1.07;
+      }
+      html[data-font-scale="large"] {
+        --desk-scale: 1.15;
+      }
+
+      /* ซ่อนแถบเมนูด้านล่างของมือถือเมื่อเปิดบนคอม */
+      body > nav,
+      nav.fixed.bottom-0,
+      nav.fixed.bottom-3,
+      .bottom-nav,
+      [id*="bottomNav"] {
+        display: none !important;
+      }
+
+      /* 🌟 1. กางเต็มจอ 100% ไม่บีบขอบซ้ายขวา */
+      #appWorkspaceWrapper {
+        display: flex !important;
+        width: 100vw !important;
+        max-width: 100% !important;
+        min-height: 100vh !important;
+        padding: 20px 28px !important;
+        gap: 28px !important;
+        align-items: flex-start !important;
+        z-index: 10;
+      }
+
+      /* 🌟 2. แถบ Sidebar ด้านซ้าย */
+      #desktopSidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        width: calc(310px * var(--desk-scale)) !important;
+        height: calc(100vh - 40px) !important;
+        position: sticky !important;
+        top: 20px !important;
+        flex-shrink: 0 !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(24px) !important;
+        border: 2px solid #ffffff !important;
+        border-radius: 32px !important;
+        padding: 28px 24px !important;
+        box-shadow: 0 20px 50px rgba(117, 86, 52, 0.08) !important;
+      }
+
+      #desktopSidebar .brand-title {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+      #desktopSidebar .brand-sub {
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+      }
+      #desktopSidebar .quick-quiz-btn {
+        padding: 16px 20px !important;
+        font-size: calc(15.5px * var(--desk-scale)) !important;
+        border-radius: 20px !important;
+      }
+      #desktopSidebar .nav-section-label {
+        font-size: calc(12.5px * var(--desk-scale)) !important;
+      }
+
+      .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 18px;
+        border-radius: 20px;
+        font-size: calc(16px * var(--desk-scale)) !important;
+        font-weight: 800;
+        color: #334155;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .sidebar-nav-link span.material-symbols-outlined {
+        font-size: calc(24px * var(--desk-scale)) !important;
+      }
+      .sidebar-nav-link:hover {
+        background: rgba(254, 243, 199, 0.75);
+        color: #755634;
+        transform: translateX(5px);
+      }
+      .sidebar-nav-link.active {
+        background: linear-gradient(135deg, #755634, #946C40);
+        color: #ffffff;
+        box-shadow: 0 10px 24px rgba(117, 86, 52, 0.25);
+      }
+
+      #desktopSidebar .side-quest-box span,
+      #desktopSidebar .side-quest-box p {
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+        line-height: 1.45 !important;
+      }
+      #sidebarUserName {
+        font-size: calc(15px * var(--desk-scale)) !important;
+      }
+
+      /* 🌟 3. พื้นที่หลักด้านขวา กางเต็มจอ 100% */
+      #mainShell {
+        max-width: none !important;
+        width: 100% !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        padding-bottom: 60px !important;
+        min-height: auto !important;
+      }
+      .main-padding {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      /* แถบ Header ด้านบน */
+      #mainShell > header {
+        margin: 0 0 24px 0 !important;
+        padding: 20px 32px !important;
+        border-radius: 28px !important;
+        border: 2px solid #ffffff !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        box-shadow: 0 10px 30px rgba(117, 86, 52, 0.06) !important;
+      }
+      #mainShell > header .w-9.h-9 {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 18px !important;
+      }
+      #mainShell > header .w-9.h-9 span {
+        font-size: 26px !important;
+      }
+      #mainShell > header h1 {
+        font-size: calc(23px * var(--desk-scale)) !important;
+        margin-top: 2px !important;
+      }
+      #mainShell > header span.text-\[10px\] {
+        font-size: calc(12.5px * var(--desk-scale)) !important;
+      }
+      #mainShell > header a[href="all-exams.html"] {
+        font-size: calc(15px * var(--desk-scale)) !important;
+        padding: 12px 22px !important;
+        border-radius: 18px !important;
+      }
+      #userInitial {
+        font-size: calc(17px * var(--desk-scale)) !important;
+      }
+
+      /* เนื้อหา <main> และปลดล็อกการตัดคำ .truncate ทั้งหมด */
+      #mainShell > main {
+        padding-top: 0 !important;
+        gap: 24px !important;
+      }
+      #mainShell > main .truncate {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: normal !important;
+      }
+
+      /* 🌟 4. แถบปุ่มสลับ 3 แท็บด้านบน (ใหญ่ชัดเจน) */
+      #topTabContainer {
+        max-width: 820px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 8px !important;
+        border-radius: 24px !important;
+        box-shadow: 0 10px 28px rgba(117, 86, 52, 0.06) !important;
+      }
+      .history-tab-btn {
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
+        font-size: calc(16.5px * var(--desk-scale)) !important;
+        border-radius: 18px !important;
+        gap: 10px !important;
+        cursor: pointer;
+      }
+      .history-tab-btn span.material-symbols-outlined {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+
+      /* แถบตัวกรองสถิติ */
+      #filterBarCard {
+        padding: 20px 30px !important;
+        border-radius: 28px !important;
+      }
+      #filterBarCard label {
+        font-size: calc(17px * var(--desk-scale)) !important;
+        gap: 12px !important;
+      }
+      #filterBarCard label .w-7.h-7 {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 14px !important;
+      }
+      #filterBarCard label .w-7.h-7 span {
+        font-size: 24px !important;
+      }
+      #selHistoryFilter {
+        max-width: 420px !important;
+        padding: 13px 20px !important;
+        font-size: calc(16px * var(--desk-scale)) !important;
+        border-radius: 18px !important;
+      }
+
+      /* โครงสร้างหลักเรียงจากบนลงล่าง */
+      .desktop-dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 28px !important;
+      }
+      .desktop-left-col, .desktop-right-col {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 28px !important;
+        width: 100% !important;
+      }
+
+      /* 🌟 5. การ์ดสถิติ 3 ช่อง (KPI Bento Cards) */
+      #kpiBentoSection {
+        gap: 24px !important;
+      }
+      .kpi-card {
+        padding: 26px 32px !important;
+        border-radius: 30px !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        gap: 22px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .kpi-card:hover {
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 0 20px 40px rgba(117, 86, 52, 0.11) !important;
+      }
+      .kpi-card .kpi-icon {
+        width: calc(64px * var(--desk-scale)) !important;
+        height: calc(64px * var(--desk-scale)) !important;
+        border-radius: 22px !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0;
+      }
+      .kpi-card .kpi-icon span {
+        font-size: calc(32px * var(--desk-scale)) !important;
+      }
+      .kpi-card .kpi-label {
+        font-size: calc(15.5px * var(--desk-scale)) !important;
+        display: block;
+      }
+      .kpi-card .kpi-value {
+        font-size: calc(36px * var(--desk-scale)) !important;
+        line-height: 1.15 !important;
+        display: block;
+        margin-top: 4px !important;
+      }
+
+      /* 🌟 6. การ์ดเรดาร์สมรรถนะ ขยายเต็มจอด้านบน (Hero Command Center) */
+      #radarHeroCard {
+        padding: 34px 40px !important;
+        border-radius: 36px !important;
+        box-shadow: 0 22px 55px rgba(99, 102, 241, 0.09), 0 8px 25px rgba(117, 86, 52, 0.06) !important;
+        gap: 22px !important;
+      }
+      #radarHeroCard .w-9.h-9 {
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 18px !important;
+      }
+      #radarHeroCard .w-9.h-9 span {
+        font-size: 28px !important;
+      }
+      #radarHeroCard h3 {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+      #radarHeroCard p.sub-desc {
+        font-size: calc(14.5px * var(--desk-scale)) !important;
+        margin-top: 2px !important;
+      }
+      #readinessLevelBadge {
+        font-size: calc(15px * var(--desk-scale)) !important;
+        padding: 10px 22px !important;
+      }
+      #radarHeroCard label[for="selRadarViewMode"] {
+        font-size: calc(15.5px * var(--desk-scale)) !important;
+      }
+      #selRadarViewMode {
+        max-width: 340px !important;
+        padding: 11px 18px !important;
+        font-size: calc(15.5px * var(--desk-scale)) !important;
+        border-radius: 16px !important;
+      }
+
+      /* ปลดล็อกขนาดกล่องครอบกราฟเรดาร์ให้ใหญ่เต็มตาบนคอม */
+      #radarCanvasWrapper {
+        max-width: 920px !important;
+        height: calc(500px * var(--desk-scale)) !important;
+        margin-top: 8px !important;
+        margin-bottom: 8px !important;
+      }
+      #radarChartCanvas {
+        height: calc(500px * var(--desk-scale)) !important;
+        width: 100% !important;
+      }
+
+      /* วงแหวนเรดาร์ตกแต่งฉากหลังบนจอคอม */
+      .desktop-radar-ring {
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        border: 1.5px dashed rgba(99, 102, 241, 0.16);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .desktop-radar-ring.ring-1 {
+        width: 300px;
+        height: 300px;
+        animation: radarPulseRing 6s ease-in-out infinite;
+      }
+      .desktop-radar-ring.ring-2 {
+        width: 440px;
+        height: 440px;
+        border-color: rgba(236, 72, 153, 0.12);
+        animation: radarPulseRing 8s ease-in-out infinite reverse;
+      }
+
+      /* การ์ดสีทั้ง 6 ด้าน (ขนาดใหญ่ อ่านชื่อวิชาเต็มชัดเจน) */
+      #radarLegendContainer {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 16px !important;
+        padding-top: 12px !important;
+      }
+      html[data-font-scale="large"] #radarLegendContainer {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+      .radar-skill-card {
+        padding: 18px 20px !important;
+        border-radius: 22px !important;
+        gap: 12px !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .radar-skill-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+      }
+      .radar-skill-card .w-4.h-4 {
+        width: calc(28px * var(--desk-scale)) !important;
+        height: calc(28px * var(--desk-scale)) !important;
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+      }
+      .radar-skill-card span.text-\[11px\] {
+        font-size: calc(16px * var(--desk-scale)) !important;
+        line-height: 1.35 !important;
+      }
+      .radar-skill-card .h-1\.5 {
+        height: 8px !important;
+      }
+
+      /* กล่อง AI คำแนะนำด้านล่างเรดาร์ */
+      #radarAdviceBox {
+        padding: 22px 28px !important;
+        border-radius: 24px !important;
+      }
+      #radarAdviceBox > div:first-child {
+        font-size: calc(16.5px * var(--desk-scale)) !important;
+      }
+      #radarAdviceBox > div:first-child span.material-symbols-outlined {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+      #radarAdviceText {
+        font-size: calc(16px * var(--desk-scale)) !important;
+        line-height: 1.6 !important;
+        margin-top: 4px !important;
+      }
+
+      /* 🌟 7. กราฟแท่งความสม่ำเสมอ 7 วัน */
+      #weeklyConsistencyCard {
+        padding: 32px 38px !important;
+        border-radius: 36px !important;
+        gap: 20px !important;
+      }
+      #weeklyConsistencyCard .w-9.h-9 {
+        width: 52px !important;
+        height: 52px !important;
+        border-radius: 18px !important;
+      }
+      #weeklyConsistencyCard .w-9.h-9 span {
+        font-size: 26px !important;
+      }
+      #weeklyConsistencyCard h2 {
+        font-size: calc(20px * var(--desk-scale)) !important;
+      }
+      #weeklyConsistencyCard p.text-\[10px\] {
+        font-size: calc(14px * var(--desk-scale)) !important;
+        margin-top: 2px !important;
+      }
+      #weeklyAvgScore {
+        font-size: calc(15px * var(--desk-scale)) !important;
+      }
+      #weeklyBarsContainer {
+        height: 210px !important;
+        gap: 24px !important;
+        padding: 16px 32px 8px 32px !important;
+      }
+      #weeklyBarsContainer > div > span:first-child {
+        font-size: calc(14.5px * var(--desk-scale)) !important;
+      }
+      .weekly-pill-track {
+        max-width: 64px !important;
+        height: 150px !important;
+        transition: transform 0.25s ease !important;
+      }
+      .weekly-pill-track:hover {
+        transform: scale(1.08);
+      }
+      #weeklyBarsContainer .text-center span.text-\[11px\] {
+        font-size: calc(15px * var(--desk-scale)) !important;
+        margin-top: 4px !important;
+      }
+      #weeklyDaysCountText,
+      #weeklyAvgTimeText {
+        font-size: calc(15px * var(--desk-scale)) !important;
+      }
+
+      /* 🌟 8. ไทม์ไลน์การสอบย้อนหลัง (อยู่ด้านล่างสุด แบ่ง 2 คอลัมน์ ตัวหนังสือใหญ่ชัดเจน) */
+      #timelineSection {
+        padding: 32px 36px !important;
+        border-radius: 36px !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 14px 35px rgba(117, 86, 52, 0.06) !important;
+        gap: 20px !important;
+      }
+      #timelineSection h2 {
+        font-size: calc(20px * var(--desk-scale)) !important;
+      }
+      #timelineSection > div:first-child > span:last-child {
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+        padding: 6px 16px !important;
+      }
+      #historyTimelineList {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 20px !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      .timeline-item-card {
+        padding: 22px 26px !important;
+        border-radius: 26px !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .timeline-item-card:hover {
+        transform: translateY(-4px) translateX(2px);
+        border-color: #FCD34D !important;
+        box-shadow: 0 14px 28px rgba(117, 86, 52, 0.1) !important;
+      }
+      .timeline-item-card .w-10.h-10 {
+        width: calc(54px * var(--desk-scale)) !important;
+        height: calc(54px * var(--desk-scale)) !important;
+        border-radius: 18px !important;
+      }
+      .timeline-item-card .w-10.h-10 span {
+        font-size: calc(26px * var(--desk-scale)) !important;
+      }
+      .timeline-item-card .flex-col span.text-\[9px\],
+      .timeline-item-card .flex-col span.text-\[10px\] {
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+      }
+      .timeline-item-card h4 {
+        font-size: calc(17px * var(--desk-scale)) !important;
+        line-height: 1.4 !important;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+      }
+      .timeline-item-card .text-right span.text-base {
+        font-size: calc(24px * var(--desk-scale)) !important;
+      }
+      .timeline-item-card .text-right span.text-\[9px\] {
+        font-size: calc(13px * var(--desk-scale)) !important;
+      }
+
+      /* ปุ่มพิมพ์ใบรายงานผลสอบ PDF */
+      #printBtnSection button {
+        padding: 18px 28px !important;
+        font-size: calc(16.5px * var(--desk-scale)) !important;
+        border-radius: 24px !important;
+      }
+      #printBtnSection button span.material-symbols-outlined {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+
+      /* 🌟 9. แท็บ 2 (เวลาเฉลี่ย) และ แท็บ 3 (ข้อที่ผิดบ่อย) */
+      #contentTabTime:not(.hidden) {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 28px !important;
+      }
+      #contentTabTime > div {
+        padding: 30px 34px !important;
+        border-radius: 34px !important;
+      }
+      #contentTabTime h3 {
+        font-size: calc(20px * var(--desk-scale)) !important;
+      }
+      #contentTabTime p.text-\[10px\] {
+        font-size: calc(14px * var(--desk-scale)) !important;
+      }
+      #timeStatsTableBody > div,
+      #categoryTimeTableBody > div {
+        padding: 20px 24px !important;
+        border-radius: 24px !important;
+      }
+      #timeStatsTableBody span.text-xs,
+      #categoryTimeTableBody span.text-xs {
+        font-size: calc(16.5px * var(--desk-scale)) !important;
+      }
+      #timeStatsTableBody span.text-\[10px\],
+      #categoryTimeTableBody span.text-\[10px\],
+      #timeStatsTableBody div.text-\[10px\],
+      #categoryTimeTableBody div.text-\[10px\] {
+        font-size: calc(14px * var(--desk-scale)) !important;
+      }
+
+      /* แท็บ 3: ข้อที่ผิดบ่อย */
+      #contentTabWeakness > div:first-child {
+        padding: 28px 36px !important;
+        border-radius: 34px !important;
+      }
+      #contentTabWeakness h3 {
+        font-size: calc(22px * var(--desk-scale)) !important;
+      }
+      #contentTabWeakness p.text-\[11px\] {
+        font-size: calc(15px * var(--desk-scale)) !important;
+      }
+      #contentTabWeakness > div:first-child button {
+        font-size: calc(16px * var(--desk-scale)) !important;
+        padding: 14px 24px !important;
+        border-radius: 20px !important;
+      }
+      #weaknessTableBody {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 22px !important;
+      }
+      #weaknessTableBody > div {
+        padding: 24px 28px !important;
+        border-radius: 28px !important;
+      }
+      #weaknessTableBody span.text-\[10px\] {
+        font-size: calc(13.5px * var(--desk-scale)) !important;
+        max-width: none !important;
+      }
+      #weaknessTableBody p.text-xs {
+        font-size: calc(17px * var(--desk-scale)) !important;
+        line-height: 1.55 !important;
+        -webkit-line-clamp: unset !important;
+      }
+      #weaknessTableBody button {
+        font-size: calc(15px * var(--desk-scale)) !important;
+        padding: 10px 20px !important;
+        border-radius: 16px !important;
+      }
+    }
+
+    /* สำหรับหน้าจอแท็บเล็ต / iPad (768px - 1023px) */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      #mainShell { max-width: 780px !important; }
+      .main-padding { padding-left: 24px !important; padding-right: 24px !important; }
+      #radarCanvasWrapper { max-width: 520px !important; height: 360px !important; }
+      #radarChartCanvas { height: 360px !important; }
+      #radarLegendContainer { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+      #historyTimelineList {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+        max-height: none !important;
+      }
+    }
+
     @media print {
-      nav, #printBtnSection { display: none !important; }
+      nav, #desktopSidebar, #printBtnSection { display: none !important; }
       body { background: white !important; }
     }
   </style>
-  <!-- วางแท็ก prefetch ตรงนี้ครับ (ก่อนปิด head) -->
   <link rel="prefetch" href="index.html">
   <link rel="prefetch" href="all-exams.html">
   <link rel="prefetch" href="history.html">
@@ -95,7 +707,7 @@
 
 <body class="bg-aurora text-slate-800 antialiased flex justify-center min-h-screen relative overflow-x-hidden">
 
-  <!-- ฉากหลัง Multi-Layer (บนมือถือแสดงพื้นหลังนิ่ง บนคอมแสดงลูกแก้วเคลื่อนไหว) -->
+  <!-- ฉากหลัง Multi-Layer -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute inset-0 bg-grid-pattern"></div>
     <div class="hidden sm:block absolute -top-24 -left-24 w-80 h-80 rounded-full bg-amber-300/30 blur-3xl animate-blob"></div>
@@ -103,273 +715,411 @@
     <div class="hidden sm:block absolute -bottom-24 left-10 w-80 h-80 rounded-full bg-emerald-200/25 blur-3xl animate-blob" style="animation-delay: -2s;"></div>
   </div>
 
-  <!-- คอนเทนเนอร์หลักขนาดมือถือ -->
-  <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10">
+  <!-- 🌟 Wrapper ครอบทั้งระบบ (บนมือถือเป็นกรอบปกติ / บนคอมกางเต็มจอ 100%) -->
+  <div id="appWorkspaceWrapper" class="w-full flex justify-center relative z-10">
 
-    <!-- แถบด้านบน (Sticky Glass Header - ปลดเบลอบนมือถือ) -->
-    <header class="sticky top-0 z-30 bg-white/95 sm:bg-white/75 sm:backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between transition-all">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
-          <span class="material-symbols-outlined text-[20px]">monitoring</span>
-        </div>
-        <div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] font-extrabold text-[#755634] uppercase tracking-widest">PERFORMANCE AI</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+    <!-- =========================================================================
+         🖥️ DESKTOP SIDEBAR NAVIGATION (แสดงเฉพาะจอคอมพิวเตอร์ >= 1024px)
+         ========================================================================= -->
+    <aside id="desktopSidebar">
+      <div class="space-y-6">
+        <!-- โลโก้แบรนด์ -->
+        <div class="flex items-center gap-3.5 px-2 pt-1">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] via-[#755634] to-[#4E3820] flex items-center justify-center text-white shadow-lg shadow-amber-900/20 shrink-0">
+            <span class="material-symbols-outlined text-[26px]">school</span>
           </div>
-          <h1 class="text-base font-extrabold text-slate-800 leading-tight tracking-tight">วิเคราะห์สถิติ & จุดอ่อน</h1>
-        </div>
-      </div>
-      <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white text-[#755634] flex items-center justify-center shadow-sm text-xs font-extrabold" id="userInitial">
-        ค
-      </div>
-    </header>
-
-    <!-- เนื้อหาหลัก -->
-    <main class="flex-1 flex flex-col relative w-full pt-3.5 px-4 space-y-4">
-
-      <!-- 1. แถบสลับแท็บด้านบน (3 แท็บ พร้อม Sliding Pill วิ่งตามนิ้ว - ปลดเบลอบนมือถือ) -->
-      <div class="relative grid grid-cols-3 p-1 bg-white/95 sm:bg-white/75 sm:backdrop-blur-md border-2 border-white rounded-2xl shadow-xs text-xs font-extrabold select-none transition-all">
-        <div id="tabSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.6px)] bg-gradient-to-r from-[#755634] to-[#8F683E] rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
-
-        <button type="button" onclick="switchHistoryTab('graph')" id="tabBtnGraph" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-white flex items-center justify-center gap-1 transition-colors duration-200">
-          <span class="material-symbols-outlined text-[16px]">donut_small</span>
-          <span>กราฟสถิติ</span>
-        </button>
-        <button type="button" onclick="switchHistoryTab('time')" id="tabBtnTime" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 transition-colors duration-200">
-          <span class="material-symbols-outlined text-[16px]">speed</span>
-          <span>เวลาเฉลี่ย</span>
-        </button>
-        <button type="button" onclick="switchHistoryTab('weakness')" id="tabBtnWeakness" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 transition-colors duration-200">
-          <span class="material-symbols-outlined text-[16px]">flag</span>
-          <span>ข้อที่ผิดบ่อย</span>
-        </button>
-      </div>
-
-      <!-- ================= แท็บ 1: กราฟสถิติ + ดรอปดาวน์ ================= -->
-      <div id="contentTabGraph" class="space-y-4">
-        
-        <!-- ดรอปดาวน์เลือกดูสถิติตามโหมด -->
-        <div class="animate-card-in bg-white/95 sm:bg-white/85 sm:backdrop-blur-md p-3 rounded-2xl border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex items-center justify-between gap-2 transition-all">
-          <label class="text-xs font-extrabold text-slate-700 shrink-0 flex items-center gap-1.5">
-            <span class="w-7 h-7 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center">
-              <span class="material-symbols-outlined text-[17px]">filter_list</span>
-            </span>
-            <span>ตัวกรองสถิติ:</span>
-          </label>
-          <select id="selHistoryFilter" onchange="onHistoryFilterChange()" class="w-full max-w-[205px] bg-slate-50/90 hover:bg-white py-2 px-3 rounded-xl border border-slate-200/80 text-xs font-bold text-slate-800 outline-none focus:border-[#755634] transition-all cursor-pointer">
-            <optgroup label="-- ภาพรวม & รูปแบบการสอบ --">
-              <option value="all">✨ ภาพรวมทั้งหมด (ทุกชุด)</option>
-              <option value="mode_10">โหมด 10 ข้อ</option>
-              <option value="mode_20">โหมด 20 ข้อ</option>
-              <option value="mode_50">โหมด 50 ข้อ</option>
-              <option value="competition">⚡ โหมดแข่งขัน (1 นาที/ข้อ)</option>
-              <option value="mock">🏆 โหมดจำลองสอบจริง (20 ข้อ)</option>
-            </optgroup>
-            <optgroup label="-- แยกตามหมวดหมู่วิชา --">
-              <option value="cat_part_a">เฉพาะ ภาค ก (ความรู้ทั่วไป)</option>
-              <option value="cat_part_b">เฉพาะ ภาค ข (วิชาชีพ & เอก)</option>
-              <option value="cat_eng">วิชาภาษาอังกฤษ</option>
-              <option value="cat_law">วิชาข้าราชการที่ดี / กฎหมาย</option>
-              <option value="cat_comp">วิชาเอกคอมพิวเตอร์</option>
-            </optgroup>
-          </select>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="brand-title text-base font-extrabold text-slate-800 tracking-tight">ครูในอนาคต</span>
+              <span class="px-2 py-0.5 text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md uppercase">GEN 4</span>
+            </div>
+            <p class="brand-sub text-[11px] text-slate-400 font-semibold mt-0.5">CBT Exam Workspace</p>
+          </div>
         </div>
 
-        <!-- สรุปตัวเลข 3 ช่อง (Bento KPI Cards) -->
-        <section class="animate-card-in grid grid-cols-3 gap-2.5" style="animation-delay: 60ms;">
-          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
-            <div class="w-7 h-7 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center mb-1">
-              <span class="material-symbols-outlined text-[16px]">library_books</span>
-            </div>
-            <span class="text-[10px] font-bold text-slate-400">ทำข้อสอบไป</span>
-            <span id="statTotalExams" class="text-lg font-extrabold text-slate-800 mt-0.5 tracking-tight">0 ชุด</span>
-          </div>
+        <!-- ปุ่มลัดเริ่มสอบด่วนบน Sidebar -->
+        <button type="button" onclick="location.href='quiz.html?mode=practice&count=20'" class="quick-quiz-btn shimmer-effect relative overflow-hidden w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-amber-950 font-extrabold text-xs shadow-md border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[20px]">bolt</span>
+          <span>สุ่มทำข้อสอบด่วน 20 ข้อ</span>
+        </button>
 
-          <!-- ช่อง 2: คะแนนเฉลี่ย -->
-          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
-            <div class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
-              <span class="material-symbols-outlined text-[16px]">query_stats</span>
-            </div>
-            <span class="text-[10px] font-bold text-slate-400">คะแนนเฉลี่ย</span>
-            <span id="statAvgScore" class="text-lg font-extrabold text-emerald-600 mt-0.5 tracking-tight">0%</span>
-          </div>
+        <!-- รายการเมนูหลัก -->
+        <div class="space-y-2">
+          <span class="nav-section-label px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">เมนูหลักระบบสอบ</span>
+          <a href="index.html" class="sidebar-nav-link">
+            <span class="material-symbols-outlined text-[20px]">home</span>
+            <span>หน้าแรก (Dashboard)</span>
+          </a>
+          <a href="all-exams.html" class="sidebar-nav-link">
+            <span class="material-symbols-outlined text-[20px]">local_library</span>
+            <span>คลังข้อสอบทั้งหมด</span>
+          </a>
+          <a href="quiz.html?mode=mock&count=20" class="sidebar-nav-link">
+            <span class="material-symbols-outlined text-[20px]">timer</span>
+            <span>จำลองสอบจริง (CBT)</span>
+          </a>
+          <a href="history.html" class="sidebar-nav-link active">
+            <span class="material-symbols-outlined text-[20px]">monitoring</span>
+            <span>เรดาร์สถิติ & จุดอ่อน</span>
+          </a>
+          <a href="settings.html" class="sidebar-nav-link">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span>ตั้งค่าระบบส่วนตัว</span>
+          </a>
+        </div>
+      </div>
 
-          <div class="bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center relative overflow-hidden transition-all">
-            <div class="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1">
-              <span class="material-symbols-outlined text-[16px]">emoji_events</span>
-            </div>
-            <span class="text-[10px] font-bold text-slate-400">คะแนนสูงสุด</span>
-            <span id="statMaxScore" class="text-lg font-extrabold text-rose-600 mt-0.5 tracking-tight">0%</span>
-          </div>
-        </section>
-
-        <!-- การ์ดวิเคราะห์ความพร้อมรอบด้าน (Multi-Color AI Radar Chart) -->
-        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3.5 transition-all" style="animation-delay: 120ms;">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold shadow-sm">
-                <span class="material-symbols-outlined text-[20px]">radar</span>
-              </div>
-              <div>
-                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">เรดาร์ประเมินสมรรถนะ</h3>
-                <p class="text-[10px] text-slate-400 font-medium">แยกสีตามทักษะ พร้อมสรุปคะแนนรายด้าน</p>
-              </div>
-            </div>
-            <span id="readinessLevelBadge" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 shadow-2xs">
-              ยังไม่มีข้อมูล
+      <!-- ส่วนล่าง Sidebar: สรุปวิเคราะห์ AI & โปรไฟล์ -->
+      <div class="space-y-3.5 pt-4 border-t border-slate-100">
+        <div class="side-quest-box p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50/70 to-amber-50 border border-indigo-200/70 space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-extrabold text-indigo-900">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px] text-indigo-600">radar</span>
+              <span>AI Competency Radar</span>
             </span>
           </div>
+          <p class="text-xs text-slate-600 font-medium leading-snug">วิเคราะห์จุดแข็ง-จุดอ่อนรายวิชาจากประวัติการสอบจริง เพื่อเพิ่มโอกาสสอบติด</p>
+        </div>
 
-          <!-- แถบดรอปดาวน์เลือกมุมมองเรดาร์ -->
-          <div class="flex items-center justify-between gap-2 bg-slate-50/90 p-2 rounded-2xl border border-slate-200/60">
-            <label for="selRadarViewMode" class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 pl-1 shrink-0">
-              <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-[11px]"></i>
-              <span>มิติการวัดผล:</span>
+        <a href="settings.html" class="w-full p-3 rounded-2xl bg-slate-50 hover:bg-amber-50/60 border border-slate-200/70 flex items-center justify-between transition-all cursor-pointer group">
+          <div class="flex items-center gap-3 min-w-0">
+            <div id="sidebarUserAvatar" class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#755634] to-[#946C40] text-white flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0">
+              ค
+            </div>
+            <div class="text-left min-w-0">
+              <p id="sidebarUserName" class="text-sm font-extrabold text-slate-800">คุณครูผู้เข้าสอบ</p>
+              <p class="text-xs text-emerald-600 font-bold flex items-center gap-1.5 mt-0.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ออนไลน์พร้อมสอบ
+              </p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-[#755634]">tune</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- 🌟 คอนเทนเนอร์หลัก (มือถือ 430px เท่าเดิม / บนคอมกางเต็มจอ 100%) -->
+    <div id="mainShell" class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 z-10 transition-all duration-300">
+
+      <!-- แถบด้านบน -->
+      <header class="main-padding sticky top-0 z-30 bg-white/95 sm:bg-white/80 sm:backdrop-blur-xl border-b border-white/80 shadow-[0_4px_20px_rgba(117,86,52,0.05)] px-4 pt-3.5 pb-3 flex items-center justify-between transition-all">
+        <div class="flex items-center gap-2.5">
+          <a href="index.html" title="กลับหน้าแรก" class="hidden sm:flex lg:hidden w-9 h-9 rounded-2xl bg-slate-100 hover:bg-amber-100 hover:text-[#755634] items-center justify-center text-slate-600 active:scale-95 transition-all mr-1">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+          </a>
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-md shadow-amber-900/15 shrink-0">
+            <span class="material-symbols-outlined text-[20px]">monitoring</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-extrabold text-[#755634] uppercase tracking-widest">PERFORMANCE AI</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+            <h1 class="text-base font-extrabold text-slate-800 leading-tight tracking-tight">วิเคราะห์สถิติ & จุดอ่อน</h1>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <a href="all-exams.html" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#755634] text-xs font-extrabold border border-amber-200/70 transition-all">
+            <span class="material-symbols-outlined text-[16px]">local_library</span>
+            <span>ไปคลังข้อสอบ</span>
+          </a>
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-white text-[#755634] flex items-center justify-center shadow-sm text-xs font-extrabold" id="userInitial">
+            ค
+          </div>
+        </div>
+      </header>
+
+      <!-- เนื้อหาหลัก -->
+      <main class="main-padding flex-1 flex flex-col relative w-full pt-3.5 space-y-4">
+
+        <!-- 1. แถบสลับแท็บด้านบน (3 แท็บ พร้อม Sliding Pill) -->
+        <div id="topTabContainer" class="w-full relative grid grid-cols-3 p-1 bg-white/95 sm:bg-white/80 sm:backdrop-blur-md border-2 border-white rounded-2xl shadow-xs text-xs font-extrabold select-none transition-all">
+          <div id="tabSlidingPill" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.6px)] bg-gradient-to-r from-[#755634] to-[#8F683E] rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
+
+          <button type="button" onclick="switchHistoryTab('graph')" id="tabBtnGraph" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-white flex items-center justify-center gap-1.5 transition-colors duration-200">
+            <span class="material-symbols-outlined text-[16px]">donut_small</span>
+            <span>กราฟสถิติ</span>
+          </button>
+          <button type="button" onclick="switchHistoryTab('time')" id="tabBtnTime" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-colors duration-200">
+            <span class="material-symbols-outlined text-[16px]">speed</span>
+            <span>เวลาเฉลี่ย</span>
+          </button>
+          <button type="button" onclick="switchHistoryTab('weakness')" id="tabBtnWeakness" class="history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-colors duration-200">
+            <span class="material-symbols-outlined text-[16px]">flag</span>
+            <span>ข้อที่ผิดบ่อย</span>
+          </button>
+        </div>
+
+        <!-- ================= แท็บ 1: กราฟสถิติ ================= -->
+        <div id="contentTabGraph" class="space-y-4">
+          
+          <!-- ดรอปดาวน์เลือกดูสถิติ -->
+          <div id="filterBarCard" class="animate-card-in bg-white/95 sm:bg-white/85 sm:backdrop-blur-md p-3 rounded-2xl border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex items-center justify-between gap-2 transition-all">
+            <label class="text-xs font-extrabold text-slate-700 shrink-0 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center">
+                <span class="material-symbols-outlined text-[17px]">filter_list</span>
+              </span>
+              <span>ตัวกรองสถิติ:</span>
             </label>
-            <select id="selRadarViewMode" onchange="onRadarModeChange()" class="w-full max-w-[200px] bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 shadow-2xs cursor-pointer">
-              <option value="all_overview">ภาพรวมทั้งหมด (6 ด้านหลัก)</option>
-              <option value="part_a">เจาะลึกเฉพาะ ภาค ก</option>
-              <option value="part_b">เจาะลึกเฉพาะ ภาค ข</option>
+            <select id="selHistoryFilter" onchange="onHistoryFilterChange()" class="w-full max-w-[205px] bg-slate-50/90 hover:bg-white py-2 px-3 rounded-xl border border-slate-200/80 text-xs font-bold text-slate-800 outline-none focus:border-[#755634] transition-all cursor-pointer">
+              <optgroup label="-- ภาพรวม & รูปแบบการสอบ --">
+                <option value="all">✨ ภาพรวมทั้งหมด (ทุกชุด)</option>
+                <option value="mode_10">โหมด 10 ข้อ</option>
+                <option value="mode_20">โหมด 20 ข้อ</option>
+                <option value="mode_50">โหมด 50 ข้อ</option>
+                <option value="competition">⚡ โหมดแข่งขัน (1 นาที/ข้อ)</option>
+                <option value="mock">🏆 โหมดจำลองสอบจริง (20 ข้อ)</option>
+              </optgroup>
+              <optgroup label="-- แยกตามหมวดหมู่วิชา --">
+                <option value="cat_part_a">เฉพาะ ภาค ก (ความรู้ทั่วไป)</option>
+                <option value="cat_part_b">เฉพาะ ภาค ข (วิชาชีพ & เอก)</option>
+                <option value="cat_eng">วิชาภาษาอังกฤษ</option>
+                <option value="cat_law">วิชาข้าราชการที่ดี / กฎหมาย</option>
+                <option value="cat_comp">วิชาเอกคอมพิวเตอร์</option>
+              </optgroup>
             </select>
           </div>
 
-          <!-- ผืนผ้าใบกราฟใยแมงมุม Radar (ใช้หมายเลขด้านสั้นๆ ไม่ให้คำขาดขอบ) -->
-          <div class="relative w-full max-w-[260px] h-[230px] mx-auto">
-            <canvas id="radarChartCanvas"></canvas>
-          </div>
+          <!-- โครงสร้างหลักเรียงจากบนลงล่าง -->
+          <div class="desktop-dashboard-grid space-y-4">
+            
+            <!-- ส่วนบน: KPI 3 ช่อง + เรดาร์เต็มจอ + กราฟความสม่ำเสมอ 7 วัน -->
+            <div class="desktop-left-col space-y-4">
+              
+              <!-- สรุปตัวเลข 3 ช่อง (Bento KPI Cards) -->
+              <section id="kpiBentoSection" class="animate-card-in grid grid-cols-3 gap-2.5" style="animation-delay: 60ms;">
+                <!-- ช่อง 1 -->
+                <div class="kpi-card bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center transition-all">
+                  <div class="kpi-icon w-7 h-7 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 text-[#755634] flex items-center justify-center mb-1 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px]">library_books</span>
+                  </div>
+                  <div>
+                    <span class="kpi-label text-[10px] font-bold text-slate-400">ทำข้อสอบไป</span>
+                    <span id="statTotalExams" class="kpi-value text-lg font-extrabold text-slate-800 mt-0.5 tracking-tight">0 ชุด</span>
+                  </div>
+                </div>
 
-          <!-- แผงการ์ดสีแสดงชื่อวิชาเต็ม + เปอร์เซ็นต์ด้านล่างกราฟ (Color Legend Grid) -->
-          <div id="radarLegendContainer" class="grid grid-cols-2 gap-2 pt-1">
-            <!-- สร้างผ่าน JS อัตโนมัติ -->
-          </div>
+                <!-- ช่อง 2: คะแนนเฉลี่ย -->
+                <div class="kpi-card bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center transition-all">
+                  <div class="kpi-icon w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-600 flex items-center justify-center mb-1 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px]">query_stats</span>
+                  </div>
+                  <div>
+                    <span class="kpi-label text-[10px] font-bold text-slate-400">คะแนนเฉลี่ย</span>
+                    <span id="statAvgScore" class="kpi-value text-lg font-extrabold text-emerald-600 mt-0.5 tracking-tight">0%</span>
+                  </div>
+                </div>
 
-          <!-- กล่องคำแนะนำภาพรวมความพร้อม -->
-          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 via-orange-50/50 to-amber-50/80 border border-amber-200/70 text-xs space-y-1">
-            <div class="font-extrabold text-[#755634] flex items-center gap-1.5 text-xs">
-              <span class="material-symbols-outlined text-[16px] text-amber-500">tips_and_updates</span>
-              <span>คำแนะนำการติวเพิ่มคะแนน:</span>
+                <!-- ช่อง 3: คะแนนสูงสุด -->
+                <div class="kpi-card bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-3.5 border-2 border-white shadow-[0_8px_25px_rgba(117,86,52,0.06)] flex flex-col items-center text-center transition-all">
+                  <div class="kpi-icon w-7 h-7 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 text-rose-600 flex items-center justify-center mb-1 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px]">emoji_events</span>
+                  </div>
+                  <div>
+                    <span class="kpi-label text-[10px] font-bold text-slate-400">คะแนนสูงสุด</span>
+                    <span id="statMaxScore" class="kpi-value text-lg font-extrabold text-rose-600 mt-0.5 tracking-tight">0%</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 🌟 การ์ดวิเคราะห์ความพร้อมรอบด้าน (Full-Width Hero Radar Chart) -->
+              <div id="radarHeroCard" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3.5 transition-all" style="animation-delay: 120ms;">
+                
+                <!-- แถบหัวการ์ดเรดาร์ -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20">
+                      <span class="material-symbols-outlined text-[20px]">radar</span>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-extrabold text-slate-800 leading-tight">เรดาร์ประเมินสมรรถนะ</h3>
+                      <p class="sub-desc text-[10px] text-slate-400 font-medium">แยกสีตามทักษะ พร้อมสรุปคะแนนรายด้าน</p>
+                    </div>
+                  </div>
+                  <span id="readinessLevelBadge" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 shadow-2xs">
+                    ยังไม่มีข้อมูล
+                  </span>
+                </div>
+
+                <!-- แถบดรอปดาวน์เลือกมุมมองเรดาร์ -->
+                <div class="flex items-center justify-between gap-2 bg-slate-50/90 p-2 rounded-2xl border border-slate-200/60">
+                  <label for="selRadarViewMode" class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 pl-1 shrink-0">
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-[11px]"></i>
+                    <span>มิติการวัดผล:</span>
+                  </label>
+                  <select id="selRadarViewMode" onchange="onRadarModeChange()" class="w-full max-w-[220px] bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 shadow-2xs cursor-pointer">
+                    <option value="all_overview">ภาพรวมทั้งหมด (6 ด้านหลัก)</option>
+                    <option value="part_a">เจาะลึกเฉพาะ ภาค ก</option>
+                    <option value="part_b">เจาะลึกเฉพาะ ภาค ข</option>
+                  </select>
+                </div>
+
+                <!-- 🌟 ผืนผ้าใบกราฟใยแมงมุม Radar -->
+                <div id="radarCanvasWrapper" class="relative w-full max-w-[260px] h-[230px] mx-auto flex justify-center items-center">
+                  <!-- วงแหวนเรดาร์จำลอง (แสดงเฉพาะจอคอม) -->
+                  <div class="desktop-radar-ring ring-1"></div>
+                  <div class="desktop-radar-ring ring-2"></div>
+                  <canvas id="radarChartCanvas" class="relative z-10"></canvas>
+                </div>
+
+                <!-- แผงการ์ดสีแสดงชื่อวิชาเต็ม + เปอร์เซ็นต์ด้านล่างกราฟ -->
+                <div id="radarLegendContainer" class="grid grid-cols-2 gap-2 pt-1">
+                  <!-- สร้างผ่าน JS อัตโนมัติ -->
+                </div>
+
+                <!-- กล่องคำแนะนำภาพรวมความพร้อม -->
+                <div id="radarAdviceBox" class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 via-orange-50/50 to-amber-50/80 border border-amber-200/70 text-xs space-y-1">
+                  <div class="font-extrabold text-[#755634] flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-amber-500">tips_and_updates</span>
+                    <span>คำแนะนำการติวเพิ่มคะแนน:</span>
+                  </div>
+                  <p id="radarAdviceText" class="text-slate-600 leading-relaxed text-[11px] font-medium pl-5">
+                    กำลังประมวลผลข้อมูลการทดสอบของคุณ...
+                  </p>
+                </div>
+              </div>
+
+              <!-- กราฟแท่งความถี่ 7 วัน -->
+              <section id="weeklyConsistencyCard" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white flex flex-col gap-3.5 transition-all" style="animation-delay: 180ms;">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                      <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+                    </div>
+                    <div>
+                      <h2 class="text-sm font-extrabold text-slate-800 leading-tight">ความสม่ำเสมอในรอบ 7 วัน</h2>
+                      <p class="text-[10px] text-slate-400 font-medium">ยิ่งฝึกต่อเนื่อง สมองยิ่งจำแม่น</p>
+                    </div>
+                  </div>
+                  <span class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100/80 text-emerald-800 font-extrabold flex items-center gap-1 shadow-2xs">
+                    <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                    <span id="weeklyAvgScore">สัปดาห์นี้ 0%</span>
+                  </span>
+                </div>
+
+                <div class="bg-slate-50/80 border border-slate-100 rounded-2xl p-3.5 pt-4">
+                  <div id="weeklyBarsContainer" class="flex items-end justify-between gap-1.5 pt-2 pb-1"></div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs px-1">
+                  <span class="flex items-center gap-1.5 font-extrabold text-[#755634]">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span id="weeklyDaysCountText">ฝึกซ้อมแล้ว 0 จาก 7 วัน</span>
+                  </span>
+                  <span id="weeklyAvgTimeText" class="text-slate-500 font-bold bg-slate-100 px-2.5 py-0.5 rounded-full text-[11px]">เฉลี่ย 0 นาที/วัน</span>
+                </div>
+              </section>
             </div>
-            <p id="radarAdviceText" class="text-slate-600 leading-relaxed text-[11px] font-medium pl-5">
-              กำลังประมวลผลข้อมูลการทดสอบของคุณ...
-            </p>
+
+            <!-- 🌟 ส่วนล่างสุด: ไทม์ไลน์การสอบย้อนหลัง (บนคอมจัดเรียง 2 คอลัมน์ด้านล่าง) -->
+            <div class="desktop-right-col space-y-4">
+              <section id="timelineSection" class="animate-card-in space-y-2.5" style="animation-delay: 240ms;">
+                <div class="flex items-center justify-between px-1">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#755634] ring-4 ring-amber-500/15"></span>
+                    <h2 class="text-xs font-extrabold text-slate-800">ไทม์ไลน์การสอบย้อนหลัง</h2>
+                  </div>
+                  <span class="text-[10px] font-bold text-slate-400 bg-white/80 px-2.5 py-0.5 rounded-full border border-slate-100">ล่าสุดอยู่บนสุด</span>
+                </div>
+                <div id="historyTimelineList" class="space-y-2">
+                  <div class="bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">กำลังโหลดข้อมูล...</div>
+                </div>
+              </section>
+
+              <!-- ปุ่มพิมพ์ PDF -->
+              <section id="printBtnSection" class="pt-1">
+                <button onclick="window.print()" class="w-full py-3.5 px-4 rounded-2xl bg-white/90 hover:bg-white text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 border-2 border-white shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer" type="button">
+                  <span class="material-symbols-outlined text-[18px] text-[#755634]">print</span>
+                  <span>พิมพ์ / บันทึกใบรายงานผลสอบ (PDF)</span>
+                </button>
+              </section>
+            </div>
+
           </div>
         </div>
 
-        <!-- กราฟแท่งความถี่ 7 วัน (Elastic Pill Bars) -->
-        <section class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white flex flex-col gap-3.5 transition-all" style="animation-delay: 180ms;">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
-              </div>
-              <div>
-                <h2 class="text-sm font-extrabold text-slate-800 leading-tight">ความสม่ำเสมอในรอบ 7 วัน</h2>
-                <p class="text-[10px] text-slate-400 font-medium">ยิ่งฝึกต่อเนื่อง สมองยิ่งจำแม่น</p>
-              </div>
-            </div>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100/80 text-emerald-800 font-extrabold flex items-center gap-1 shadow-2xs">
-              <span class="material-symbols-outlined text-[14px]">trending_up</span>
-              <span id="weeklyAvgScore">สัปดาห์นี้ 0%</span>
-            </span>
-          </div>
-
-          <div class="bg-slate-50/80 border border-slate-100 rounded-2xl p-3.5 pt-4">
-            <div id="weeklyBarsContainer" class="flex items-end justify-between gap-1.5 pt-2 pb-1"></div>
-          </div>
-
-          <div class="flex items-center justify-between text-xs px-1">
-            <span class="flex items-center gap-1.5 font-extrabold text-[#755634]">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span id="weeklyDaysCountText">ฝึกซ้อมแล้ว 0 จาก 7 วัน</span>
-            </span>
-            <span id="weeklyAvgTimeText" class="text-slate-500 font-bold bg-slate-100 px-2.5 py-0.5 rounded-full text-[11px]">เฉลี่ย 0 นาที/วัน</span>
-          </div>
-        </section>
-
-        <!-- รายการประวัติ Timeline -->
-        <section class="animate-card-in space-y-2.5" style="animation-delay: 240ms;">
-          <div class="flex items-center justify-between px-1">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-[#755634]"></span>
-              <h2 class="text-xs font-extrabold text-slate-800">ไทม์ไลน์การสอบย้อนหลัง</h2>
-            </div>
-            <span class="text-[10px] font-bold text-slate-400">ล่าสุดอยู่บนสุด</span>
-          </div>
-          <div id="historyTimelineList" class="space-y-2">
-            <div class="bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">กำลังโหลดข้อมูล...</div>
-          </div>
-        </section>
-
-        <!-- ปุ่มพิมพ์ PDF -->
-        <section id="printBtnSection" class="pt-1">
-          <button onclick="window.print()" class="w-full py-3.5 px-4 rounded-2xl bg-white/90 hover:bg-white text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 border-2 border-white shadow-sm transition-all active:scale-95" type="button">
-            <span class="material-symbols-outlined text-[18px] text-[#755634]">print</span>
-            <span>พิมพ์ / บันทึกใบรายงานผลสอบ (PDF)</span>
-          </button>
-        </section>
-      </div>
-
-      <!-- ================= แท็บ 2: เวลาแต่ละโหมด (Speed Analytics Cards) ================= -->
-      <div id="contentTabTime" class="hidden space-y-4">
-        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <span class="material-symbols-outlined text-[19px]">timer</span>
-              </div>
-              <div>
-                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ความเร็วแยกตามโหมดการสอบ</h3>
-                <p class="text-[10px] text-slate-400">เกณฑ์มาตรฐานการสอบจริง: ไม่ควรเกิน 60 วินาที/ข้อ</p>
+        <!-- ================= แท็บ 2: เวลาแต่ละโหมด ================= -->
+        <div id="contentTabTime" class="hidden space-y-4">
+          <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all h-fit">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[19px]">timer</span>
+                </div>
+                <div>
+                  <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ความเร็วแยกตามโหมดการสอบ</h3>
+                  <p class="text-[10px] text-slate-400">เกณฑ์มาตรฐานการสอบจริง: ไม่ควรเกิน 60 วินาที/ข้อ</p>
+                </div>
               </div>
             </div>
+            <div id="timeStatsTableBody" class="space-y-2.5"></div>
           </div>
-          <div id="timeStatsTableBody" class="space-y-2.5"></div>
+
+          <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all h-fit" style="animation-delay: 80ms;">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[19px]">category</span>
+                </div>
+                <div>
+                  <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ความเร็วแยกรายหมวดหมู่วิชา</h3>
+                  <p class="text-[10px] text-slate-400">ดูว่าวิชาไหนที่คุณใช้เวลาคิดนานที่สุด</p>
+                </div>
+              </div>
+            </div>
+            <div id="categoryTimeTableBody" class="space-y-2.5"></div>
+          </div>
         </div>
 
-        <div class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-3xl p-4 shadow-[0_10px_30px_rgba(117,86,52,0.07)] border-2 border-white space-y-3 transition-all" style="animation-delay: 80ms;">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <span class="material-symbols-outlined text-[19px]">category</span>
+        <!-- ================= แท็บ 3: ข้อที่ผิดบ่อย ================= -->
+        <div id="contentTabWeakness" class="hidden space-y-3.5">
+          <div class="animate-card-in bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500 rounded-3xl p-4 text-white shadow-lg shadow-rose-900/15 flex items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="inline-flex items-center gap-1 bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                <span class="material-symbols-outlined text-[13px]">local_fire_department</span>
+                <span>WEAKNESS HUNTER</span>
               </div>
-              <div>
-                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">ความเร็วแยกรายหมวดหมู่วิชา</h3>
-                <p class="text-[10px] text-slate-400">ดูว่าวิชาไหนที่คุณใช้เวลาคิดนานที่สุด</p>
-              </div>
+              <h3 class="text-sm font-extrabold leading-tight">คลังข้อสอบที่คุณพลาดบ่อยที่สุด</h3>
+              <p class="text-[11px] text-rose-100">เปลี่ยนจุดอ่อนเป็นคะแนนเก็บ ด้วยการทบทวนซ้ำ</p>
             </div>
+            <button onclick="location.href='quiz.html?mode=retest'" class="shrink-0 px-3.5 py-2.5 bg-white text-rose-600 rounded-2xl text-xs font-extrabold shadow-md active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">replay</span>
+              <span>แก้ตัวทั้งหมด</span>
+            </button>
           </div>
-          <div id="categoryTimeTableBody" class="space-y-2.5"></div>
-        </div>
-      </div>
 
-      <!-- ================= แท็บ 3: ข้อที่ผิดบ่อย (Weakness Flashcards) ================= -->
-      <div id="contentTabWeakness" class="hidden space-y-3.5">
-        <div class="animate-card-in bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500 rounded-3xl p-4 text-white shadow-lg shadow-rose-900/15 flex items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="inline-flex items-center gap-1 bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full text-[10px] font-extrabold">
-              <span class="material-symbols-outlined text-[13px]">local_fire_department</span>
-              <span>WEAKNESS HUNTER</span>
-            </div>
-            <h3 class="text-sm font-extrabold leading-tight">คลังข้อสอบที่คุณพลาดบ่อยที่สุด</h3>
-            <p class="text-[11px] text-rose-100">เปลี่ยนจุดอ่อนเป็นคะแนนเก็บ ด้วยการทบทวนซ้ำ</p>
+          <div id="weaknessTableBody" class="space-y-2.5">
+            <div class="bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">กำลังโหลดรายการจุดอ่อน...</div>
           </div>
-          <button onclick="location.href='quiz.html?mode=retest'" class="shrink-0 px-3.5 py-2.5 bg-white text-rose-600 rounded-2xl text-xs font-extrabold shadow-md active:scale-95 transition-all flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px]">replay</span>
-            <span>แก้ตัวทั้งหมด</span>
-          </button>
         </div>
 
-        <div id="weaknessTableBody" class="space-y-2.5">
-          <div class="bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">กำลังโหลดรายการจุดอ่อน...</div>
-        </div>
-      </div>
+      </main>
 
-    </main>
-
+    </div>
   </div>
 
   <script>
+  // 🌟 ฟังก์ชันตรวจสอบการตั้งค่าขนาดฟอนต์จากหน้า Settings (ก ปกติ / ก ปานกลาง / ก ใหญ่พิเศษ)
+  function applyUserFontScale() {
+    const savedFont = (
+      localStorage.getItem('kru_pref_font_size') ||
+      localStorage.getItem('kru_font_size') ||
+      localStorage.getItem('fontSize') ||
+      localStorage.getItem('exam_font_size') ||
+      'large'
+    ).toLowerCase();
+
+    if (savedFont.includes('large') || savedFont.includes('lg') || savedFont.includes('xl') || savedFont.includes('ใหญ่')) {
+      document.documentElement.setAttribute('data-font-scale', 'large');
+    } else if (savedFont.includes('medium') || savedFont.includes('md') || savedFont.includes('กลาง')) {
+      document.documentElement.setAttribute('data-font-scale', 'medium');
+    } else {
+      document.documentElement.setAttribute('data-font-scale', 'normal');
+    }
+  }
+  applyUserFontScale();
+
   let allUserAttempts = [];
   let radarChartInstance = null;
   let cachedRadarAttempts = [];
@@ -385,10 +1135,10 @@
     const btnWeakness = document.getElementById('tabBtnWeakness');
 
     [btnGraph, btnTime, btnWeakness].forEach(btn => {
-      if (btn) btn.className = 'history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 transition-colors duration-200';
+      if (btn) btn.className = 'history-tab-btn relative z-10 py-2 px-1 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-colors duration-200';
     });
 
-    const activeClass = 'history-tab-btn relative z-10 py-2 px-1 rounded-xl text-white flex items-center justify-center gap-1 transition-colors duration-200';
+    const activeClass = 'history-tab-btn relative z-10 py-2 px-1 rounded-xl text-white flex items-center justify-center gap-1.5 transition-colors duration-200';
 
     if (tabKey === 'graph') {
       if (pill) pill.style.transform = 'translateX(0%)';
@@ -408,14 +1158,21 @@
   }
 
   async function loadHistoryData() {
+    applyUserFontScale();
     const rawUser = localStorage.getItem('kru_user_info') 
                  || localStorage.getItem('user_profile') 
                  || localStorage.getItem('kru_user') 
                  || '{}';
-    const user = JSON.parse(rawUser);
+    let user = {};
+    try { user = JSON.parse(rawUser); } catch (e) {}
 
     if (user.name) {
-      document.getElementById('userInitial').innerText = user.name.charAt(0);
+      const initial = user.name.charAt(0);
+      document.getElementById('userInitial').innerText = initial;
+      const sideName = document.getElementById('sidebarUserName');
+      const sideAvatar = document.getElementById('sidebarUserAvatar');
+      if (sideName) sideName.innerText = user.name;
+      if (sideAvatar) sideAvatar.innerText = initial;
     }
 
     try {
@@ -557,8 +1314,8 @@
       return `
         <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
           <span class="text-[10px] font-extrabold ${dayAvgScore > 0 ? 'text-slate-700' : 'text-slate-300'}">${scoreLabel}</span>
-          <div class="w-full max-w-[38px] h-28 ${todayRing} border border-white rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-            ${barHeight > 0 ? `<div class="animate-bar-grow w-full rounded-full bg-gradient-to-t ${dayGradients[idx]} shadow-xs" style="height: ${barHeight}\%; animation-delay:${idx * 70}ms;"></div>` : ''}
+          <div class="weekly-pill-track w-full max-w-[38px] h-28 ${todayRing} border border-white rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+            ${barHeight > 0 ? `<div class="animate-bar-grow w-full rounded-full bg-gradient-to-t ${dayGradients[idx]} shadow-xs" style="height: ${barHeight}%; animation-delay:${idx * 70}ms;"></div>` : ''}
           </div>
           <div class="text-center mt-0.5">
             <span class="text-[11px] font-extrabold ${isToday ? 'text-[#755634]' : 'text-slate-500'} block leading-none">${label}</span>
@@ -584,7 +1341,7 @@
 
     if (attempts.length === 0) {
       listContainer.innerHTML = `
-        <div class="bg-white/95 sm:bg-white/80 sm:backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-xs space-y-2 transition-all">
+        <div class="col-span-full bg-white/95 sm:bg-white/80 sm:backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white shadow-xs space-y-2 transition-all">
           <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
             <span class="material-symbols-outlined text-[24px]">history_edu</span>
           </div>
@@ -609,7 +1366,7 @@
         : '<span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[9px] font-bold">ฝึกซ้อม</span>';
 
       return `
-        <div style="animation-delay: ${delayMs}ms;" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md p-3.5 rounded-2xl border-2 border-white shadow-[0_4px_15px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all">
+        <div style="animation-delay: ${delayMs}ms;" class="timeline-item-card animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md p-3.5 rounded-2xl border-2 border-white shadow-[0_4px_15px_rgba(117,86,52,0.05)] hover:shadow-md flex items-center justify-between gap-3 transition-all">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <div class="w-10 h-10 rounded-2xl ${isPass ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'} flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[20px]">${isPass ? 'verified' : 'sentiment_dissatisfied'}</span>
@@ -624,7 +1381,7 @@
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span class="text-base font-extrabold ${isPass ? 'text-emerald-600' : 'text-rose-600'} block leading-none">${score}%</span>
+            <span class="text-base font-extrabold ${isPass ? 'text-emerald-600' : 'text-rose-600'} block leading-none mb-0.5">${score}%</span>
             <span class="text-[9px] font-bold ${isPass ? 'text-emerald-500' : 'text-rose-400'}">${isPass ? 'ผ่านเกณฑ์' : 'ต้องเสริม'}</span>
           </div>
         </div>
@@ -660,7 +1417,7 @@
         const speedStatus = avgPerQSec === 0 ? 'ยังไม่เคยสอบ' : avgPerQSec <= 45 ? 'เร็วมาก 🔥' : avgPerQSec <= 60 ? 'ตามเกณฑ์ ✅' : 'ใช้เวลานาน ⚠️';
 
         return `
-          <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in p-3 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-2">
+          <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in p-3.5 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="material-symbols-outlined text-[18px] text-[#755634]">${m.icon || 'schedule'}</span>
@@ -672,7 +1429,7 @@
             <div class="w-full h-2 bg-slate-200/70 rounded-full overflow-hidden">
               <div class="animate-width-grow h-full ${barColor} rounded-full" style="width: ${speedPercent}%;"></div>
             </div>
-            <div class="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+            <div class="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-0.5">
               <span>เวลารวมเฉลี่ย: <strong class="text-slate-700">${Math.floor(avgTotalSec / 60)}:${String(avgTotalSec % 60).padStart(2, '0')} นาที</strong></span>
               <span class="font-bold">${speedStatus}</span>
             </div>
@@ -716,23 +1473,25 @@
 
         if (!error && wrongs && wrongs.length > 0) {
           container.innerHTML = wrongs.map((w, idx) => `
-            <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-2xl p-3.5 border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex flex-col gap-2.5 transition-all">
-              <div class="flex items-center justify-between gap-2">
-                <span class="px-2.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-[#755634] text-[10px] font-extrabold truncate max-w-[200px]">
-                  ${w.exam_topic || w.exam_category || 'หมวดทั่วไป'}
-                </span>
-                <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-extrabold flex items-center gap-1 shrink-0">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
-                  ผิดซ้ำ ${w.wrong_count || 1} ครั้ง
-                </span>
+            <div style="animation-delay: ${idx * 50}ms;" class="animate-card-in bg-white/95 sm:bg-white/90 sm:backdrop-blur-md rounded-2xl p-4 border-2 border-white shadow-[0_6px_20px_rgba(117,86,52,0.05)] flex flex-col gap-3 transition-all h-full justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-[#755634] text-[10px] font-extrabold truncate max-w-[200px]">
+                    ${w.exam_topic || w.exam_category || 'หมวดทั่วไป'}
+                  </span>
+                  <span class="px-2 py-1 rounded-full bg-rose-50 text-rose-600 text-[10px] font-extrabold flex items-center gap-1 shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                    ผิดซ้ำ ${w.wrong_count || 1} ครั้ง
+                  </span>
+                </div>
+                <p class="text-xs font-bold text-slate-800 leading-relaxed line-clamp-3">
+                  “${w.questions?.question_text || 'โจทย์ข้อสอบที่ต้องทบทวน'}”
+                </p>
               </div>
-              <p class="text-xs font-bold text-slate-800 leading-relaxed line-clamp-2">
-                “${w.questions?.question_text || 'โจทย์ข้อสอบที่ต้องทบทวน'}”
-              </p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div class="pt-3 mt-1 border-t border-slate-100 flex items-center justify-between">
                 <span class="text-[10px] text-slate-400 font-medium">แตะเพื่อฝึกทำข้อนี้อีกครั้ง</span>
-                <button onclick="location.href='quiz.html?mode=retest&qid=${w.question_id}'" class="px-3 py-1.5 rounded-xl bg-[#755634] hover:bg-[#5E4325] text-white font-extrabold text-[11px] shadow-xs active:scale-95 transition-all flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[14px]">bolt</span>
+                <button onclick="location.href='quiz.html?mode=retest&qid=${w.question_id}'" class="px-3.5 py-2 rounded-xl bg-[#755634] hover:bg-[#5E4325] text-white font-extrabold text-[11px] shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                  <span class="material-symbols-outlined text-[15px]">bolt</span>
                   <span>สอบแก้ตัวข้อนี้</span>
                 </button>
               </div>
@@ -742,15 +1501,15 @@
         }
       }
       container.innerHTML = `
-        <div class="bg-white/85 rounded-3xl p-8 text-center border-2 border-white space-y-2">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-            <span class="material-symbols-outlined text-[26px]">task_alt</span>
+        <div class="col-span-full bg-white/85 sm:bg-white/70 sm:backdrop-blur-md rounded-3xl p-8 text-center border-2 border-white space-y-3">
+          <div class="w-14 h-14 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+            <span class="material-symbols-outlined text-[30px]">task_alt</span>
           </div>
-          <p class="text-xs font-extrabold text-slate-700">ยอดเยี่ยม! ยังไม่มีรายการข้อที่ตอบผิดสะสม</p>
-          <p class="text-[11px] text-slate-400">หากทำข้อสอบแล้วตอบผิด ระบบจะรวบรวมมาให้ทบทวนที่นี่อัตโนมัติ</p>
+          <p class="text-sm font-extrabold text-slate-700">ยอดเยี่ยม! ยังไม่มีรายการข้อที่ตอบผิดสะสม</p>
+          <p class="text-xs text-slate-500">หากทำข้อสอบแล้วตอบผิด ระบบจะรวบรวมมาให้ทบทวนที่นี่อัตโนมัติ</p>
         </div>`;
     } catch (e) {
-      container.innerHTML = '<div class="bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">ยังไม่มีข้อมูลข้อที่ตอบผิดสะสม</div>';
+      container.innerHTML = '<div class="col-span-full bg-white/80 rounded-2xl p-6 text-center text-slate-400 text-xs">ยังไม่มีข้อมูลข้อที่ตอบผิดสะสม</div>';
     }
   }
 
@@ -758,7 +1517,6 @@
     renderCompetencyRadar(cachedRadarAttempts);
   }
 
-  // ชุดสีประจำแต่ละด้านของกราฟใยแมงมุม (แยกสีชัดเจนสวยงาม)
   const RADAR_PALETTE = [
     { hex: '#F59E0B', bg: 'bg-amber-50/90', border: 'border-amber-200/80', text: 'text-amber-900', bar: 'bg-amber-500' },     // 1. ส้มอำพัน
     { hex: '#6366F1', bg: 'bg-indigo-50/90', border: 'border-indigo-200/80', text: 'text-indigo-900', bar: 'bg-indigo-500' },  // 2. น้ำเงินอินดิโก
@@ -768,7 +1526,6 @@
     { hex: '#06B6D4', bg: 'bg-cyan-50/90', border: 'border-cyan-200/80', text: 'text-cyan-900', bar: 'bg-cyan-500' }           // 6. ฟ้าไซเบอร์
   ];
 
-  // 8. วาดกราฟใยแมงมุมแยกสี + เรนเดอร์การ์ดสีด้านล่าง
   function renderCompetencyRadar(attempts) {
     cachedRadarAttempts = attempts || [];
     const canvas = document.getElementById('radarChartCanvas');
@@ -824,19 +1581,23 @@
       radarValues = subDims.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
     }
 
-    // ป้ายกำกับสั้นๆ บนมุมกราฟ เพื่อไม่ให้ข้อความถูกตัดขอบ
-    const shortLabels = fullLabels.map((_, i) => `ด้านที่ ${i + 1}`);
+    const isDesktop = window.innerWidth >= 1024;
+    const scaleAttr = document.documentElement.getAttribute('data-font-scale');
+    const deskFontBoost = scaleAttr === 'large' ? 1.15 : scaleAttr === 'medium' ? 1.07 : 1;
+
+    const chartLabels = fullLabels.map((name, i) => 
+      isDesktop ? `${i + 1}. ${name} (${radarValues[i]}%)` : `ด้านที่ ${i + 1}`
+    );
     const pointColors = fullLabels.map((_, i) => RADAR_PALETTE[i % RADAR_PALETTE.length].hex);
 
-    // เรนเดอร์การ์ดคำอธิบายสีและคะแนนไว้ด้านล่างกราฟ
     if (legendContainer) {
       legendContainer.innerHTML = fullLabels.map((name, idx) => {
         const score = radarValues[idx];
         const theme = RADAR_PALETTE[idx % RADAR_PALETTE.length];
         return `
-          <div class="p-2.5 rounded-2xl border ${theme.bg} ${theme.border} flex flex-col justify-between gap-1.5 shadow-2xs transition-all">
+          <div class="radar-skill-card p-2.5 rounded-2xl border ${theme.bg} ${theme.border} flex flex-col justify-between gap-2 shadow-2xs transition-all">
             <div class="flex items-center justify-between gap-1.5">
-              <div class="flex items-center gap-1.5 min-w-0">
+              <div class="flex items-center gap-2 min-w-0">
                 <span class="w-4 h-4 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center shrink-0 shadow-2xs" style="background-color: ${theme.hex};">
                   ${idx + 1}
                 </span>
@@ -891,55 +1652,63 @@
     if (radarChartInstance) radarChartInstance.destroy();
 
     const ctx = canvas.getContext('2d');
-    const radarGrad = ctx.createRadialGradient(130, 115, 10, 130, 115, 110);
-    radarGrad.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
-    radarGrad.addColorStop(0.5, 'rgba(236, 72, 153, 0.22)');
-    radarGrad.addColorStop(1, 'rgba(245, 158, 11, 0.28)');
+    const wrapperEl = document.getElementById('radarCanvasWrapper');
+    const centerX = (wrapperEl ? wrapperEl.clientWidth : 260) / 2;
+    const centerY = (wrapperEl ? wrapperEl.clientHeight : 230) / 2;
+    const outerRadius = isDesktop ? 210 : 110;
+
+    const radarGrad = ctx.createRadialGradient(centerX, centerY, 12, centerX, centerY, outerRadius);
+    radarGrad.addColorStop(0, 'rgba(99, 102, 241, 0.38)');
+    radarGrad.addColorStop(0.5, 'rgba(236, 72, 153, 0.24)');
+    radarGrad.addColorStop(1, 'rgba(245, 158, 11, 0.30)');
 
     radarChartInstance = new Chart(canvas, {
       type: 'radar',
       data: {
-        labels: shortLabels,
+        labels: chartLabels,
         datasets: [{
           label: 'ความพร้อม (%)',
           data: radarValues,
           backgroundColor: radarGrad,
           borderColor: '#6366F1',
-          borderWidth: 2.5,
+          borderWidth: isDesktop ? 3.5 : 2.5,
           pointBackgroundColor: pointColors,
           pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointBorderWidth: 2.5,
+          pointRadius: isDesktop ? 8 : 6,
+          pointHoverRadius: isDesktop ? 11 : 8
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: {
-          padding: 12
-        },
-        animation: {
-          duration: 900,
-          easing: 'easeOutQuart'
-        },
+        layout: { padding: isDesktop ? 28 : 12 },
+        animation: { duration: 900, easing: 'easeOutQuart' },
         scales: {
           r: {
-            min: 0,
-            max: 100,
-            ticks: { stepSize: 25, display: false },
-            grid: { color: 'rgba(99, 102, 241, 0.12)', circular: false },
-            angleLines: { color: 'rgba(148, 163, 184, 0.25)', lineWidth: 1.5 },
+            min: 0, max: 100,
+            ticks: {
+              stepSize: 25,
+              display: isDesktop,
+              backdropColor: 'rgba(255, 255, 255, 0.85)',
+              color: '#64748B',
+              font: { size: Math.round(12 * deskFontBoost), weight: '800' }
+            },
+            grid: { color: 'rgba(99, 102, 241, 0.15)', circular: false },
+            angleLines: { color: 'rgba(148, 163, 184, 0.3)', lineWidth: 1.5 },
             pointLabels: {
-              font: { family: "'Plus Jakarta Sans', 'Anuphan', sans-serif", size: 11, weight: '800' },
+              font: { family: "'Plus Jakarta Sans', 'Anuphan', sans-serif", size: isDesktop ? Math.round(15.5 * deskFontBoost) : 11, weight: '800' },
               color: (context) => pointColors[context.index] || '#334155',
-              padding: 6
+              padding: isDesktop ? 14 : 6
             }
           }
         },
         plugins: {
           legend: { display: false },
           tooltip: {
+            titleFont: { size: isDesktop ? 15 : 12 },
+            bodyFont: { size: isDesktop ? 14 : 12 },
+            padding: isDesktop ? 12 : 8,
             callbacks: {
               title: (items) => fullLabels[items[0].dataIndex] || '',
               label: (item) => ` ความพร้อม: ${item.raw}%`
@@ -949,6 +1718,16 @@
       }
     });
   }
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (document.getElementById('contentTabGraph')?.classList.contains('hidden') === false) {
+        renderCompetencyRadar(cachedRadarAttempts);
+      }
+    }, 200);
+  });
 
   document.addEventListener('DOMContentLoaded', loadHistoryData);
   </script>

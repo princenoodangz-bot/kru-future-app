@@ -84,12 +84,19 @@
           </div>
         </div>
 
-        <!-- ตัวนับเวลา -->
-        <div class="bg-amber-50 px-2.5 py-1.5 rounded-xl border border-amber-300/80 flex items-center gap-1.5 shrink-0 shadow-2xs">
-          <i class="fa-regular fa-clock text-xs text-[#755634]"></i>
-          <span id="timerText" class="text-xs font-mono font-black text-[#755634]">00:00</span>
+        <!-- ตัวนับเวลา 2 รูปแบบ (เวลารวม + นับถอยหลังต่อข้อ) -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <div class="bg-slate-100/90 px-2 py-1.5 rounded-xl border border-slate-200/70 flex items-center gap-1" title="เวลารวมที่ใช้ไป">
+            <i class="fa-solid fa-stopwatch text-[10px] text-slate-400"></i>
+            <span id="timerText" class="text-[11px] font-mono font-extrabold text-slate-700">00:00</span>
+          </div>
+          <div id="perQuestionBadge" class="bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-300/80 flex items-center gap-1 shadow-2xs transition-all" title="เวลานับถอยหลังข้อนี้">
+            <i class="fa-regular fa-clock text-[10px] text-[#755634]"></i>
+            <span id="perQuestionTimerText" class="text-[11px] font-mono font-black text-[#755634]">02:00</span>
+          </div>
         </div>
-      </div>
+
+      </div> <!-- 👈 เติมแท็กปิดตัวนี้กลับเข้ามาครับ -->
 
       <!-- แถบ Progress Bar -->
       <div class="mt-2.5 space-y-1">
@@ -345,6 +352,129 @@ let timerSeconds = 0;
 let timerInterval = null;
 let radarChartInstance = null;
 
+// --- ตัวแปรและฟังก์ชันจับเวลารายข้อ + ระบบตัดจบ 2 ครั้ง (Two-Strike) + เสียงเตือน ---
+const perQuestionLimit = 120; // จำกัด 2 นาทีต่อข้อ
+let perQuestionLeft = perQuestionLimit;
+let perQuestionInterval = null;
+let consecutiveTimeouts = 0; // นับแต้มหมดเวลาติดต่อกัน
+let lastTimerIndex = -1;
+
+// 🔊 1. ตัวแปรเก็บระบบเสียง และฟังก์ชันปลดล็อกสิทธิ์เสียงของเบราว์เซอร์
+  let sharedAudioCtx = null;
+
+  function initOrUnlockAudio() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new AudioCtx();
+      }
+      if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume();
+      }
+    } catch (e) {}
+  }
+
+  // ปลดล็อกระบบเสียงทันทีที่มีการแตะหน้าจอ หรือคลิกครั้งแรก
+  window.addEventListener('click', initOrUnlockAudio, { once: true });
+  window.addEventListener('touchstart', initOrUnlockAudio, { once: true });
+
+  // 🔊 2. ฟังก์ชันส่งเสียงเตือนติ๊ดช่วงท้าย
+  function playCountdownBeep(isUrgent = false) {
+    try {
+      initOrUnlockAudio();
+      if (!sharedAudioCtx) return;
+
+      // ถ้าเบราว์เซอร์ยังระงับอยู่ ให้สั่งปลุกทันที
+      if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume();
+      }
+
+      const osc = sharedAudioCtx.createOscillator();
+      const gain = sharedAudioCtx.createGain();
+
+      osc.connect(gain);
+      gain.connect(sharedAudioCtx.destination);
+
+      // โทนเสียง: 3 วินาทีสุดท้ายเสียงสูงกระชับ (880Hz) / ช่วง 4-10 วินาทีเสียงนุ่มนวล (587.33Hz)
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isUrgent ? 880 : 587.33, sharedAudioCtx.currentTime);
+
+      // ปรับระดับความดังเป็น 0.25 (25%) ให้ได้ยินชัดเจนขึ้น และเฟดดับอย่างนุ่มนวล
+      gain.gain.setValueAtTime(0.25, sharedAudioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + (isUrgent ? 0.2 : 0.14));
+
+      osc.start();
+      osc.stop(sharedAudioCtx.currentTime + (isUrgent ? 0.2 : 0.14));
+    } catch (e) {
+      console.warn("ไม่สามารถเล่นเสียงได้:", e);
+    }
+  }
+
+function startPerQuestionTimer() {
+  clearInterval(perQuestionInterval);
+  if (isReviewMode) return;
+
+  perQuestionLeft = perQuestionLimit;
+  updatePerQuestionUI();
+
+  perQuestionInterval = setInterval(() => {
+    perQuestionLeft--;
+    updatePerQuestionUI();
+
+    // 🔊 ส่งเสียงเตือนช่วง 10 วินาทีสุดท้าย (3 วินาทีสุดท้ายปรับเสียงเร่ง)
+    if (perQuestionLeft <= 10 && perQuestionLeft > 0) {
+      playCountdownBeep(perQuestionLeft <= 3);
+    }
+
+    if (perQuestionLeft <= 0) {
+      clearInterval(perQuestionInterval);
+      consecutiveTimeouts++;
+
+      // 1. ข้อสุดท้าย -> สั่งส่งทันที
+      if (currentIndex >= questions.length - 1) {
+        alert("⏰ หมดเวลาในข้อสุดท้าย! ระบบจะสรุปผลคะแนนและวิเคราะห์สมรรถนะให้ทันทีครับ");
+        finalSubmit();
+        return;
+      }
+
+      // 2. หมดเวลาครั้งที่ 1 -> เตือนและข้าม 1 ข้อ
+      if (consecutiveTimeouts === 1) {
+        alert(
+          `⚠️ หมดเวลาในข้อนี้ (${Math.floor(perQuestionLimit / 60)} นาที)!\n\n` +
+          `ระบบได้ข้ามไปข้อถัดไปให้อัตโนมัติ\n` +
+          `🔔 คำเตือน: หากข้อถัดไปยังไม่ตอบและหมดเวลาอีกครั้ง ระบบจะถือว่าละทิ้งการทดสอบ และตัดจบสรุปผลทันทีครับ`
+        );
+        nextQ();
+      } 
+      // 3. หมดเวลาครั้งที่ 2 ติดต่อกัน -> ตัดจบส่งข้อสอบ
+      else if (consecutiveTimeouts >= 2) {
+        alert(
+          `⏰ คุณหมดเวลาติดต่อกันเป็นครั้งที่ 2 แล้ว!\n\n` +
+          `ระบบขออนุญาตตัดจบและประเมินผลคะแนนเท่าที่ทำเสร็จ เพื่อสรุปรายงานจุดแข็ง-จุดอ่อนให้ครับ`
+        );
+        finalSubmit();
+      }
+    }
+  }, 1000);
+}
+
+function updatePerQuestionUI() {
+  const m = Math.floor(perQuestionLeft / 60);
+  const s = perQuestionLeft % 60;
+  const badge = document.getElementById('perQuestionBadge');
+  const textEl = document.getElementById('perQuestionTimerText');
+  if (textEl) textEl.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+  if (perQuestionLeft <= 10 && badge) {
+    badge.className = 'bg-rose-50 px-2 py-1.5 rounded-xl border border-rose-300 flex items-center gap-1 shadow-2xs animate-pulse';
+    if (textEl) textEl.className = 'text-[11px] font-mono font-black text-rose-600';
+  } else if (badge) {
+    badge.className = 'bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-300/80 flex items-center gap-1 shadow-2xs transition-all';
+    if (textEl) textEl.className = 'text-[11px] font-mono font-black text-[#755634]';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const guestName = urlParams.get('name') || localStorage.getItem('kru_guest_name') || 'คุณครูผู้ทดสอบ';
@@ -464,10 +594,17 @@ function renderQ() {
 
   updateAnsweredCount();
   updateNavButtons();
+
+  // ⏱️ รีเซ็ตเวลานับถอยหลังเมื่อเปลี่ยนข้อจริง
+  if (lastTimerIndex !== currentIndex) {
+    lastTimerIndex = currentIndex;
+    startPerQuestionTimer();
+  }
 }
 
 function selectChoice(key) {
   if (isReviewMode) return;
+  consecutiveTimeouts = 0; // 👈 รีเซ็ตแต้มเตือนทันทีเมื่อมีการตอบ
   userAnswers[currentIndex] = key;
   renderQ();
 }
@@ -561,10 +698,10 @@ function closeConfirm() {
   document.getElementById('confirmModal').classList.add('hidden');
 }
 
-// ตรวจคำตอบและประมวลผล (ถอดแบบความแม่นยำจาก quiz.html)
 function finalSubmit() {
   closeConfirm();
   clearInterval(timerInterval);
+  clearInterval(perQuestionInterval); // 👈 หยุดนับเวลาต่อข้อ
 
   let totalCorrect = 0;
   const domainScores = {
@@ -698,6 +835,7 @@ function renderRadarChart(domainScores) {
 function startReview() {
   isReviewMode = true;
   document.getElementById('resultModal').classList.add('hidden');
+  document.getElementById('perQuestionBadge')?.classList.add('hidden');
   currentIndex = 0;
   renderReviewQ();
 }
