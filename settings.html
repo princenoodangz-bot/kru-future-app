@@ -860,7 +860,10 @@
         } catch (e) {
           console.warn("Sign out sync error:", e);
         } finally {
-          localStorage.clear();
+          localStorage.removeItem('kru_active_session');
+          localStorage.removeItem('kru_user_info');
+          localStorage.removeItem('user_profile');
+          localStorage.removeItem('kru_guest_name');
           sessionStorage.clear();
           location.href = 'login.html';
         }

@@ -262,45 +262,60 @@
       </div>
     </div>
   </div>
-  <!-- ================= 🎯 กล่องจัดการชุดข้อสอบทดลองฟรี 20 ข้อ ================= -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-[20px]">lock_clock</span>
-          </div>
-          <div>
-            <h3 class="font-bold text-base text-gray-800">จัดการชุดข้อสอบทดลองฟรี (Trial CBT 20 ข้อ)</h3>
-            <p class="text-xs text-gray-500">สุ่มข้อสอบ 20 ข้อจากคลังจริง แล้วกดล็อกไว้ ทุกคนที่กดทดลองสอบจะเจอชุดนี้เหมือนกัน</p>
-          </div>
+  <!-- ================= 🎯 กล่องจัดการชุดข้อสอบทดลองฟรี แยก 5 วิชา ================= -->
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#755634] flex items-center justify-center font-bold">
+          <span class="material-symbols-outlined text-[20px]">lock_clock</span>
         </div>
-        <span id="trialLockStatusBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 border self-start sm:self-auto">
-          ⚪ ยังไม่เคยล็อกชุดข้อสอบ
-        </span>
+        <div>
+          <h3 class="font-bold text-base text-gray-800">จัดการชุดข้อสอบทดลองฟรี 5 วิชา (Trial 20 ข้อ/วิชา)</h3>
+          <p class="text-xs text-gray-500">เลือกวิชาเพื่อสุ่มข้อสอบ 20 ข้อแล้วกดล็อกไว้ นักเรียนที่มาทดลองสอบจะได้ชุดเดียวกันเสมอ</p>
+        </div>
+      </div>
+      <span id="trialLockStatusBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 border self-start sm:self-auto">
+        ⚪ ยังไม่เคยล็อกชุดข้อสอบ
+      </span>
+    </div>
+
+    <!-- แถบเลือกวิชาและปุ่มสุ่ม/ล็อก -->
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+      <div class="sm:col-span-5">
+        <label class="block text-xs font-bold text-gray-700 mb-1">เลือกวิชาที่ต้องการจัดการ:</label>
+        <select id="selAdminTrialSubject" onchange="loadCurrentLockedTrialStatus()" class="w-full bg-gray-50 border-2 border-[#755634]/30 rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none focus:border-[#755634]">
+          <option value="math">1. ภาค ก: วิชาคณิตศาสตร์ & คิดวิเคราะห์</option>
+          <option value="thai">2. ภาค ก: วิชาภาษาไทย</option>
+          <option value="law">3. ภาค ก: วิชาข้าราชการที่ดี & กฎหมาย</option>
+          <option value="eng">4. ภาค ก: วิชาภาษาอังกฤษ</option>
+          <option value="prof">5. ภาค ข: วิชามาตรฐานความรู้ & วิชาชีพครู</option>
+        </select>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick="generateNewTrialSet()" class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-[#755634] border border-amber-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs">
+      <div class="sm:col-span-7 flex flex-wrap items-center gap-2 self-end">
+        <button type="button" onclick="generateNewTrialSet()" class="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-[#755634] border border-amber-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs">
           <span class="material-symbols-outlined text-[16px]">shuffle</span>
-          <span>🎲 สุ่มชุดใหม่ 20 ข้อ (ภาค ก 10 + ภาค ข 10)</span>
+          <span>🎲 สุ่ม 20 ข้อ (วิชานี้)</span>
         </button>
-        <button type="button" onclick="saveLockedTrialSetToCloud()" id="btnSaveTrialSet" class="px-4 py-2 bg-[#755634] hover:bg-[#8c673e] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+        <button type="button" onclick="saveLockedTrialSetToCloud()" id="btnSaveTrialSet" class="px-4 py-2.5 bg-[#755634] hover:bg-[#8c673e] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
           <span class="material-symbols-outlined text-[16px]">lock</span>
-          <span>🔒 บันทึก & ล็อกชุดข้อสอบนี้</span>
+          <span>🔒 ล็อกชุดข้อสอบวิชานี้</span>
         </button>
-      </div>
-
-      <!-- กล่องแสดงรายการ 20 ข้อที่สุ่มได้ -->
-      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
-        <div class="flex items-center justify-between text-xs font-bold text-gray-700">
-          <span>รายการข้อสอบที่เตรียมล็อก (<span id="trialPreviewCount">0</span>/20 ข้อ):</span>
-          <span class="text-[11px] text-gray-400">ตรวจสอบความเรียบร้อยก่อนกดล็อก</span>
-        </div>
-        <div id="trialPreviewList" class="max-h-48 overflow-y-auto space-y-1.5 text-xs text-gray-600 pr-1">
-          <p class="text-gray-400 text-center py-4">คลิกปุ่ม "สุ่มชุดใหม่ 20 ข้อ" เพื่อเริ่มต้นจัดชุด</p>
-        </div>
       </div>
     </div>
+
+    <!-- กล่องแสดงรายการ 20 ข้อที่สุ่มได้ -->
+    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+      <div class="flex items-center justify-between text-xs font-bold text-gray-700">
+        <span>รายการข้อสอบที่เตรียมล็อก (<span id="trialPreviewCount">0</span>/20 ข้อ):</span>
+        <span class="text-[11px] text-gray-400">ตรวจสอบความเรียบร้อยก่อนกดล็อก</span>
+      </div>
+      <div id="trialPreviewList" class="max-h-48 overflow-y-auto space-y-1.5 text-xs text-gray-600 pr-1">
+        <p class="text-gray-400 text-center py-4">คลิกปุ่ม "สุ่ม 20 ข้อ" เพื่อเริ่มต้นจัดชุด</p>
+      </div>
+    </div>
+  </div>
+  </div>
   
 <!-- ================= แท็บ 4: จัดการ Gemini AI (10 คีย์) ================= -->
   <div id="tabContentAi" style="display: none;" class="space-y-6">
@@ -1700,18 +1715,27 @@ async function saveSystemConfigs() {
   }
 }
 
-// ==========================================
-// ระบบสุ่มและล็อกชุดข้อสอบทดลอง 20 ข้อ
-// ==========================================
+// แมปปิ้งคีย์และเงื่อนไขของ 5 วิชา
+const ADMIN_TRIAL_MAP = {
+  math: { key: 'locked_trial_math_20', match: (q) => (q.exam_part || '').includes('ภาค ก') && /(คณิต|ปริมาณ|นามธรรม|อนุกรม|สถิติ|ตาราง)/i.test(`${q.exam_category} ${q.exam_topic}`) },
+  thai: { key: 'locked_trial_thai_20', match: (q) => (q.exam_part || '').includes('ภาค ก') && /(ไทย|ภาษา|จับใจความ|การใช้คำ|เรียง)/i.test(`${q.exam_category} ${q.exam_topic}`) },
+  law:  { key: 'locked_trial_law_20',  match: (q) => (q.exam_part || '').includes('ภาค ก') && /(กฎหมาย|ข้าราชการ|ระเบียบ|วินัย|จริยธรรม|ธรรมาภิบาล)/i.test(`${q.exam_category} ${q.exam_topic}`) },
+  eng:  { key: 'locked_trial_eng_20',  match: (q) => (q.exam_part || '').includes('ภาค ก') && /(อังกฤษ|english|vocab|grammar|reading)/i.test(`${q.exam_category} ${q.exam_topic}`) },
+  prof: { key: 'locked_trial_prof_20', match: (q) => (q.exam_part || '').includes('ภาค ข') || /(วิชาชีพ|หลักสูตร|การสอน|จิตวิทยา|วัดผล|ประกันคุณภาพ)/i.test(`${q.exam_category} ${q.exam_topic}`) }
+};
+
 let pendingTrialQuestions = [];
 
 async function loadCurrentLockedTrialStatus() {
+  const selSub = document.getElementById('selAdminTrialSubject')?.value || 'math';
+  const targetConf = ADMIN_TRIAL_MAP[selSub] || ADMIN_TRIAL_MAP.math;
+
   try {
     if (!window.supabase) return;
     const { data } = await supabase
       .from('system_configs')
       .select('value, updated_at')
-      .eq('key', 'locked_trial_questions_20')
+      .eq('key', targetConf.key)
       .maybeSingle();
 
     const badge = document.getElementById('trialLockStatusBadge');
@@ -1724,42 +1748,75 @@ async function loadCurrentLockedTrialStatus() {
         badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300';
         badge.innerText = `🟢 ล็อกอยู่: ${list.length} ข้อ (${dateStr} น.)`;
       }
+    } else {
+      pendingTrialQuestions = [];
+      renderTrialPreviewList();
+      if (badge) {
+        badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 border';
+        badge.innerText = '⚪ ยังไม่เคยล็อกชุดข้อสอบวิชานี้';
+      }
     }
   } catch (err) {
     console.warn('โหลดสถานะชุดทดลองล้มเหลว:', err);
   }
 }
 
-// สุ่มคละ ภาค ก 10 ข้อ + ภาค ข 10 ข้อ จากคลังข้อสอบจริง
 function generateNewTrialSet() {
   if (!allLoadedQuestions || allLoadedQuestions.length === 0) {
-    alert('กำลังโหลดข้อสอบจากคลัง กรุณารอสักครู่แล้วกดใหม่อีกครั้ง');
+    alert('กำลังโหลดข้อสอบจากคลัง กรุณารอสักครู่แล้วกดอีกครั้ง');
     loadQuestionsList();
     return;
   }
 
-  const poolA = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ก')).sort(() => Math.random() - 0.5);
-  const poolB = allLoadedQuestions.filter(q => (q.exam_part || '').includes('ภาค ข')).sort(() => Math.random() - 0.5);
+  const selSub = document.getElementById('selAdminTrialSubject')?.value || 'math';
+  const targetConf = ADMIN_TRIAL_MAP[selSub] || ADMIN_TRIAL_MAP.math;
 
-  const pickedA = poolA.slice(0, 10);
-  const pickedB = poolB.slice(0, 10);
+  const pool = allLoadedQuestions.filter(targetConf.match).sort(() => Math.random() - 0.5);
 
-  pendingTrialQuestions = [...pickedA, ...pickedB];
-
-  // ถ้าภาคใดมีไม่ครบ 10 ข้อ ให้ดึงข้อที่เหลือจากคลังมาเติมให้เต็ม 20 ข้อ
-  if (pendingTrialQuestions.length < 20) {
-    const remain = 20 - pendingTrialQuestions.length;
-    const pickedIds = new Set(pendingTrialQuestions.map(q => q.id));
-    const extra = allLoadedQuestions.filter(q => !pickedIds.has(q.id)).slice(0, remain);
-    pendingTrialQuestions.push(...extra);
+  if (pool.length === 0) {
+    alert(`ไม่พบข้อสอบในคลังที่ตรงกับวิชานี้ กรุณาตรวจสอบว่ามีข้อสอบในหมวดนี้แล้วหรือไม่`);
+    return;
   }
 
+  pendingTrialQuestions = pool.slice(0, 20);
   renderTrialPreviewList();
 
   const badge = document.getElementById('trialLockStatusBadge');
   if (badge) {
     badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 animate-pulse';
     badge.innerText = `🟡 สุ่มแล้ว ${pendingTrialQuestions.length} ข้อ (ยังไม่ได้กดล็อก)`;
+  }
+}
+
+async function saveLockedTrialSetToCloud() {
+  if (pendingTrialQuestions.length === 0) {
+    alert('กรุณากดสุ่มข้อสอบก่อนกดล็อก');
+    return;
+  }
+
+  const selSub = document.getElementById('selAdminTrialSubject')?.value || 'math';
+  const targetConf = ADMIN_TRIAL_MAP[selSub] || ADMIN_TRIAL_MAP.math;
+
+  if (!confirm(`คุณต้องการล็อกข้อสอบจำนวน ${pendingTrialQuestions.length} ข้อนี้ สำหรับวิชานี้ใช่หรือไม่?`)) return;
+
+  const btn = document.getElementById('btnSaveTrialSet');
+  btn.disabled = true;
+
+  try {
+    const { error } = await supabase.from('system_configs').upsert({
+      key: targetConf.key,
+      value: JSON.stringify(pendingTrialQuestions),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key' });
+
+    if (error) throw error;
+
+    alert(`✅ ล็อกชุดข้อสอบทดลอง ${pendingTrialQuestions.length} ข้อ สำเร็จเรียบร้อย!`);
+    loadCurrentLockedTrialStatus();
+  } catch (err) {
+    alert('บันทึกล้มเหลว: ' + err.message);
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -1786,35 +1843,6 @@ function renderTrialPreviewList() {
   `).join('');
 }
 
-// สั่งบันทึกล็อกชุด 20 ข้อขึ้น Supabase
-async function saveLockedTrialSetToCloud() {
-  if (pendingTrialQuestions.length === 0) {
-    alert('กรุณากดสุ่มข้อสอบก่อนกดล็อก');
-    return;
-  }
-
-  if (!confirm(`คุณต้องการล็อกข้อสอบจำนวน ${pendingTrialQuestions.length} ข้อนี้ ให้เป็นชุดทดลองสอบฟรีของระบบใช่หรือไม่?`)) return;
-
-  const btn = document.getElementById('btnSaveTrialSet');
-  btn.disabled = true;
-
-  try {
-    const { error } = await supabase.from('system_configs').upsert({
-      key: 'locked_trial_questions_20',
-      value: JSON.stringify(pendingTrialQuestions),
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'key' });
-
-    if (error) throw error;
-
-    alert(`✅ ล็อกชุดข้อสอบทดลองฟรี ${pendingTrialQuestions.length} ข้อ เรียบร้อยแล้ว! ผู้เข้าทดลองสอบทุกคนจะได้ทำชุดนี้ทันที`);
-    loadCurrentLockedTrialStatus();
-  } catch (err) {
-    alert('บันทึกล้มเหลว: ' + err.message);
-  } finally {
-    btn.disabled = false;
-  }
-}
 // 🗑️ 1. ฟังก์ชันลบ "หมวดวิชาหลัก"
 function deleteCurrentCategory() {
   const part = document.getElementById('selPart').value;

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <title>ครูในอนาคต - ศูนย์ทดลองสอบครูผู้ช่วย 5 วิชาหลัก</title>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="theme-manager.js"></script>
+
+  <!-- Fonts & Icons: Plus Jakarta Sans + Anuphan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', 'Anuphan', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+    ::-webkit-scrollbar { display: none; }
+
+    @keyframes auroraBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-aurora {
+      background: linear-gradient(-45deg, #FFFBF5, #FEF0D8, #FCE8EF, #E8F4FE, #EAFBF2);
+      background-size: 400% 400%;
+      animation: auroraBG 18s ease infinite;
+    }
+    .bg-grid-pattern {
+      background-size: 26px 26px;
+      background-image: 
+        linear-gradient(to right, rgba(117, 86, 52, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(117, 86, 52, 0.045) 1px, transparent 1px);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-card-in { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-150%) skewX(-20deg); }
+      50%, 100% { transform: translateX(250%) skewX(-20deg); }
+    }
+    .shimmer-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmerSweep 3.8s infinite;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body class="bg-aurora text-slate-800 antialiased min-h-screen flex justify-center py-5 px-3.5 sm:px-6 relative overflow-x-hidden">
+  
+  <div class="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+
+  <main class="w-full max-w-[440px] lg:max-w-[980px] relative z-10 flex flex-col gap-4">
+
+    <!-- แถบ Header ต้อนรับ -->
+    <header class="bg-white/90 backdrop-blur-xl border-2 border-white rounded-3xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] text-white flex items-center justify-center font-extrabold text-lg shadow-md shrink-0">
+          <span class="material-symbols-outlined text-[24px]">school</span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">FREE TRIAL PASS</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          </div>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-800 truncate mt-0.5">
+            สวัสดีครับ <span id="displayUserName" class="text-[#755634]">คุณครู</span> ✨
+          </h1>
+          <p class="text-xs text-slate-500 truncate">เลือกทดลองทำข้อสอบจริง 5 วิชาหลัก (วิชาละ 20 ข้อ)</p>
+        </div>
+      </div>
+
+      <button type="button" onclick="exitAndClearGuestData()" class="shrink-0 px-3 py-2 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold text-xs flex items-center gap-1 active:scale-95 transition-all cursor-pointer" title="ออกจากโหมดทดลองสอบและลบข้อมูลชื่อ">
+        <span class="material-symbols-outlined text-[16px]">logout</span>
+        <span class="hidden sm:inline">ออก / ล้างข้อมูล</span>
+      </button>
+    </header>
+
+    <!-- แบนเนอร์ภาพรวม & เป้าหมาย -->
+    <section class="bg-gradient-to-br from-[#2A1E14] via-[#4A3423] to-[#755634] rounded-3xl p-5 text-white shadow-lg border border-amber-300/30 flex items-center justify-between gap-4 relative overflow-hidden">
+      <div class="space-y-1.5 relative z-10">
+        <span class="text-[10px] font-extrabold text-amber-300 bg-white/15 px-2.5 py-0.5 rounded-full uppercase">5 CORE SUBJECTS</span>
+        <h2 class="text-lg sm:text-xl font-extrabold leading-tight">ทดลองเสมือนจริง รู้จุดแข็ง-จุดอ่อนทันที</h2>
+        <p class="text-xs text-amber-100/80 leading-relaxed max-w-lg">
+          ข้อสอบทุกชุดเป็นข้อสอบจริงจากคลัง พร้อมจับเวลา 2 นาที/ข้อ และแสดงเรดาร์ประเมินทักษะย่อยเฉพาะวิชาเมื่อทำเสร็จ
+        </p>
+      </div>
+      <div class="shrink-0 text-center bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20">
+        <span class="text-[10px] text-amber-200 font-bold block">ทำไปแล้ว</span>
+        <span id="trialOverallProgress" class="text-2xl font-extrabold text-amber-300">0/5</span>
+        <span class="text-[9px] text-amber-100/70 block">วิชา</span>
+      </div>
+    </section>
+
+    <!-- รายการการ์ด 5 วิชาหลัก -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="subjectCardsGrid">
+      
+      <!-- วิชาที่ 1: คณิตศาสตร์ -->
+      <div onclick="startTrialSubject('math')" class="animate-card-in cursor-pointer group relative overflow-hidden bg-gradient-to-br from-indigo-50/95 via-white to-blue-50/90 rounded-3xl p-4 border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/25 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[24px]">calculate</span>
+          </div>
+          <span id="badge_math" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800">20 ข้อ • ภาค ก</span>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-800">1. วิชาคณิตศาสตร์ & คิดวิเคราะห์</h3>
+        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">อนุกรมตัวเลข, โจทย์คณิตร้อยละ, สถิติและตารางข้อมูล, มิติสัมพันธ์เชิงนามธรรม</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span id="score_math" class="text-[11px] font-bold text-slate-400">ยังไม่เคยสอบ</span>
+          <span class="text-indigo-600 font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span>เริ่มสอบ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- วิชาที่ 2: ภาษาไทย -->
+      <div onclick="startTrialSubject('thai')" class="animate-card-in cursor-pointer group relative overflow-hidden bg-gradient-to-br from-amber-50/95 via-white to-orange-50/90 rounded-3xl p-4 border-2 border-amber-200 hover:border-amber-400 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all" style="animation-delay: 60ms;">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md shadow-amber-500/25 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[24px]">spellcheck</span>
+          </div>
+          <span id="badge_thai" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">20 ข้อ • ภาค ก</span>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-800">2. วิชาภาษาไทย</h3>
+        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">การอ่านจับใจความ, ตีความบทความ, การใช้คำและสำนวนไทย, การเรียงลำดับข้อความ</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span id="score_thai" class="text-[11px] font-bold text-slate-400">ยังไม่เคยสอบ</span>
+          <span class="text-amber-700 font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span>เริ่มสอบ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- วิชาที่ 3: กฎหมายและข้าราชการที่ดี -->
+      <div onclick="startTrialSubject('law')" class="animate-card-in cursor-pointer group relative overflow-hidden bg-gradient-to-br from-purple-50/95 via-white to-fuchsia-50/90 rounded-3xl p-4 border-2 border-purple-200 hover:border-purple-400 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all" style="animation-delay: 120ms;">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[24px]">gavel</span>
+          </div>
+          <span id="badge_law" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-purple-100 text-purple-900">20 ข้อ • ภาค ก</span>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-800">3. วิชาข้าราชการที่ดี & กฎหมาย</h3>
+        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">พ.ร.บ.ระเบียบบริหารราชการ, วิธีปฏิบัติราชการทางปกครอง, ธรรมาภิบาล, วินัยข้าราชการ</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span id="score_law" class="text-[11px] font-bold text-slate-400">ยังไม่เคยสอบ</span>
+          <span class="text-purple-700 font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span>เริ่มสอบ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- วิชาที่ 4: ภาษาอังกฤษ -->
+      <div onclick="startTrialSubject('eng')" class="animate-card-in cursor-pointer group relative overflow-hidden bg-gradient-to-br from-rose-50/95 via-white to-pink-50/90 rounded-3xl p-4 border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all" style="animation-delay: 180ms;">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-md shadow-rose-500/25 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[24px]">translate</span>
+          </div>
+          <span id="badge_eng" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-rose-100 text-rose-900">20 ข้อ • ภาค ก</span>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-800">4. วิชาภาษาอังกฤษ (English)</h3>
+        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Grammar & Structure, Vocabulary & Context, Reading Comprehension, Conversation</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span id="score_eng" class="text-[11px] font-bold text-slate-400">ยังไม่เคยสอบ</span>
+          <span class="text-rose-600 font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span>เริ่มสอบ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- วิชาที่ 5: มาตรฐานวิชาชีพครู -->
+      <div onclick="startTrialSubject('prof')" class="animate-card-in cursor-pointer group relative overflow-hidden bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/90 rounded-3xl p-4 border-2 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all sm:col-span-2 lg:col-span-1" style="animation-delay: 240ms;">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[24px]">school</span>
+          </div>
+          <span id="badge_prof" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">20 ข้อ • ภาค ข</span>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-800">5. วิชามาตรฐานความรู้ & วิชาชีพครู</h3>
+        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">หลักสูตร & Active Learning, จิตวิทยาแนะแนว, การวัดและประเมินผล, ประกันคุณภาพ</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span id="score_prof" class="text-[11px] font-bold text-slate-400">ยังไม่เคยสอบ</span>
+          <span class="text-emerald-700 font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span>เริ่มสอบ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- กล่อง CTA ชวนเข้าสู่ระบบสมาชิก -->
+    <footer class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 border-2 border-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <div>
+        <h4 class="text-xs sm:text-sm font-extrabold text-slate-800">ต้องการทำข้อสอบครบทุกชุดไม่จำกัด?</h4>
+        <p class="text-[11px] text-slate-500">มีรหัสสมาชิกแล้ว เข้าสู่ระบบเพื่อบันทึกสถิติขึ้นทำเนียบยอดฝีมือ</p>
+      </div>
+      <a href="login.html" class="shimmer-effect relative overflow-hidden px-5 py-3 rounded-2xl bg-gradient-to-r from-[#755634] to-[#8F683E] text-white font-extrabold text-xs shadow-md border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all shrink-0">
+        เข้าสู่ระบบด้วยรหัสสมาชิก
+      </a>
+    </footer>
+
+  </main>
+
+  <script>
+    let guestUserName = 'คุณครู';
+
+    function initLanding() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const nameFromUrl = urlParams.get('name');
+      const savedName = localStorage.getItem('kru_guest_name');
+      
+      guestUserName = nameFromUrl || savedName || 'คุณครู';
+      if (nameFromUrl) {
+        localStorage.setItem('kru_guest_name', nameFromUrl);
+      }
+
+      document.getElementById('displayUserName').innerText = guestUserName;
+      updateSubjectScores();
+    }
+
+    function updateSubjectScores() {
+      const subjects = ['math', 'thai', 'law', 'eng', 'prof'];
+      let doneCount = 0;
+
+      subjects.forEach(sub => {
+        const resultRaw = sessionStorage.getItem(`trial_score_${sub}`);
+        const scoreEl = document.getElementById(`score_${sub}`);
+        const badgeEl = document.getElementById(`badge_${sub}`);
+
+        if (resultRaw && scoreEl) {
+          doneCount++;
+          const res = JSON.parse(resultRaw);
+          const isPass = res.score >= 60;
+          scoreEl.innerHTML = `<span class="${isPass ? 'text-emerald-600' : 'text-amber-600'} font-extrabold">ได้ ${res.score}% (${res.correct}/20)</span>`;
+          if (badgeEl) {
+            badgeEl.className = isPass 
+              ? 'text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300' 
+              : 'text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300';
+            badgeEl.innerText = isPass ? '✓ ผ่านเกณฑ์ 60%' : '⚠️ ยังไม่ผ่าน';
+          }
+        }
+      });
+
+      const progEl = document.getElementById('trialOverallProgress');
+      if (progEl) progEl.innerText = `${doneCount}/5`;
+    }
+
+    function startTrialSubject(subKey) {
+      window.location.href = `trial-quiz.html?subject=${subKey}&name=${encodeURIComponent(guestUserName)}`;
+    }
+
+    function exitAndClearGuestData() {
+      if (confirm('คุณต้องการออกจากโหมดทดลองสอบและล้างข้อมูลทั้งหมดใช่หรือไม่?')) {
+        localStorage.removeItem('kru_guest_name');
+        localStorage.removeItem('kru_active_session');
+        localStorage.removeItem('kru_user_info');
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initLanding);
+  </script>
+</body>
+</html>

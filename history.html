@@ -671,6 +671,7 @@
       #weaknessTableBody p.text-xs {
         font-size: calc(17px * var(--desk-scale)) !important;
         line-height: 1.55 !important;
+        line-clamp: unset !important;
         -webkit-line-clamp: unset !important;
       }
       #weaknessTableBody button {
@@ -1107,7 +1108,7 @@
       localStorage.getItem('kru_font_size') ||
       localStorage.getItem('fontSize') ||
       localStorage.getItem('exam_font_size') ||
-      'large'
+      'medium'
     ).toLowerCase();
 
     if (savedFont.includes('large') || savedFont.includes('lg') || savedFont.includes('xl') || savedFont.includes('ใหญ่')) {
@@ -1550,102 +1551,133 @@
       return terms.some(t => full.includes(t.toLowerCase()));
     };
 
-    if (currentMode === 'all_overview') {
-      const dimensions = [
-        { name: 'วิเคราะห์ภาษา', check: a => hasTerm(a, ['ภาษา', 'ไทย', 'สรุปความ']) },
-        { name: 'คำนวณ/เหตุผล', check: a => hasTerm(a, ['นามธรรม', 'คณิต', 'อนุกรม', 'สถิติ']) },
-        { name: 'ภาษาอังกฤษ', check: a => hasTerm(a, ['อังกฤษ', 'english', 'vocab', 'grammar']) },
-        { name: 'กฎหมาย/วินัย', check: a => hasTerm(a, ['กฎหมาย', 'ข้าราชการ', 'วินัย', 'จริยธรรม']) },
-        { name: 'วิชาชีพครู', check: a => hasTerm(a, ['วิชาชีพ', 'หลักสูตร', 'การสอน', 'จิตวิทยา', 'วัดผล']) },
-        { name: 'วิชาเอก', check: a => hasTerm(a, ['คอมพิวเตอร์', 'วิชาเอก', 'เฉพาะทาง']) }
-      ];
+    // 1. รวมมิติการวัดผลของทั้ง 3 โหมด (ภาพรวม / ภาค ก / ภาค ข) ให้มีโครงสร้างมาตรฐานเดียวกัน
+    let activeDimensions = [];
 
-      fullLabels = dimensions.map(d => d.name);
-      radarValues = dimensions.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
+    if (currentMode === 'all_overview') {
+      activeDimensions = [
+        { name: 'วิเคราะห์ภาษา', check: a => hasTerm(a, ['ภาษา', 'ไทย', 'สรุปความ', 'จับใจความ', 'การใช้คำ']) },
+        { name: 'คำนวณ/เหตุผล', check: a => hasTerm(a, ['นามธรรม', 'คณิต', 'อนุกรม', 'สถิติ', 'ตาราง', 'ร้อยละ', 'ตรรก', 'มิติสัมพันธ์', 'อุปมา']) },
+        { name: 'ภาษาอังกฤษ', check: a => hasTerm(a, ['อังกฤษ', 'english', 'vocab', 'grammar', 'reading', 'conversation']) },
+        { name: 'กฎหมาย/วินัย', check: a => hasTerm(a, ['กฎหมาย', 'ข้าราชการ', 'วินัย', 'จริยธรรม', 'พ.ร.บ.', 'ระเบียบ', 'ธรรมาภิบาล']) },
+        { name: 'วิชาชีพครู', check: a => hasTerm(a, ['วิชาชีพ', 'หลักสูตร', 'การสอน', 'จิตวิทยา', 'วัดผล', 'ประเมิน', 'ประกันคุณภาพ']) },
+        { name: 'วิชาเอก', check: a => hasTerm(a, ['คอมพิวเตอร์', 'วิชาเอก', 'เฉพาะทาง', 'คำนวณ', 'เครือข่าย', 'ดิจิทัล']) }
+      ];
     } else {
       const isPartA = (currentMode === 'part_a');
-      const subDims = isPartA ? [
-        { name: 'ความเข้าใจภาษาไทย', check: a => hasTerm(a, ['ภาษา', 'ไทย']) },
-        { name: 'คณิตศาสตร์/เหตุผล', check: a => hasTerm(a, ['คณิต', 'นามธรรม', 'อนุกรม']) },
-        { name: 'ภาษาอังกฤษ', check: a => hasTerm(a, ['อังกฤษ']) },
-        { name: 'กฎหมายการศึกษา', check: a => hasTerm(a, ['กฎหมาย', 'พ.ร.บ.']) },
-        { name: 'คุณธรรม/จริยธรรม', check: a => hasTerm(a, ['จริยธรรม', 'วินัย']) }
+      activeDimensions = isPartA ? [
+        { name: 'ความเข้าใจภาษาไทย', check: a => hasTerm(a, ['ภาษา', 'ไทย', 'จับใจความ', 'การใช้คำ', 'เรียงลำดับ']) },
+        { name: 'คณิตศาสตร์/เหตุผล', check: a => hasTerm(a, ['คณิต', 'นามธรรม', 'อนุกรม', 'สถิติ', 'ตาราง', 'ร้อยละ', 'ตรรก', 'มิติสัมพันธ์', 'อุปมา']) },
+        { name: 'ภาษาอังกฤษ', check: a => hasTerm(a, ['อังกฤษ', 'english', 'grammar', 'vocab', 'reading', 'conversation']) },
+        { name: 'กฎหมายการศึกษา', check: a => hasTerm(a, ['กฎหมาย', 'พ.ร.บ.', 'ระเบียบ', 'ราชการ', 'ธรรมาภิบาล']) },
+        { name: 'คุณธรรม/จริยธรรม', check: a => hasTerm(a, ['จริยธรรม', 'วินัย', 'มาตรฐานทางจริยธรรม']) }
       ] : [
-        { name: 'หลักสูตร & การสอน', check: a => hasTerm(a, ['หลักสูตร', 'Active Learning']) },
-        { name: 'จิตวิทยาแนะแนว', check: a => hasTerm(a, ['จิตวิทยา']) },
-        { name: 'วัดและประเมินผล', check: a => hasTerm(a, ['วัดผล', 'ประเมิน']) },
-        { name: 'ประกันคุณภาพ', check: a => hasTerm(a, ['ประกันคุณภาพ']) },
-        { name: 'วิชาเอกคอมพิวเตอร์', check: a => hasTerm(a, ['คอมพิวเตอร์']) }
+        { name: 'หลักสูตร & การสอน', check: a => hasTerm(a, ['หลักสูตร', 'Active Learning', 'การสอน']) },
+        { name: 'จิตวิทยาแนะแนว', check: a => hasTerm(a, ['จิตวิทยา', 'แนะแนว', 'พัฒนาการ']) },
+        { name: 'วัดและประเมินผล', check: a => hasTerm(a, ['วัดผล', 'ประเมิน', 'วิจัย']) },
+        { name: 'ประกันคุณภาพ', check: a => hasTerm(a, ['ประกันคุณภาพ', 'ชั้นเรียน']) },
+        { name: 'วิชาเอกคอมพิวเตอร์', check: a => hasTerm(a, ['คอมพิวเตอร์', 'คำนวณ', 'เครือข่าย', 'ดิจิทัล']) }
       ];
-      fullLabels = subDims.map(d => d.name);
-      radarValues = subDims.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
     }
+
+    fullLabels = activeDimensions.map(d => d.name);
+
+    // 2. ตรวจสอบจำนวนครั้งที่เคยเข้าสอบจริงของแต่ละวิชา
+    const testedCounts = activeDimensions.map(d => cachedRadarAttempts.filter(d.check).length);
+    radarValues = activeDimensions.map(d => calcAvg(cachedRadarAttempts.filter(d.check)));
 
     const isDesktop = window.innerWidth >= 1024;
     const scaleAttr = document.documentElement.getAttribute('data-font-scale');
     const deskFontBoost = scaleAttr === 'large' ? 1.15 : scaleAttr === 'medium' ? 1.07 : 1;
 
-    const chartLabels = fullLabels.map((name, i) => 
-      isDesktop ? `${i + 1}. ${name} (${radarValues[i]}%)` : `ด้านที่ ${i + 1}`
-    );
-    const pointColors = fullLabels.map((_, i) => RADAR_PALETTE[i % RADAR_PALETTE.length].hex);
+    // 🌟 1. ป้ายบนยอดมุมกราฟ: ถ้ายังไม่สอบ ให้แสดงแค่ชื่อวิชา (หรือมีสัญลักษณ์ -) ไม่ต่อคำยาวๆ ให้รก
+    const chartLabels = fullLabels.map((name, i) => {
+      if (testedCounts[i] > 0) {
+        return isDesktop ? `${i + 1}. ${name} (${radarValues[i]}%)` : `${name} (${radarValues[i]}%)`;
+      } else {
+        // วิชาที่ยังไม่เคยสอบ แสดงชื่อวิชาเรียบหรู คลีนตา
+        return isDesktop ? `${i + 1}. ${name}` : name;
+      }
+    });
 
+    const pointColors = fullLabels.map((_, i) => testedCounts[i] > 0 ? RADAR_PALETTE[i % RADAR_PALETTE.length].hex : '#CBD5E1');
+
+    // 🌟 2. การ์ดด้านล่าง: จัด Flexbox ใหม่ ป้องกันข้อความทับซ้อน และเปลี่ยนคำเป็นป้าย Badge เรียบหรู
     if (legendContainer) {
       legendContainer.innerHTML = fullLabels.map((name, idx) => {
         const score = radarValues[idx];
+        const isTested = testedCounts[idx] > 0;
         const theme = RADAR_PALETTE[idx % RADAR_PALETTE.length];
+
+        // ป้ายสถานะคะแนนที่กระชับและยืดหยุ่น
+        const statusBadge = isTested 
+          ? `<span class="text-xs font-black shrink-0 font-mono" style="color: ${theme.hex};">${score}%</span>`
+          : `<span class="text-[10px] font-bold text-slate-400 bg-white/90 border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0">รอทดสอบ</span>`;
+
         return `
-          <div class="radar-skill-card p-2.5 rounded-2xl border ${theme.bg} ${theme.border} flex flex-col justify-between gap-2 shadow-2xs transition-all">
-            <div class="flex items-center justify-between gap-1.5">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="w-4 h-4 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center shrink-0 shadow-2xs" style="background-color: ${theme.hex};">
+          <div class="radar-skill-card p-3 rounded-2xl border ${theme.bg} ${theme.border} flex flex-col justify-between gap-2.5 shadow-2xs transition-all">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="w-5 h-5 rounded-lg text-[10px] font-black text-white flex items-center justify-center shrink-0 shadow-2xs" style="background-color: ${isTested ? theme.hex : '#94A3B8'};">
                   ${idx + 1}
                 </span>
-                <span class="text-[11px] font-extrabold ${theme.text} truncate" title="${name}">${name}</span>
+                <span class="text-xs font-extrabold ${theme.text} truncate" title="${name}">${name}</span>
               </div>
-              <span class="text-[11px] font-extrabold shrink-0" style="color: ${theme.hex};">${score}%</span>
+              ${statusBadge}
             </div>
-            <div class="w-full h-1.5 bg-white/80 rounded-full overflow-hidden">
-              <div class="h-full ${theme.bar} rounded-full transition-all duration-700" style="width: ${Math.max(4, score)}%;"></div>
+            
+            <div class="w-full h-1.5 bg-white/90 rounded-full overflow-hidden border border-black/5">
+              <div class="h-full ${theme.bar} rounded-full transition-all duration-700" style="width: ${isTested ? Math.max(5, score) : 0}%;"></div>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    const activeScores = radarValues.filter(v => v > 0);
-    const overallAvg = activeScores.length > 0 ? Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length) : 0;
+    // 4. คำนวณสรุปผลคำแนะนำ AI จากวิชาที่เคยเข้าสอบจริง
+    const activeIndices = [];
+    const untestedNames = [];
+
+    testedCounts.forEach((count, i) => {
+      if (count > 0) activeIndices.push(i);
+      else untestedNames.push(fullLabels[i]);
+    });
 
     if (badge && advice) {
-      if (activeScores.length === 0) {
+      if (activeIndices.length === 0) {
         badge.className = 'px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500';
         badge.innerText = 'ยังไม่มีข้อมูล';
-        advice.innerText = 'ยังไม่พบประวัติการทำข้อสอบในหมวดที่เลือก ลองทำข้อสอบเพื่อเริ่มต้นวิเคราะห์ความพร้อมด้วย AI';
+        advice.innerText = 'ยังไม่พบประวัติการทำข้อสอบในหมวดนี้ เริ่มต้นฝึกทำข้อสอบเพื่อประเมินความพร้อมรอบด้าน';
       } else {
+        const activeScores = activeIndices.map(i => radarValues[i]);
+        const overallAvg = Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length);
+
         badge.className = overallAvg >= 60 
           ? 'px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700' 
           : 'px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800';
         badge.innerText = `ความพร้อม ${overallAvg}%`;
 
-        let maxIdx = 0, minIdx = -1;
-        radarValues.forEach((score, i) => {
-          if (score > radarValues[maxIdx]) maxIdx = i;
-          if (score > 0 && (minIdx === -1 || score < radarValues[minIdx])) minIdx = i;
+        // คัดเลือกจุดแข็งและจุดอ่อนจากวิชาที่เคยทำข้อสอบแล้วเท่านั้น
+        let bestIdx = activeIndices[0];
+        let worstIdx = activeIndices[0];
+
+        activeIndices.forEach(i => {
+          if (radarValues[i] > radarValues[bestIdx]) bestIdx = i;
+          if (radarValues[i] < radarValues[worstIdx]) worstIdx = i;
         });
 
-        if (activeScores.length === 1 || maxIdx === minIdx) {
-          const untestedIdx = radarValues.findIndex(v => v === 0);
-          const nextTopic = untestedIdx !== -1 ? fullLabels[untestedIdx] : 'หมวดวิชาอื่นๆ';
-          advice.innerHTML = `
-            คุณเริ่มต้นเก็บคะแนนในเรื่อง <strong class="text-emerald-700 font-extrabold">${fullLabels[maxIdx]} (${radarValues[maxIdx]}%)</strong> แล้ว! 
-            แนะนำให้ลองฝึกทำเรื่อง <strong class="text-indigo-600 font-extrabold">${nextTopic}</strong> เพิ่มเติมเพื่อให้เรดาร์วิเคราะห์ได้ครบทุกมิติ
-          `;
-        } else {
-          advice.innerHTML = `
-            จุดแข็งของคุณคือ <strong class="text-emerald-700 font-extrabold">${fullLabels[maxIdx]} (${radarValues[maxIdx]}%)</strong> 
-            และควรเร่งเก็บคะแนนเพิ่มในเรื่อง <strong class="text-rose-600 font-extrabold">${fullLabels[minIdx]} (${radarValues[minIdx]}%)</strong>
-          `;
+        let adviceMsg = `จุดแข็งของคุณคือ <strong class="text-emerald-700 font-extrabold">${fullLabels[bestIdx]} (${radarValues[bestIdx]}%)</strong>`;
+
+        if (bestIdx !== worstIdx) {
+          adviceMsg += ` และควรเร่งเก็บคะแนนเพิ่มในเรื่อง <strong class="text-rose-600 font-extrabold">${fullLabels[worstIdx]} (${radarValues[worstIdx]}%)</strong>`;
         }
+
+        // แจ้งเตือนวิชาที่ยังไม่ได้เข้าสอบแยกไว้ชัดเจน
+        if (untestedNames.length > 0) {
+          adviceMsg += `<br><span class="text-amber-800 font-semibold block mt-1">💡 วิชาที่ยังไม่มีประวัติการสอบ: <span class="underline font-bold">${untestedNames.join(', ')}</span> (แนะนำให้ลองทำเพื่อการประเมินที่แม่นยำครบทุกมิติครับ)</span>`;
+        }
+
+        advice.innerHTML = adviceMsg;
       }
     }
 
