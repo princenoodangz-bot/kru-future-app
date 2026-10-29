@@ -1677,7 +1677,24 @@
       loadLeaderboardData();
       checkUserCompetitionStatus();
     });
+// ค้นหา element ของแมวแล้วซ่อนทันทีถ้าแอดมินปิดไว้
+function handleCatVisibility(isEnabled) {
+  const catEl = document.getElementById('oneko') 
+             || document.getElementById('cat') 
+             || document.getElementById('screenCat')
+             || document.querySelector('[data-cat]');
 
+  if (catEl) {
+    catEl.style.display = isEnabled ? 'block' : 'none';
+  }
+}
+
+// ในฟังก์ชันโหลด system_configs ที่มีอยู่เดิม
+if (conf.enable_cat === 'false') {
+  handleCatVisibility(false);
+} else {
+  handleCatVisibility(true);
+}
   </script>
 </body>
 </html>

@@ -1224,6 +1224,24 @@
           </table>
         </div>
       </div>
+      <!-- สวิตช์ควบคุมน้องแมวจากหลังบ้าน Admin -->
+<div class="flex items-center justify-between p-3.5 bg-amber-50/70 border border-amber-200 rounded-2xl">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-amber-100 text-[#755634] flex items-center justify-center text-xl">
+      🐱
+    </div>
+    <div>
+      <p class="text-xs font-bold text-slate-800">แสดงมาสคอตน้องแมววิ่งบนหน้าจอ</p>
+      <p class="text-[10px] text-slate-500">เปิด/ปิด การแสดงผลน้องแมวสำหรับผู้ใช้งานทุกคน</p>
+    </div>
+  </div>
+
+  <!-- ปุ่มสวิตช์ Toggle -->
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input type="checkbox" id="adminToggleCat" onchange="updateCatConfigByAdmin(this.checked)" class="sr-only peer">
+    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#755634]"></div>
+  </label>
+</div>
 
           
 
@@ -1741,13 +1759,63 @@ async function saveSystemConfigs() {
   }
 }
 
-// แมปปิ้งคีย์และเงื่อนไขของ 5 วิชา
+// แมปปิ้งคีย์และเงื่อนไขกรอง 5 วิชาหลัก (แก้ไขให้แม่นยำ ไม่ดึงข้ามหมวด 100%)
 const ADMIN_TRIAL_MAP = {
-  math: { key: 'locked_trial_math_20', match: (q) => (q.exam_part || '').includes('ภาค ก') && /(คณิต|ปริมาณ|นามธรรม|อนุกรม|สถิติ|ตาราง)/i.test(`${q.exam_category} ${q.exam_topic}`) },
-  thai: { key: 'locked_trial_thai_20', match: (q) => (q.exam_part || '').includes('ภาค ก') && /(ไทย|ภาษา|จับใจความ|การใช้คำ|เรียง)/i.test(`${q.exam_category} ${q.exam_topic}`) },
-  law:  { key: 'locked_trial_law_20',  match: (q) => (q.exam_part || '').includes('ภาค ก') && /(กฎหมาย|ข้าราชการ|ระเบียบ|วินัย|จริยธรรม|ธรรมาภิบาล)/i.test(`${q.exam_category} ${q.exam_topic}`) },
-  eng:  { key: 'locked_trial_eng_20',  match: (q) => (q.exam_part || '').includes('ภาค ก') && /(อังกฤษ|english|vocab|grammar|reading)/i.test(`${q.exam_category} ${q.exam_topic}`) },
-  prof: { key: 'locked_trial_prof_20', match: (q) => (q.exam_part || '').includes('ภาค ข') || /(วิชาชีพ|หลักสูตร|การสอน|จิตวิทยา|วัดผล|ประกันคุณภาพ)/i.test(`${q.exam_category} ${q.exam_topic}`) }
+  // 1. คณิตศาสตร์ & คิดวิเคราะห์ (ภาค ก)
+  math: { 
+    key: 'locked_trial_math_20', 
+    match: (q) => {
+      const isPartA = (q.exam_part || '').includes('ภาค ก');
+      const text = `${q.exam_category || ''} ${q.exam_sub_category || ''} ${q.exam_topic || ''}`.toLowerCase();
+      const isMath = /(คณิต|ปริมาณ|อนุกรม|สถิติ|ตาราง|นามธรรม|อุปมา|ตรรก|มิติสัมพันธ์)/i.test(text);
+      const notOther = !/(ภาษาไทย|อังกฤษ|english|กฎหมาย|ข้าราชการ)/i.test(text);
+      return isPartA && isMath && notOther;
+    }
+  },
+
+  // 2. ภาษาไทย (ภาค ก) -> ล็อกไม่ให้มีคำว่าอังกฤษเด็ดขาด
+  thai: { 
+    key: 'locked_trial_thai_20', 
+    match: (q) => {
+      const isPartA = (q.exam_part || '').includes('ภาค ก');
+      const text = `${q.exam_category || ''} ${q.exam_sub_category || ''} ${q.exam_topic || ''}`.toLowerCase();
+      const isThai = /(ภาษาไทย|เชิงภาษา|จับใจความ|การใช้คำ|เรียงลำดับ|คำราชาศัพท์|สำนวนไทย|บทความ)/i.test(text);
+      const notEng = !/(อังกฤษ|english|vocab|grammar|reading|conversation)/i.test(text);
+      return isPartA && isThai && notEng;
+    }
+  },
+
+  // 3. กฎหมาย & ข้าราชการที่ดี (ภาค ก)
+  law: { 
+    key: 'locked_trial_law_20',  
+    match: (q) => {
+      const isPartA = (q.exam_part || '').includes('ภาค ก');
+      const text = `${q.exam_category || ''} ${q.exam_sub_category || ''} ${q.exam_topic || ''}`.toLowerCase();
+      return isPartA && /(กฎหมาย|ข้าราชการ|ระเบียบ|พ\.ร\.บ|ปกครอง|วินัย|จริยธรรม|ธรรมาภิบาล|บ้านเมืองที่ดี)/i.test(text);
+    }
+  },
+
+  // 4. ภาษาอังกฤษ (ภาค ก)
+  eng: { 
+    key: 'locked_trial_eng_20',  
+    match: (q) => {
+      const isPartA = (q.exam_part || '').includes('ภาค ก');
+      const text = `${q.exam_category || ''} ${q.exam_sub_category || ''} ${q.exam_topic || ''}`.toLowerCase();
+      return isPartA && /(อังกฤษ|english|vocab|grammar|reading|conversation|structure)/i.test(text);
+    }
+  },
+
+  // 5. มาตรฐานวิชาชีพครู (ภาค ข) -> ตัดวิชาเอกออก ไม่ให้ปนเข้ามา
+  prof: { 
+    key: 'locked_trial_prof_20', 
+    match: (q) => {
+      const isPartB = (q.exam_part || '').includes('ภาค ข');
+      const text = `${q.exam_category || ''} ${q.exam_sub_category || ''} ${q.exam_topic || ''}`.toLowerCase();
+      const isProf = /(วิชาชีพ|หลักสูตร|การสอน|active learning|จิตวิทยา|วัดผล|ประเมิน|วิจัย|ชั้นเรียน|ประกันคุณภาพ)/i.test(text);
+      const notMajor = !/(วิชาเอก|คอมพิวเตอร์|วิทยาการคำนวณ)/i.test(text);
+      return isPartB && isProf && notMajor;
+    }
+  }
 };
 
 let pendingTrialQuestions = [];
@@ -3856,6 +3924,41 @@ async function setQuestionsLock(shouldLock) {
     alert('เกิดข้อผิดพลาดในการสลับสถานะ: ' + err.message);
   }
 }
+
+// โหลดค่าสถานะเดิมตอนเปิดหน้า Admin
+async function loadCatConfigAdmin() {
+  if (!window.supabase) return;
+  const { data } = await supabase
+    .from('system_configs')
+    .select('value')
+    .eq('key', 'enable_cat')
+    .single();
+
+  const toggle = document.getElementById('adminToggleCat');
+  if (toggle && data) {
+    toggle.checked = (data.value !== 'false');
+  }
+}
+
+// อัปเดตค่าเมื่อแอดมินกดเปิด/ปิด
+async function updateCatConfigByAdmin(isEnabled) {
+  try {
+    const val = isEnabled ? 'true' : 'false';
+    const { error } = await supabase
+      .from('system_configs')
+      .upsert({ key: 'enable_cat', value: val });
+
+    if (error) throw error;
+    alert(isEnabled ? '✅ เปิดแสดงน้องแมวทั่วระบบแล้ว' : '🚫 ปิดแสดงน้องแมวทั่วระบบเรียบร้อย');
+  } catch (err) {
+    alert('เกิดข้อผิดพลาด: ' + err.message);
+  }
+}
+
+// เรียกทำงานตอนโหลดหน้า
+document.addEventListener('DOMContentLoaded', () => {
+  loadCatConfigAdmin();
+});
 </script>
 </body>
 </html>
