@@ -14,11 +14,11 @@
   <meta name="apple-mobile-web-app-title" content="ครูในอนาคต">
   <meta name="theme-color" content="#755634">
 
-  <!-- เชื่อมต่อ Supabase และ Theme Manager เดิม -->
+  <!-- เชื่อมต่อ Supabase และ Theme Manager -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="supabase-config.js"></script>
-<script defer src="check-auth.js"></script>
-<script defer src="theme-manager.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="check-auth.js"></script>
+  <script defer src="theme-manager.js"></script>
 
   <!-- Google Fonts & Icons: Plus Jakarta Sans + Anuphan -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,10 +119,155 @@
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
       animation: shimmerSweep 4s infinite;
     }
+
+    /* =========================================================================
+       3. FULL-SCREEN DESKTOP EXPANSION (เฉพาะจอคอมพิวเตอร์ >= 1024px)
+          * มือถือ (< 1024px) คงขนาดและดีไซน์เดิม 100% *
+       ========================================================================= */
+    @media (min-width: 1024px) {
+      #loginMainShell {
+        max-width: 1460px !important;
+        width: 92vw !important;
+        padding: 16px 0 !important;
+      }
+      #loginDesktopGrid {
+        gap: 48px !important;
+      }
+
+      /* --- ขยายฝั่งซ้าย (Showcase & Bento) ให้เต็มสมดุล --- */
+      #desktopLeftShowcase {
+        gap: 24px !important;
+      }
+      #desktopBrandBox .w-12.h-12 {
+        width: 58px !important;
+        height: 58px !important;
+        border-radius: 20px !important;
+      }
+      #desktopBrandBox .material-symbols-outlined {
+        font-size: 30px !important;
+      }
+      #desktopBrandBox .font-extrabold.text-xl {
+        font-size: 26px !important;
+      }
+      #desktopBrandBox p.text-xs {
+        font-size: 14.5px !important;
+      }
+
+      /* Hero Banner ฝั่งซ้าย */
+      #desktopHeroBanner {
+        padding: 36px 42px !important;
+        border-radius: 36px !important;
+      }
+      #desktopHeroBanner h2 {
+        font-size: 34px !important;
+        line-height: 1.25 !important;
+      }
+      #desktopHeroBanner p.text-xs {
+        font-size: 15px !important;
+        line-height: 1.65 !important;
+        max-width: 560px !important;
+      }
+      #desktopHeroBanner .w-28.h-28 {
+        width: 132px !important;
+        height: 132px !important;
+      }
+      #desktopHeroBanner svg.w-16.h-16 {
+        width: 78px !important;
+        height: 78px !important;
+      }
+
+      /* การ์ดฟีเจอร์ 4 ช่อง (Bento Grid) */
+      #desktopBentoGrid {
+        gap: 20px !important;
+      }
+      .bento-feature-card {
+        padding: 24px 26px !important;
+        border-radius: 28px !important;
+      }
+      .bento-feature-card .w-11.h-11 {
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 18px !important;
+      }
+      .bento-feature-card .w-11.h-11 span {
+        font-size: 26px !important;
+      }
+      .bento-feature-card h3 {
+        font-size: 17px !important;
+        margin-top: 6px !important;
+      }
+      .bento-feature-card p {
+        font-size: 13.5px !important;
+        line-height: 1.55 !important;
+        margin-top: 4px !important;
+      }
+
+      /* แถบคำคมด้านล่างซ้าย */
+      #desktopQuoteBar {
+        padding: 18px 24px !important;
+        border-radius: 22px !important;
+      }
+      #desktopQuoteText {
+        font-size: 14.5px !important;
+      }
+
+      /* --- ขยายฝั่งขวา (Login Form Card) ให้ใหญ่ชัดเจน --- */
+      #loginCard {
+        padding: 40px 44px !important;
+        border-radius: 38px !important;
+      }
+      #loginCard h2 {
+        font-size: 26px !important;
+      }
+      #tabLoginId, #tabLoginGuest {
+        padding-top: 13px !important;
+        padding-bottom: 13px !important;
+        font-size: 14.5px !important;
+      }
+      #loginLabel,
+      #passwordFieldWrapper label.block {
+        font-size: 14.5px !important;
+        margin-bottom: 8px !important;
+      }
+      #identifierInput,
+      #passwordInput {
+        padding-top: 15px !important;
+        padding-bottom: 15px !important;
+        padding-left: 50px !important;
+        padding-right: 48px !important;
+        font-size: 15.5px !important;
+        border-radius: 20px !important;
+      }
+      #identifierIcon,
+      #lockIcon {
+        font-size: 21px !important;
+        left: 16px !important;
+        right: auto !important;
+        pointer-events: none !important;
+      }
+      #btnTogglePassword {
+        right: 16px !important;
+        left: auto !important;
+      }
+      #eyeIcon {
+        font-size: 21px !important;
+        left: auto !important;
+      }
+      #btnSubmitLogin {
+        padding-top: 18px !important;
+        padding-bottom: 18px !important;
+        font-size: 16.5px !important;
+        border-radius: 20px !important;
+      }
+      #desktopFooterContact {
+        font-size: 14px !important;
+        padding: 10px 22px !important;
+      }
+    }
   </style>
 </head>
 
-<body class="bg-aurora text-slate-800 antialiased min-h-screen flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden select-none">
+<body class="bg-aurora text-slate-800 antialiased min-h-screen flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-10 relative overflow-x-hidden select-none">
 
   <!-- =========================================================
        ฉากหลังแบบ Multi-Layer (Grid + Aurora Orbs + 3D Glass Icons)
@@ -135,45 +280,45 @@
     <div class="absolute top-1/3 -left-32 w-80 h-80 rounded-full bg-gradient-to-tr from-rose-300/25 via-amber-200/30 to-transparent blur-3xl animate-orbit-2"></div>
     <div class="absolute -bottom-28 right-1/4 w-96 h-96 rounded-full bg-gradient-to-t from-sky-200/35 via-indigo-200/20 to-transparent blur-3xl animate-orbit-1" style="animation-delay: -5s;"></div>
 
-    <!-- การ์ดกระจกใส 3D ลอยประดับฉากหลัง -->
-    <div class="animate-glass-1 absolute top-[8%] left-[5%] lg:left-[8%] w-12 h-12 rounded-2xl bg-white/50 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-700/75">
-      <span class="material-symbols-outlined text-[24px]">workspace_premium</span>
+    <!-- การ์ดกระจกใส 3D ลอยประดับฉากหลัง 4 มุม -->
+    <div style="top: 7%; left: 5%;" class="animate-glass-1 absolute w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/55 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-700/75">
+      <span class="material-symbols-outlined text-[22px] sm:text-[24px]">workspace_premium</span>
     </div>
-    <div class="animate-glass-2 absolute top-[12%] right-[6%] lg:right-[8%] w-11 h-11 rounded-2xl bg-white/50 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-orange-500/80">
-      <span class="material-symbols-outlined text-[22px]">lightbulb</span>
+    <div style="top: 10%; right: 5%;" class="animate-glass-2 absolute w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/55 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-orange-500/80">
+      <span class="material-symbols-outlined text-[20px] sm:text-[22px]">lightbulb</span>
     </div>
-    <div class="animate-glass-3 absolute bottom-[10%] left-[7%] lg:left-[10%] w-11 h-11 rounded-2xl bg-white/50 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-emerald-600/75">
-      <span class="material-symbols-outlined text-[22px]">monitoring</span>
+    <div style="bottom: 9%; left: 6%;" class="animate-glass-3 absolute w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/55 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-emerald-600/75">
+      <span class="material-symbols-outlined text-[20px] sm:text-[22px]">monitoring</span>
     </div>
-    <div class="animate-glass-4 absolute bottom-[14%] right-[5%] lg:right-[9%] w-12 h-12 rounded-2xl bg-white/50 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-500/85">
-      <span class="material-symbols-outlined text-[24px]">emoji_events</span>
+    <div style="bottom: 12%; right: 5%;" class="animate-glass-4 absolute w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/55 backdrop-blur-md border border-white/80 shadow-[0_8px_20px_rgba(117,86,52,0.08)] flex items-center justify-center text-amber-500/85">
+      <span class="material-symbols-outlined text-[22px] sm:text-[24px]">emoji_events</span>
     </div>
   </div>
 
   <!-- =========================================================
        คอนเทนเนอร์หลัก Responsive:
        - มือถือ: กว้างสุด 420px เรียง 1 คอลัมน์
-       - คอมพิวเตอร์ (lg ขึ้นไป): กว้างสุด 1060px แบ่ง 12 คอลัมน์ (ซ้าย 7 : ขวา 5)
+       - คอมพิวเตอร์ (lg ขึ้นไป): กางเต็มจอ 1460px แบ่ง 12 คอลัมน์ (ซ้าย 7 : ขวา 5)
        ========================================================= -->
-  <main class="w-full max-w-[420px] lg:max-w-[1060px] mx-auto relative z-10">
+  <main id="loginMainShell" class="w-full max-w-[420px] lg:max-w-[1460px] mx-auto relative z-10">
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+    <div id="loginDesktopGrid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
 
       <!-- =====================================================
            ฝั่งซ้าย (เฉพาะจอคอมพิวเตอร์ lg ขึ้นไป): Bento Feature Showcase
            ===================================================== -->
-      <section class="hidden lg:flex lg:col-span-7 flex-col justify-between space-y-6 pr-2 stagger-1">
+      <section id="desktopLeftShowcase" class="hidden lg:flex lg:col-span-7 flex-col justify-between space-y-6 pr-2 stagger-1">
         
         <!-- แถบโลโก้แบรนด์ขนาดใหญ่บนคอม -->
-        <div class="flex items-center justify-between">
+        <div id="desktopBrandBox" class="flex items-center justify-between">
           <div class="flex items-center gap-3.5">
             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B653B] to-[#5E4325] flex items-center justify-center text-white shadow-lg shadow-amber-900/20 border border-amber-200/40">
               <span class="material-symbols-outlined text-[26px]">school</span>
             </div>
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5">
                 <span class="font-extrabold text-xl text-slate-800 tracking-tight">ครูในอนาคต</span>
-                <span class="px-2 py-0.5 text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg uppercase tracking-wider shadow-2xs">GEN 4 PRO</span>
+                <span class="px-2.5 py-0.5 text-[11px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg uppercase tracking-wider shadow-2xs">GEN 4 PRO</span>
               </div>
               <p class="text-xs text-slate-500 font-medium mt-0.5">Smart Teacher Assistant Exam Arena • ระบบเตรียมสอบครูผู้ช่วยครบวงจร</p>
             </div>
@@ -181,15 +326,15 @@
         </div>
 
         <!-- Hero Card ต้อนรับบนจอคอม พร้อมอินทรธนู 3D -->
-        <div class="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#2A1E14] via-[#4A3423] to-[#755634] p-7 text-white shadow-[0_20px_50px_rgba(117,86,52,0.22)] border border-amber-300/25">
+        <div id="desktopHeroBanner" class="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#2A1E14] via-[#4A3423] to-[#755634] p-7 text-white shadow-[0_20px_50px_rgba(117,86,52,0.22)] border border-amber-300/25">
           <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-amber-400/20 blur-3xl pointer-events-none"></div>
           <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-orange-500/15 blur-2xl pointer-events-none"></div>
 
           <div class="flex items-center justify-between gap-6 relative z-10">
-            <div class="space-y-3 flex-1">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20">
+            <div class="space-y-3.5 flex-1">
+              <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span class="text-[11px] font-extrabold tracking-wider uppercase text-amber-200">สนามสอบจำลองเสมือนจริง ภาค ก & ข</span>
+                <span class="text-xs font-extrabold tracking-wider uppercase text-amber-200">สนามสอบจำลองเสมือนจริง ภาค ก & ข</span>
               </div>
               <h2 class="text-2xl xl:text-3xl font-extrabold leading-tight tracking-tight">
                 ก้าวสู่ข้าราชการครู<br>ด้วยความมั่นใจเต็ม <span class="text-amber-300 underline decoration-amber-400/50">100%</span>
@@ -217,7 +362,7 @@
                   <circle cx="32" cy="14" r="4.5" fill="#FEF9C3"/>
                 </svg>
               </div>
-              <span class="absolute -bottom-2 -right-2 px-2.5 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-extrabold border-2 border-white shadow-md">
+              <span class="absolute -bottom-2 -right-2 px-3 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[11px] font-extrabold border-2 border-white shadow-md">
                 ครูผู้ช่วย
               </span>
             </div>
@@ -225,13 +370,13 @@
         </div>
 
         <!-- 4 กล่องฟีเจอร์สีพาสเทล (Colorful Pastel Bento Grid) -->
-        <div class="grid grid-cols-2 gap-3.5">
+        <div id="desktopBentoGrid" class="grid grid-cols-2 gap-3.5">
           
           <!-- กล่อง 1: สีคราม-ไวโอเล็ต -->
-          <div class="group relative overflow-hidden bg-gradient-to-br from-indigo-50/95 via-white to-violet-50/90 rounded-3xl p-4 border-2 border-indigo-100/90 hover:border-indigo-300 shadow-[0_8px_25px_rgba(99,102,241,0.08)] hover:-translate-y-1 transition-all">
+          <div class="bento-feature-card group relative overflow-hidden bg-gradient-to-br from-indigo-50/95 via-white to-violet-50/90 rounded-3xl p-4 border-2 border-indigo-100/90 hover:border-indigo-300 shadow-[0_8px_25px_rgba(99,102,241,0.08)] hover:-translate-y-1 transition-all">
             <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
             <span class="material-symbols-outlined absolute -right-3 -bottom-3 text-[64px] text-indigo-500/10 group-hover:scale-110 group-hover:-rotate-12 transition-transform pointer-events-none">inventory_2</span>
-            <div class="flex items-start gap-3 relative z-10">
+            <div class="flex items-start gap-3.5 relative z-10">
               <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/25 shrink-0 group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[22px]">library_books</span>
               </div>
@@ -244,10 +389,10 @@
           </div>
 
           <!-- กล่อง 2: สีเขียวมรกต-มิ้นต์ -->
-          <div class="group relative overflow-hidden bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/90 rounded-3xl p-4 border-2 border-emerald-100/90 hover:border-emerald-300 shadow-[0_8px_25px_rgba(16,185,129,0.08)] hover:-translate-y-1 transition-all">
+          <div class="bento-feature-card group relative overflow-hidden bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/90 rounded-3xl p-4 border-2 border-emerald-100/90 hover:border-emerald-300 shadow-[0_8px_25px_rgba(16,185,129,0.08)] hover:-translate-y-1 transition-all">
             <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
             <span class="material-symbols-outlined absolute -right-3 -bottom-3 text-[64px] text-emerald-500/10 group-hover:scale-110 group-hover:-rotate-12 transition-transform pointer-events-none">timer</span>
-            <div class="flex items-start gap-3 relative z-10">
+            <div class="flex items-start gap-3.5 relative z-10">
               <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0 group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[22px]">timer</span>
               </div>
@@ -260,10 +405,10 @@
           </div>
 
           <!-- กล่อง 3: สีม่วงลาเวนเดอร์-ชมพู -->
-          <div class="group relative overflow-hidden bg-gradient-to-br from-purple-50/95 via-white to-fuchsia-50/90 rounded-3xl p-4 border-2 border-purple-100/90 hover:border-purple-300 shadow-[0_8px_25px_rgba(168,85,247,0.08)] hover:-translate-y-1 transition-all">
+          <div class="bento-feature-card group relative overflow-hidden bg-gradient-to-br from-purple-50/95 via-white to-fuchsia-50/90 rounded-3xl p-4 border-2 border-purple-100/90 hover:border-purple-300 shadow-[0_8px_25px_rgba(168,85,247,0.08)] hover:-translate-y-1 transition-all">
             <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-500 to-fuchsia-500"></div>
             <span class="material-symbols-outlined absolute -right-3 -bottom-3 text-[64px] text-purple-500/10 group-hover:scale-110 group-hover:-rotate-12 transition-transform pointer-events-none">radar</span>
-            <div class="flex items-start gap-3 relative z-10">
+            <div class="flex items-start gap-3.5 relative z-10">
               <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 shrink-0 group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[22px]">radar</span>
               </div>
@@ -276,10 +421,10 @@
           </div>
 
           <!-- กล่อง 4: สีส้มพีช-คอรัล -->
-          <div class="group relative overflow-hidden bg-gradient-to-br from-orange-50/95 via-white to-amber-50/90 rounded-3xl p-4 border-2 border-orange-100/90 hover:border-orange-300 shadow-[0_8px_25px_rgba(249,115,22,0.08)] hover:-translate-y-1 transition-all">
+          <div class="bento-feature-card group relative overflow-hidden bg-gradient-to-br from-orange-50/95 via-white to-amber-50/90 rounded-3xl p-4 border-2 border-orange-100/90 hover:border-orange-300 shadow-[0_8px_25px_rgba(249,115,22,0.08)] hover:-translate-y-1 transition-all">
             <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
             <span class="material-symbols-outlined absolute -right-3 -bottom-3 text-[64px] text-orange-500/10 group-hover:scale-110 group-hover:-rotate-12 transition-transform pointer-events-none">emoji_events</span>
-            <div class="flex items-start gap-3 relative z-10">
+            <div class="flex items-start gap-3.5 relative z-10">
               <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-md shadow-orange-500/25 shrink-0 group-hover:scale-110 transition-transform">
                 <span class="material-symbols-outlined text-[22px]">emoji_events</span>
               </div>
@@ -294,7 +439,7 @@
         </div>
 
         <!-- แถบคำคมสร้างแรงบันดาลใจด้านล่างฝั่งซ้าย (คลิกสุ่มเปลี่ยนได้) -->
-        <div onclick="cycleLoginQuote()" class="cursor-pointer group bg-white/80 backdrop-blur-md rounded-2xl p-3.5 border border-white shadow-xs flex items-center justify-between gap-3 hover:bg-white transition-all">
+        <div id="desktopQuoteBar" onclick="cycleLoginQuote()" class="cursor-pointer group bg-white/80 backdrop-blur-md rounded-2xl p-3.5 border border-white shadow-xs flex items-center justify-between gap-3 hover:bg-white transition-all">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[20px]">favorite</span>
@@ -303,7 +448,7 @@
               “ความพยายามในวันนี้ คือเครื่องแบบข้าราชการครูในวันข้างหน้า”
             </p>
           </div>
-          <span class="text-[10px] font-extrabold text-[#755634] bg-amber-50 px-2.5 py-1 rounded-lg shrink-0 group-hover:bg-amber-100 transition-colors">
+          <span class="text-xs font-extrabold text-[#755634] bg-amber-50 px-3 py-1.5 rounded-xl shrink-0 group-hover:bg-amber-100 transition-colors">
             สุ่มคำคม ✨
           </span>
         </div>
@@ -394,14 +539,14 @@
           <div id="cardTopAccentBar" class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#755634] via-amber-500 to-orange-500 transition-all duration-500"></div>
 
           <!-- หัวข้อในการ์ด (แสดงเฉพาะบนจอคอม lg ขึ้นไป) -->
-          <div class="hidden lg:flex items-center justify-between mb-5 pt-1">
+          <div class="hidden lg:flex items-center justify-between mb-6 pt-1">
             <div>
-              <span class="text-[10px] font-extrabold uppercase tracking-widest text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full">MEMBER ACCESS</span>
-              <h2 class="text-xl font-extrabold text-slate-800 mt-1">เข้าสู่ระบบห้องสอบ</h2>
+              <span class="text-[11px] font-extrabold uppercase tracking-widest text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full">MEMBER ACCESS</span>
+              <h2 class="text-xl font-extrabold text-slate-800 mt-1.5">เข้าสู่ระบบห้องสอบ</h2>
             </div>
-            <div class="inline-flex items-center p-1 bg-slate-100 border border-slate-200/80 rounded-full text-[11px]">
-              <button type="button" class="px-2.5 py-0.5 rounded-full bg-[#755634] text-white font-bold shadow-2xs">TH</button>
-              <button type="button" class="px-2.5 py-0.5 rounded-full text-slate-500 font-semibold">EN</button>
+            <div class="inline-flex items-center p-1 bg-slate-100 border border-slate-200/80 rounded-full text-xs">
+              <button type="button" class="px-3 py-1 rounded-full bg-[#755634] text-white font-bold shadow-2xs">TH</button>
+              <button type="button" class="px-3 py-1 rounded-full text-slate-500 font-semibold">EN</button>
             </div>
           </div>
 
@@ -409,24 +554,24 @@
           <div class="relative grid grid-cols-2 p-1 bg-slate-200/65 rounded-2xl mb-5 text-xs font-bold">
             <div id="slidingTabBg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-transform duration-300 ease-out"></div>
 
-            <button type="button" id="tabLoginId" onclick="switchLoginMode('id')" class="relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200">
-              <span class="material-symbols-outlined text-[17px]">badge</span>
+            <button type="button" id="tabLoginId" onclick="switchLoginMode('id')" class="relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">badge</span>
               <span>รหัสผู้สอบสมาชิก</span>
             </button>
-            <button type="button" id="tabLoginGuest" onclick="switchLoginMode('guest')" class="relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200">
-              <span class="material-symbols-outlined text-[17px]">rocket_launch</span>
+            <button type="button" id="tabLoginGuest" onclick="switchLoginMode('guest')" class="relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
               <span>ทดลองสอบฟรี</span>
             </button>
           </div>
 
           <!-- กล่องแจ้งเตือน Error แบบสวยงาม -->
-          <div id="errorAlertBox" class="hidden mb-4 p-3 rounded-2xl bg-rose-50/95 border border-rose-200 text-rose-700 text-xs font-semibold items-center gap-2 transition-all">
+          <div id="errorAlertBox" class="hidden mb-4 p-3.5 rounded-2xl bg-rose-50/95 border border-rose-200 text-rose-700 text-xs font-semibold items-center gap-2 transition-all">
             <span class="material-symbols-outlined text-[18px] text-rose-500 shrink-0">error</span>
             <span id="errorAlertText">รหัสประจำตัว หรือ รหัสผ่านไม่ถูกต้อง</span>
           </div>
 
           <!-- ฟอร์มกรอกข้อมูล -->
-          <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <form onsubmit="handleLoginSubmit(event)" class="space-y-4 lg:space-y-5">
             
             <!-- ช่องที่ 1: รหัสผู้สอบ หรือ ชื่อเล่น -->
             <div>
@@ -434,76 +579,83 @@
                 รหัสประจำตัวผู้สอบ (Student ID)
               </label>
               <div class="relative flex items-center group">
-                <span id="identifierIcon" class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">person</span>
-                <input id="identifierInput" type="text" required 
-                       class="w-full bg-white/95 hover:bg-white pl-10 pr-4 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs sm:text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal shadow-2xs" 
+                <span id="identifierIcon" style="position: absolute; left: 16px; pointer-events: none;" class="material-symbols-outlined text-slate-400 group-focus-within:text-[#755634] transition-all text-[19px]">person</span>
+                <input id="identifierInput" type="text" required style="padding-left: 48px !important;"
+                       class="w-full bg-white/95 hover:bg-white pr-4 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs sm:text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal shadow-2xs" 
                        placeholder="เช่น KRU-001 หรือเบอร์โทรศัพท์">
               </div>
 
-              <!-- ลูกเล่นใหม่: ปุ่มเลือกชื่อเล่นด่วนเมื่ออยู่ในโหมดทดลองสอบฟรี -->
-              <div id="quickGuestNames" class="hidden pt-2 space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 block ml-0.5">⚡ หรือคลิกเลือกชื่อเล่นด่วน:</span>
+              <!-- ปุ่มเลือกชื่อเล่นด่วนเมื่ออยู่ในโหมดทดลองสอบฟรี -->
+              <div id="quickGuestNames" class="hidden pt-2.5 space-y-1.5">
+                <span class="text-[11px] font-bold text-slate-400 block ml-0.5">⚡ หรือคลิกเลือกชื่อเล่นด่วน:</span>
                 <div class="flex flex-wrap gap-1.5">
-                  <button type="button" onclick="fillQuickName('ครูมายด์ ✨')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-[11px] font-bold text-amber-900 active:scale-95 transition-all">ครูมายด์ ✨</button>
-                  <button type="button" onclick="fillQuickName('ครูเอิร์ธ 🚀')" class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-[11px] font-bold text-indigo-900 active:scale-95 transition-all">ครูเอิร์ธ 🚀</button>
-                  <button type="button" onclick="fillQuickName('ครูฟ้าใส 🌸')" class="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-[11px] font-bold text-rose-900 active:scale-95 transition-all">ครูฟ้าใส 🌸</button>
-                  <button type="button" onclick="fillQuickName('ครูภูมิ 🏆')" class="px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-[11px] font-bold text-emerald-900 active:scale-95 transition-all">ครูภูมิ 🏆</button>
+                  <button type="button" onclick="fillQuickName('ครูมายด์ ✨')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-xs font-bold text-amber-900 active:scale-95 transition-all cursor-pointer">ครูมายด์ ✨</button>
+                  <button type="button" onclick="fillQuickName('ครูเอิร์ธ 🚀')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-xs font-bold text-indigo-900 active:scale-95 transition-all cursor-pointer">ครูเอิร์ธ 🚀</button>
+                  <button type="button" onclick="fillQuickName('ครูฟ้าใส 🌸')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-xs font-bold text-rose-900 active:scale-95 transition-all cursor-pointer">ครูฟ้าใส 🌸</button>
+                  <button type="button" onclick="fillQuickName('ครูภูมิ 🏆')" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-xs font-bold text-emerald-900 active:scale-95 transition-all cursor-pointer">ครูภูมิ 🏆</button>
                 </div>
               </div>
             </div>
 
-            <!-- ช่องที่ 2: รหัสผ่าน (พับเก็บอัตโนมัติเมื่อเลือกโหมดทดลองสอบฟรี) -->
-            <div id="passwordFieldWrapper" class="space-y-4 overflow-hidden transition-all duration-300 max-h-44 opacity-100">
+            <!-- ช่องที่ 2: รหัสผ่าน (พับเก็บและซ่อนอัตโนมัติ 100% เมื่อเลือกโหมดทดลองสอบฟรี) -->
+            <div id="passwordFieldWrapper" class="space-y-4 overflow-hidden transition-all duration-300">
               <div>
                 <label class="block text-xs font-extrabold text-slate-700 mb-1.5 ml-0.5">รหัสผ่าน (Password)</label>
                 <div class="relative flex items-center group">
-                  <span class="material-symbols-outlined absolute left-3.5 text-slate-400 group-focus-within:text-[#755634] group-focus-within:scale-110 transition-all text-[19px]">lock</span>
+                  <!-- ไอคอนแม่กุญแจ: ล็อกอยู่ฝั่งซ้ายเท่านั้น -->
+                  <span id="lockIcon" style="position: absolute; left: 16px; pointer-events: none;" class="material-symbols-outlined text-slate-400 group-focus-within:text-[#755634] transition-all text-[19px]">lock</span>
+                  
                   <input id="passwordInput" type="password" required 
-                         class="w-full bg-white/95 hover:bg-white pl-10 pr-10 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs sm:text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal shadow-2xs" 
+                         style="padding-left: 48px !important; padding-right: 48px !important;"
+                         class="w-full bg-white/95 hover:bg-white py-3 sm:py-3.5 rounded-2xl border-2 border-slate-200/80 focus:border-[#755634] focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs sm:text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal shadow-2xs" 
                          placeholder="กรอกรหัสผ่านของคุณ">
-                  <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-slate-400 hover:text-[#755634] p-1 rounded-lg active:scale-90 transition-all">
-                    <span id="eyeIcon" class="material-symbols-outlined text-[18px] block">visibility_off</span>
+                  
+                  <!-- ปุ่มลูกตา: ล็อกอยู่ฝั่งขวาสุดเท่านั้น -->
+                  <button id="btnTogglePassword" type="button" onclick="togglePasswordVisibility()" 
+                          style="position: absolute; right: 14px; left: auto;" 
+                          class="text-slate-400 hover:text-[#755634] p-1.5 rounded-lg active:scale-90 transition-all cursor-pointer flex items-center justify-center">
+                    <span id="eyeIcon" style="left: auto !important;" class="material-symbols-outlined text-[20px] block">visibility_off</span>
                   </button>
                 </div>
               </div>
 
-              <div class="flex items-center justify-between text-xs px-0.5">
+              <div class="flex items-center justify-between text-xs lg:text-sm px-0.5">
                 <label class="flex items-center gap-2 cursor-pointer text-slate-600 font-semibold select-none">
                   <input type="checkbox" checked class="w-4 h-4 accent-[#755634] rounded-md cursor-pointer">
                   <span>จดจำฉันไว้ในระบบ</span>
                 </label>
-                <a href="https://web.facebook.com/profile.php?id=61595552216552" target="_blank" rel="noopener noreferrer" class="text-xs font-extrabold text-[#755634] hover:underline">ลืมรหัสผ่าน?</a>
+                <a href="https://web.facebook.com/profile.php?id=61595552216552" target="_blank" rel="noopener noreferrer" class="font-extrabold text-[#755634] hover:underline">ลืมรหัสผ่าน?</a>
               </div>
             </div>
 
             <!-- กล่องอธิบายสิทธิพิเศษเมื่อเลือกโหมด Guest -->
-            <div id="guestInfoBanner" class="hidden p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/95 via-teal-50/80 to-cyan-50/90 border-2 border-emerald-200/80 text-[11px] text-emerald-950 space-y-1 shadow-2xs">
+            <div id="guestInfoBanner" class="hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-50/95 via-teal-50/80 to-cyan-50/90 border-2 border-emerald-200/80 text-xs text-emerald-950 space-y-1 shadow-2xs">
               <div class="font-extrabold flex items-center gap-1.5 text-emerald-800">
-                <span class="material-symbols-outlined text-[17px] text-emerald-600">verified</span>
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
                 <span>โหมดทดลองสอบทันที (ไม่ต้องใช้รหัสผ่าน)</span>
               </div>
-              <p class="text-emerald-700/90 leading-relaxed pl-5 font-medium">
-                พิมพ์ชื่อเล่นหรือคลิกปุ่มชื่อด่วนด้านบน เพื่อเข้าไปทดลองทำข้อสอบพร้อมจับเวลาเสมือนจริงได้ทันที!
+              <p class="text-emerald-700/90 leading-relaxed pl-6 font-medium">
+                พิมพ์ชื่อเล่นหรือคลิกปุ่มชื่อด่วนด้านบน เพื่อเข้าไปทดลองทำข้อสอบ 5 วิชาหลักพร้อมเรดาร์วิเคราะห์ผลได้ทันที!
               </p>
             </div>
 
             <!-- ปุ่มกดเข้าสู่ระบบแบบ 3D Tactile + แสงวิ่ง Shimmer -->
             <button id="btnSubmitLogin" type="submit" 
-                    class="shimmer-effect relative overflow-hidden w-full mt-2 bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] hover:from-[#63482b] hover:to-[#755634] text-white py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex justify-center items-center gap-2 group">
+                    class="shimmer-effect relative overflow-hidden w-full mt-2 bg-gradient-to-r from-[#755634] via-[#8F683E] to-[#755634] hover:from-[#63482b] hover:to-[#755634] text-white py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg shadow-amber-900/20 border-b-4 border-[#4A351E] active:border-b-0 active:translate-y-1 transition-all flex justify-center items-center gap-2 group cursor-pointer">
               <span id="btnSubmitText">เข้าสู่ระบบทำข้อสอบ</span>
-              <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              <span class="material-symbols-outlined text-[19px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </button>
           </form>
 
         </div>
 
         <!-- 4. ส่วนท้ายด้านล่างการ์ด -->
-        <div class="stagger-4 text-center mt-4">
-          <div class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-2xs text-xs text-slate-600 font-medium">
+        <div class="stagger-4 text-center mt-5">
+          <div id="desktopFooterContact" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-white shadow-2xs text-xs text-slate-600 font-medium">
             <span>ยังไม่มีรหัสสมาชิก?</span>
-            <a href="https://web.facebook.com/profile.php?id=61595552216552" target="_blank" rel="noopener noreferrer" class="font-extrabold text-[#755634] hover:underline inline-flex items-center gap-0.5">
+            <a href="https://web.facebook.com/profile.php?id=61595552216552" target="_blank" rel="noopener noreferrer" class="font-extrabold text-[#755634] hover:underline inline-flex items-center gap-1">
               <span>ติดต่อขอรับรหัส</span>
-              <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+              <span class="material-symbols-outlined text-[15px]">open_in_new</span>
             </a>
           </div>
         </div>
@@ -561,7 +713,7 @@
       }
     }
 
-    // 2. สลับโหมดล็อกอิน (สไลด์แถบสีขาว + พับเก็บช่องรหัสผ่านสำหรับ Guest)
+    // 2. สลับโหมดล็อกอิน (สไลด์แถบสีขาว + ซ่อนช่องรหัสผ่านสำหรับ Guest 100%)
     function switchLoginMode(mode) {
       currentLoginMode = mode;
       const slidingBg = document.getElementById('slidingTabBg');
@@ -581,37 +733,44 @@
 
       if (mode === 'id') {
         slidingBg.style.transform = 'translateX(0%)';
-        tabId.className = 'relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200';
-        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200';
+        tabId.className = 'relative z-10 py-2.5 rounded-xl text-[#755634] flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer';
+        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer';
         
         label.innerText = 'รหัสประจำตัวผู้สอบ (Student ID)';
         input.placeholder = 'เช่น KRU-001 หรือเบอร์โทรศัพท์';
         input.value = '';
         icon.innerText = 'person';
         
-        passWrapper.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
-        passWrapper.classList.add('max-h-44', 'opacity-100');
-        passInput.required = true;
-        guestBanner.classList.add('hidden');
+        if (passWrapper) {
+          passWrapper.classList.remove('hidden');
+          passWrapper.style.display = 'block';
+        }
+        if (passInput) passInput.required = true;
+        if (guestBanner) guestBanner.classList.add('hidden');
         if (quickNames) quickNames.classList.add('hidden');
         if (topBar) topBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#755634] via-amber-500 to-orange-500 transition-all duration-500';
-        btnText.innerText = 'เข้าสู่ระบบทำข้อสอบ';
+        if (btnText) btnText.innerText = 'เข้าสู่ระบบทำข้อสอบ';
       } else {
         slidingBg.style.transform = 'translateX(100%)';
-        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-emerald-700 flex items-center justify-center gap-1.5 transition-colors duration-200';
-        tabId.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200';
+        tabGuest.className = 'relative z-10 py-2.5 rounded-xl text-emerald-700 flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer';
+        tabId.className = 'relative z-10 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer';
         
         label.innerText = 'ชื่อเล่นของคุณ (สำหรับแสดงบนหน้าจอ)';
         input.placeholder = 'พิมพ์ชื่อเล่น เช่น ครูมายด์, ครูเอิร์ธ...';
         icon.innerText = 'sentiment_satisfied';
         
-        passWrapper.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
-        passWrapper.classList.remove('max-h-44', 'opacity-100');
-        passInput.required = false;
-        guestBanner.classList.remove('hidden');
+        if (passWrapper) {
+          passWrapper.classList.add('hidden');
+          passWrapper.style.display = 'none';
+        }
+        if (passInput) {
+          passInput.required = false;
+          passInput.value = '';
+        }
+        if (guestBanner) guestBanner.classList.remove('hidden');
         if (quickNames) quickNames.classList.remove('hidden');
         if (topBar) topBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 transition-all duration-500';
-        btnText.innerText = 'เริ่มทดลองทำข้อสอบทันที';
+        if (btnText) btnText.innerText = 'เริ่มทดลองทำข้อสอบทันที';
       }
     }
 
@@ -659,7 +818,7 @@
       btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span><span>กำลังเตรียมห้องสอบ...</span>';
 
       try {
-        // กรณีที่ 1: โหมดทดลองสอบฟรี (Guest)
+        // กรณีที่ 1: โหมดทดลองสอบฟรี (Guest) -> กรอกแค่ชื่อแล้วเข้าหน้า trial-quiz.html ทันที
         if (currentLoginMode === 'guest') {
           const guestSessionToken = "sess_guest_" + Date.now();
           const guestProfile = {

@@ -260,6 +260,29 @@
           บันทึกการตั้งค่าหน้าแรก
         </button>
       </div>
+        <div class="flex items-center justify-between p-3 bg-amber-50/70 border border-amber-200 rounded-2xl">
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined text-amber-800 text-[20px]">shield</span>
+    <div>
+      <p class="text-xs font-bold text-gray-800">ระบบป้องกันคลังข้อสอบ (RLS Lock)</p>
+      <p class="text-[10px] text-gray-500">ปลดล็อกเฉพาะตอนจะอัปโหลด Excel หรือลบข้อสอบ</p>
+    </div>
+  </div>
+
+  <!-- ปุ่มสวิตช์แคปซูล -->
+  <div class="relative grid grid-cols-2 p-1 bg-gray-200/80 rounded-xl text-xs font-bold w-48 select-none">
+    <div id="rlsPillBg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-transform duration-300 ease-out"></div>
+    
+    <button type="button" onclick="setQuestionsLock(true)" id="btnRlsLock" class="relative z-10 py-1.5 rounded-lg text-emerald-800 flex items-center justify-center gap-1 transition-colors">
+      <span>🔒 ล็อก</span>
+    </button>
+    <button type="button" onclick="setQuestionsLock(false)" id="btnRlsUnlock" class="relative z-10 py-1.5 rounded-lg text-gray-500 flex items-center justify-center gap-1 transition-colors">
+      <span>🔓 ปลดล็อก</span>
+    </button>
+  </div>
+</div>
+
+
     </div>
   </div>
   <!-- ================= 🎯 กล่องจัดการชุดข้อสอบทดลองฟรี แยก 5 วิชา ================= -->
@@ -1201,6 +1224,9 @@
           </table>
         </div>
       </div>
+
+          
+
 
     </div>
   </div>
@@ -3803,6 +3829,31 @@ function selectSocialMascot(index) {
       imgEl.classList.add('hidden');
       if (badge) badge.innerText = 'ไม่แสดง';
     }
+  }
+}
+
+async function setQuestionsLock(shouldLock) {
+  const pill = document.getElementById('rlsPillBg');
+  const btnLock = document.getElementById('btnRlsLock');
+  const btnUnlock = document.getElementById('btnRlsUnlock');
+
+  try {
+    const { data, error } = await supabase.rpc('toggle_questions_lock', { enable_lock: shouldLock });
+    if (error) throw error;
+
+    if (shouldLock) {
+      pill.style.transform = 'translateX(0%)';
+      btnLock.className = 'relative z-10 py-1.5 rounded-lg text-emerald-800 font-extrabold flex items-center justify-center gap-1';
+      btnUnlock.className = 'relative z-10 py-1.5 rounded-lg text-gray-500 flex items-center justify-center gap-1';
+      alert('🔒 ล็อกคลังข้อสอบเรียบร้อยแล้ว (ปลอดภัยจากการถูกลบ)');
+    } else {
+      pill.style.transform = 'translateX(100%)';
+      btnUnlock.className = 'relative z-10 py-1.5 rounded-lg text-amber-800 font-extrabold flex items-center justify-center gap-1';
+      btnLock.className = 'relative z-10 py-1.5 rounded-lg text-gray-500 flex items-center justify-center gap-1';
+      alert('🔓 ปลดล็อกแล้ว สามารถอัปโหลดไฟล์ Excel หรือแก้ไขข้อสอบได้ตามปกติ');
+    }
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการสลับสถานะ: ' + err.message);
   }
 }
 </script>
